@@ -2,8 +2,10 @@ import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
+import { useConfirmModal } from "../../hooks/useConfirmModal";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
+import ConfirmModal from "../ui/ConfirmModal";
 
 interface ImpresaForm {
   name: string;
@@ -36,6 +38,7 @@ const AdminImpresePage = () => {
   const { tokens } = useAuthStore();
   const queryClient = useQueryClient();
   const { alerts, latestAlert, pushAlert } = useAdminAlerts();
+  const confirmModal = useConfirmModal();
   const [form, setForm] = useState<ImpresaForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -142,7 +145,15 @@ const AdminImpresePage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Eliminare definitivamente l'impresa?")) {
+    const confirmDelete = await confirmModal.confirm({
+      title: "Eliminare impresa?",
+      message: "Questa azione è irreversibile. L'impresa verrà rimossa definitivamente.",
+      confirmText: "Elimina",
+      cancelText: "Annulla",
+      variant: "danger"
+    });
+    
+    if (!confirmDelete) {
       return;
     }
 
@@ -299,6 +310,17 @@ const AdminImpresePage = () => {
         </div>
         <AdminActivityLog alerts={alerts} />
       </section>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        onConfirm={confirmModal.handleConfirm}
+        onCancel={confirmModal.handleCancel}
+      />
     </div>
   );
 };

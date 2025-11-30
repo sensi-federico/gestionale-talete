@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl, {
   EventData,
   Map as MapInstance,
@@ -10,8 +10,8 @@ import "maplibre-gl/dist/maplibre-gl.css";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const GeolocateControl = (maplibregl as any).GeolocateControl;
 
-// Stile OpenStreetMap con tiles reali
-const MAP_STYLE: maplibregl.StyleSpecification = {
+// Stile OpenStreetMap standard
+const OSM_STYLE: maplibregl.StyleSpecification = {
   version: 8,
   sources: {
     osm: {
@@ -36,6 +36,32 @@ const MAP_STYLE: maplibregl.StyleSpecification = {
   ]
 };
 
+// Stile satellite ESRI (gratuito)
+const SATELLITE_STYLE: maplibregl.StyleSpecification = {
+  version: 8,
+  sources: {
+    satellite: {
+      type: "raster",
+      tiles: [
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+      ],
+      tileSize: 256,
+      attribution: '&copy; Esri, Maxar, Earthstar Geographics'
+    }
+  },
+  layers: [
+    {
+      id: "satellite-tiles",
+      type: "raster",
+      source: "satellite",
+      minzoom: 0,
+      maxzoom: 19
+    }
+  ]
+};
+
+type MapType = "street" | "satellite";
+
 interface Map3DProps {
   value?: { lat: number; lon: number } | null;
   onChange?: (coords: { lat: number; lon: number }) => void;
@@ -43,8 +69,19 @@ interface Map3DProps {
 
 const Map3D = ({ value, onChange }: Map3DProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<MapInstance | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapRef = useRef<any>(null);
   const markerRef = useRef<MapMarker | null>(null);
+  const [mapType, setMapType] = useState<MapType>("street");
+
+  // Cambia tipo di mappa
+  const toggleMapType = () => {
+    const newType = mapType === "street" ? "satellite" : "street";
+    setMapType(newType);
+    if (mapRef.current) {
+      mapRef.current.setStyle(newType === "satellite" ? SATELLITE_STYLE : OSM_STYLE);
+    }
+  };
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) {
@@ -53,7 +90,7 @@ const Map3D = ({ value, onChange }: Map3DProps) => {
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: MAP_STYLE,
+      style: OSM_STYLE,
       center: value ? [value.lon, value.lat] : [12.4964, 41.9028],
       zoom: value ? 14 : 12,
       pitch: 0,
@@ -114,7 +151,52 @@ const Map3D = ({ value, onChange }: Map3DProps) => {
     }
   }, [value]);
 
-  return <div ref={containerRef} style={{ width: "100%", height: "300px", borderRadius: "12px" }} />;
+  // Ripristina marker dopo cambio stile
+  useEffect(() => {
+    if (!mapRef.current) return;
+    
+    const map = mapRef.current;
+    const handleStyleLoad = () => {
+      if (value && markerRef.current) {
+        markerRef.current.setLngLat([value.lon, value.lat]).addTo(map);
+      }
+    };
+
+    map.on("style.load", handleStyleLoad);
+    return () => {
+      map.off("style.load", handleStyleLoad);
+    };
+  }, [value]);
+
+  return (
+    <div className="map-container-wrapper">
+      <div ref={containerRef} style={{ width: "100%", height: "300px", borderRadius: "12px" }} />
+      <button 
+        type="button" 
+        className="map-type-toggle"
+        onClick={toggleMapType}
+        title={mapType === "street" ? "Passa a vista satellite" : "Passa a vista stradale"}
+      >
+        {mapType === "street" ? (
+          <>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              <path d="M2 12h20"/>
+            </svg>
+            Satellite
+          </>
+        ) : (
+          <>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
+              <path d="M3 6h18M3 12h18M3 18h18"/>
+            </svg>
+            Mappa
+          </>
+        )}
+      </button>
+    </div>
+  );
 };
 
 export default Map3D;

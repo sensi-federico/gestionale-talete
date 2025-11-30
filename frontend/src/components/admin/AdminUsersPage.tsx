@@ -2,8 +2,10 @@ import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
+import { useConfirmModal } from "../../hooks/useConfirmModal";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
+import ConfirmModal from "../ui/ConfirmModal";
 
 type UserRole = "operaio" | "admin";
 
@@ -26,9 +28,10 @@ const emptyForm = {
 };
 
 const AdminUsersPage = () => {
-  const { tokens } = useAuthStore();
+  const { tokens, user: currentUser } = useAuthStore();
   const queryClient = useQueryClient();
   const { alerts, latestAlert, pushAlert } = useAdminAlerts();
+  const confirmModal = useConfirmModal();
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -157,7 +160,24 @@ const AdminUsersPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const confirmDelete = window.confirm("Eliminare definitivamente l'utente?");
+    // Impedisci all'admin di eliminare se stesso
+    if (currentUser?.id === id) {
+      pushAlert({ 
+        type: "error", 
+        title: "Operazione non consentita", 
+        description: "Non puoi eliminare il tuo stesso account" 
+      });
+      return;
+    }
+
+    const confirmDelete = await confirmModal.confirm({
+      title: "Eliminare utente?",
+      message: "Questa azione è irreversibile. L'utente non potrà più accedere al sistema.",
+      confirmText: "Elimina",
+      cancelText: "Annulla",
+      variant: "danger"
+    });
+    
     if (!confirmDelete) {
       return;
     }
@@ -302,7 +322,8 @@ const AdminUsersPage = () => {
                         type="button"
                         className="button button--danger"
                         onClick={() => handleDelete(user.id)}
-                        disabled={deletingId === user.id}
+                        disabled={deletingId === user.id || currentUser?.id === user.id}
+                        title={currentUser?.id === user.id ? "Non puoi eliminare te stesso" : undefined}
                       >
                         {deletingId === user.id ? "Elimino..." : "Elimina"}
                       </button>
@@ -322,6 +343,17 @@ const AdminUsersPage = () => {
         </div>
         <AdminActivityLog alerts={alerts} />
       </section>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        onConfirm={confirmModal.handleConfirm}
+        onCancel={confirmModal.handleCancel}
+      />
     </div>
   );
 };

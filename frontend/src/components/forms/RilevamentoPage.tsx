@@ -269,16 +269,18 @@ const RilevamentoPage = () => {
             Note
             <textarea name="notes" rows={3} value={formState.notes} onChange={handleChange} />
           </label>
-          <label className="file-upload">
-            Foto (opzionale)
+          <label className="file-upload file-upload--camera">
+            📷 Scatta foto
             <input
               type="file"
               accept="image/*"
+              capture="environment"
               onChange={(event: ChangeEvent<HTMLInputElement>) => {
                 const file = event.target.files?.[0] ?? null;
                 setFotoFile(file);
               }}
             />
+            {fotoFile && <span className="file-name">✓ {fotoFile.name}</span>}
           </label>
           <div className="map-wrapper">
             <div className="map-header">

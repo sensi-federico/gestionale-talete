@@ -2,8 +2,10 @@ import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
+import { useConfirmModal } from "../../hooks/useConfirmModal";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
+import ConfirmModal from "../ui/ConfirmModal";
 
 interface ComuneForm {
   name: string;
@@ -30,6 +32,7 @@ const AdminComuniPage = () => {
   const { tokens } = useAuthStore();
   const queryClient = useQueryClient();
   const { alerts, latestAlert, pushAlert } = useAdminAlerts();
+  const confirmModal = useConfirmModal();
   const [form, setForm] = useState<ComuneForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,7 +129,15 @@ const AdminComuniPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Eliminare definitivamente il comune?")) {
+    const confirmDelete = await confirmModal.confirm({
+      title: "Eliminare comune?",
+      message: "Questa azione è irreversibile. Il comune verrà rimosso definitivamente.",
+      confirmText: "Elimina",
+      cancelText: "Annulla",
+      variant: "danger"
+    });
+    
+    if (!confirmDelete) {
       return;
     }
 
@@ -264,6 +275,17 @@ const AdminComuniPage = () => {
         </div>
         <AdminActivityLog alerts={alerts} />
       </section>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        onConfirm={confirmModal.handleConfirm}
+        onCancel={confirmModal.handleCancel}
+      />
     </div>
   );
 };
