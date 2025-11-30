@@ -4,7 +4,7 @@ import { useAuthStore } from "../../store/authStore";
 import { useLogout } from "../../hooks/useLogout";
 import OfflineSyncBanner from "../offline/OfflineSyncBanner";
 
-const basePath = import.meta.env.VITE_BASE_PATH || "/";
+const basePath = import.meta.env.BASE_URL || "/";
 
 const AppLayout = () => {
   const user = useAuthStore((state) => state.user);
@@ -31,8 +31,8 @@ const AppLayout = () => {
   const displayName = user.fullName?.trim() ? user.fullName : user.email;
   const readableRole = user.role === "admin" ? "Amministratore" : "Operaio";
 
-  // Costruisci il path del logo
-  const logoPath = `${basePath}logo/logo_talete.png`.replace(/\/\//g, "/");
+  // Costruisci il path del logo usando BASE_URL di Vite
+  const logoPath = `${basePath}logo/logo_talete.png`;
 
   return (
     <div className="app-shell">
@@ -73,6 +73,12 @@ const AppLayout = () => {
                   className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
                 >
                   Dashboard
+                </NavLink>
+                <NavLink
+                  to="/admin/rilevamenti"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Rilevamenti
                 </NavLink>
                 <NavLink
                   to="/admin/utenti"

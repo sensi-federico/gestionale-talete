@@ -7,6 +7,7 @@ import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminUsersPage from "./components/admin/AdminUsersPage";
 import AdminComuniPage from "./components/admin/AdminComuniPage";
 import AdminImpresePage from "./components/admin/AdminImpresePage";
+import AdminRilevazioniPage from "./components/admin/AdminRilevazioniPage";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import AppLayout from "./components/layout/AppLayout";
 import { useAuthStore } from "./store/authStore";
@@ -89,6 +90,7 @@ const App = () => {
             <Route path="admin">
               <Route index element={<Navigate to="panoramica" replace />} />
               <Route path="panoramica" element={<AdminDashboard />} />
+              <Route path="rilevamenti" element={<AdminRilevazioniPage />} />
               <Route path="utenti" element={<AdminUsersPage />} />
               <Route path="comuni" element={<AdminComuniPage />} />
               <Route path="imprese" element={<AdminImpresePage />} />
