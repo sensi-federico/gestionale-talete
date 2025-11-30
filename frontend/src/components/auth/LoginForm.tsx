@@ -36,10 +36,9 @@ const LoginForm = () => {
       <div className="auth-panel">
         <div className="auth-panel__info">
           <img src="/logo/logo_talete.png" alt="Talete Spa" className="auth-panel__logo" />
-          <h1>Benvenuto in Talete Spa</h1>
+          <h1>Gestionale Rilevamenti</h1>
           <p>
-            Accedi per coordinare squadre, monitorare i rilevamenti e mantenere il territorio
-            sotto controllo.
+            Accedi per coordinare squadre, monitorare i rilevamenti e gestire le attività sul territorio.
           </p>
         </div>
         <form className="auth-form" onSubmit={handleSubmit}>

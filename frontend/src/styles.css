@@ -2,16 +2,16 @@
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background-color: var(--color-background);
   color: #1c1c1c;
-  --color-primary: #1c7ed6;
-  --color-primary-dark: #1864ab;
-  --color-primary-light: #4dabf7;
-  --color-primary-softer: #a5d8ff;
-  --color-accent: #74c0fc;
-  --color-muted: #5c677d;
+  --color-primary: #0066cc;
+  --color-primary-dark: #004c99;
+  --color-primary-light: #3399ff;
+  --color-primary-softer: #cce5ff;
+  --color-accent: #0088ff;
+  --color-muted: #64748b;
   --color-surface: #ffffff;
-  --color-surface-alt: rgba(255, 255, 255, 0.92);
-  --color-border: rgba(28, 110, 185, 0.14);
-  --color-background: #f3f7fd;
+  --color-surface-alt: rgba(255, 255, 255, 0.98);
+  --color-border: rgba(0, 60, 120, 0.12);
+  --color-background: #f8fafc;
 }
 
 *,
@@ -22,8 +22,8 @@
 
 body {
   margin: 0;
-  background: linear-gradient(180deg, #f3f8ff 0%, #e8f1ff 100%);
-  color: rgba(16, 35, 61, 0.82);
+  background: #f8fafc;
+  color: #1e293b;
 }
 
 html,
@@ -47,8 +47,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(circle at 10% 10%, rgba(28, 126, 214, 0.08), transparent 45%),
-    radial-gradient(circle at 90% 0%, rgba(116, 192, 252, 0.12), transparent 55%);
+  background: #f8fafc;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -66,12 +65,11 @@ body {
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  background: var(--color-surface-alt);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.08);
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .app-header__top {
@@ -84,29 +82,23 @@ body {
 
 .app-header__brand {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 0.75rem;
 }
 
-.app-header__brand {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-}
-
 .app-brand-logo {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
-  filter: drop-shadow(0 10px 18px rgba(28, 126, 214, 0.25));
 }
 
 .app-subtitle {
-  font-size: 0.8rem;
-  color: rgba(16, 35, 61, 0.65);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
   letter-spacing: 0.02em;
-  text-align: center;
+  text-transform: uppercase;
 }
 
 .app-header__toggle {
@@ -1033,58 +1025,58 @@ th {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(28, 126, 214, 0.1) 0%, #f5f9ff 100%);
-  padding: 2rem;
+  background: #f8fafc;
+  padding: 1.5rem;
 }
 
 .auth-panel {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2.5rem;
+  gap: 2rem;
   align-items: center;
-  max-width: 880px;
-  width: min(880px, 100%);
+  max-width: 860px;
+  width: min(860px, 100%);
   padding: 2.5rem;
-  background: rgba(255, 255, 255, 0.94);
-  border-radius: 26px;
-  box-shadow: 0 28px 70px rgba(16, 24, 40, 0.16);
-  backdrop-filter: blur(16px);
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
 }
 
 .auth-panel__info {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  color: rgba(16, 35, 61, 0.76);
+  gap: 1rem;
+  color: #475569;
 }
 
 .auth-panel__logo {
-  width: 96px;
+  width: 120px;
   height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 15px 30px rgba(28, 126, 214, 0.25));
 }
 
 .auth-panel__info h1 {
   margin: 0;
-  font-size: 2rem;
-  line-height: 1.1;
-  color: var(--color-primary-dark);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #0f172a;
 }
 
 .auth-panel__info p {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1.6;
-  color: rgba(16, 35, 61, 0.7);
+  color: #64748b;
 }
 
 .auth-form {
-  background: rgba(255, 255, 255, 0.98);
+  background: #f8fafc;
   padding: 2rem;
-  border-radius: 20px;
-  border: 1px solid rgba(28, 110, 185, 0.12);
-  box-shadow: 0 20px 45px rgba(16, 24, 40, 0.12);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -1765,12 +1757,12 @@ button {
 }
 
 .map-picker__btn {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  border: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
   background: white;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1780,7 +1772,7 @@ button {
 
 .map-picker__btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .map-picker__btn:active {
@@ -1788,14 +1780,15 @@ button {
 }
 
 .map-picker__btn svg {
-  width: 28px;
-  height: 28px;
-  color: #374151;
+  width: 32px;
+  height: 32px;
+  color: #1e293b;
   stroke-width: 2.5;
 }
 
 .map-picker__btn--locate {
   background: var(--color-primary);
+  border-color: var(--color-primary-dark);
 }
 
 .map-picker__btn--locate svg {
@@ -2510,12 +2503,12 @@ button {
 }
 
 .map-picker__btn {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  border: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
   background: white;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -2526,7 +2519,7 @@ button {
 
 .map-picker__btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .map-picker__btn:active {
@@ -2534,14 +2527,15 @@ button {
 }
 
 .map-picker__btn svg {
-  width: 28px;
-  height: 28px;
-  color: #374151;
+  width: 32px;
+  height: 32px;
+  color: #1e293b;
   stroke-width: 2.5;
 }
 
 .map-picker__btn--locate {
   background: var(--color-primary);
+  border-color: var(--color-primary-dark);
 }
 
 .map-picker__btn--locate:hover {
@@ -2557,6 +2551,6 @@ button {
 }
 
 .map-picker__btn--toggle svg {
-  color: #374151;
-  stroke-width: 2;
+  color: #1e293b;
+  stroke-width: 2.5;
 }
