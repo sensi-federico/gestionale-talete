@@ -3,31 +3,12 @@
 <head>
   <meta charset="utf-8">
   <title>Gestionale Talete</title>
-  <script>
-    // Single Page Apps for GitHub Pages
-    // Gestisce il redirect per le SPA su GitHub Pages
-    (function() {
-      var segmentCount = 1; // Numero di segmenti del path da mantenere (es. /gestionale-talete)
-      var location = window.location;
-      var path = location.pathname.split('/').slice(segmentCount + 1).join('/');
-      var search = location.search;
-      var hash = location.hash;
-      
-      // Redirect con il path salvato dopo ?p=
-      location.replace(
-        location.protocol + '//' + location.host + 
-        '/gestionale-talete/' +
-        '?p=/' + path + 
-        (search ? '&' + search.slice(1) : '') +
-        hash
-      );
-    })();
-  </script>
+  <!-- GitHub Pages SPA redirect - usa meta refresh che non è bloccato da CSP -->
+  <meta http-equiv="refresh" content="0;url=/gestionale-talete/">
+  <link rel="canonical" href="https://sensi-federico.github.io/gestionale-talete/">
 </head>
 <body>
-  <noscript>
-    <meta http-equiv="refresh" content="0; url=/gestionale-talete/">
-  </noscript>
-  <p>Reindirizzamento...</p>
+  <p>Reindirizzamento in corso...</p>
+  <a href="/gestionale-talete/">Clicca qui se non vieni reindirizzato</a>
 </body>
 </html>
