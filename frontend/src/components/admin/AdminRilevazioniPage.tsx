@@ -16,8 +16,14 @@ interface Rilevamento {
   notes: string | null;
   rilevamento_date: string;
   rilevamento_time: string;
+  materiale_tubo: string | null;
+  diametro: string | null;
+  altri_interventi: string | null;
+  submit_timestamp: string | null;
+  submit_gps_lat: number | null;
+  submit_gps_lon: number | null;
   comune: { id: string; name: string; province: string } | null;
-  tipo_lavorazione: { id: string; name: string } | null;
+  tipo: { id: string; name: string } | null;
   impresa: { id: string; name: string } | null;
   operaio: { id: string; email: string; full_name: string } | null;
 }
@@ -28,13 +34,28 @@ interface User {
   full_name: string;
 }
 
+interface Comune {
+  id: string;
+  name: string;
+  province: string;
+}
+
+interface TipoLavorazione {
+  id: string;
+  name: string;
+}
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 const AdminRilevazioniPage = () => {
   const { tokens } = useAuthStore();
   const [selectedRilevamento, setSelectedRilevamento] = useState<Rilevamento | null>(null);
   const [filterOperaio, setFilterOperaio] = useState<string>("");
-  const [filterDate, setFilterDate] = useState<string>("");
+  const [filterComune, setFilterComune] = useState<string>("");
+  const [filterTipo, setFilterTipo] = useState<string>("");
+  const [filterDateFrom, setFilterDateFrom] = useState<string>("");
+  const [filterDateTo, setFilterDateTo] = useState<string>("");
+  const [isExporting, setIsExporting] = useState(false);
 
   const authorizedFetch = async <T,>(path: string) => {
     if (!tokens) throw new Error("Token mancante");
@@ -45,12 +66,23 @@ const AdminRilevazioniPage = () => {
     return (await response.json()) as T;
   };
 
+  // Build query params
+  const buildQueryParams = () => {
+    const params = new URLSearchParams();
+    if (filterOperaio) params.append("operaioId", filterOperaio);
+    if (filterComune) params.append("comuneId", filterComune);
+    if (filterTipo) params.append("tipoLavorazioneId", filterTipo);
+    if (filterDateFrom) params.append("dateFrom", filterDateFrom);
+    if (filterDateTo) params.append("dateTo", filterDateTo);
+    return params.toString();
+  };
+
   // Fetch rilevamenti
   const rilevazioniQuery = useQuery<{ rilevamenti: Rilevamento[] }>({
-    queryKey: ["admin", "rilevamenti", filterOperaio],
+    queryKey: ["admin", "rilevamenti", filterOperaio, filterComune, filterTipo, filterDateFrom, filterDateTo],
     queryFn: () => {
-      let url = "/admin/rilevamenti";
-      if (filterOperaio) url += `?operaioId=${filterOperaio}`;
+      const params = buildQueryParams();
+      const url = `/admin/rilevamenti${params ? `?${params}` : ""}`;
       return authorizedFetch<{ rilevamenti: Rilevamento[] }>(url);
     },
     enabled: Boolean(tokens)
@@ -63,13 +95,17 @@ const AdminRilevazioniPage = () => {
     enabled: Boolean(tokens)
   });
 
+  // Fetch comuni e tipi lavorazione per filtri
+  const referenceQuery = useQuery<{ comuni: Comune[]; tipiLavorazione: TipoLavorazione[] }>({
+    queryKey: ["admin", "reference"],
+    queryFn: () => authorizedFetch<{ comuni: Comune[]; tipiLavorazione: TipoLavorazione[] }>("/admin/reference"),
+    enabled: Boolean(tokens)
+  });
+
   const rilevamenti = rilevazioniQuery.data?.rilevamenti ?? [];
   const users = usersQuery.data?.users ?? [];
-
-  // Filtra per data client-side
-  const filteredRilevamenti = filterDate
-    ? rilevamenti.filter((r) => r.rilevamento_date === filterDate)
-    : rilevamenti;
+  const comuni = referenceQuery.data?.comuni ?? [];
+  const tipiLavorazione = referenceQuery.data?.tipiLavorazione ?? [];
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("it-IT", {
@@ -84,6 +120,47 @@ const AdminRilevazioniPage = () => {
   };
 
   const closeDetail = () => setSelectedRilevamento(null);
+
+  const resetFilters = () => {
+    setFilterOperaio("");
+    setFilterComune("");
+    setFilterTipo("");
+    setFilterDateFrom("");
+    setFilterDateTo("");
+  };
+
+  const hasFilters = filterOperaio || filterComune || filterTipo || filterDateFrom || filterDateTo;
+
+  // Export CSV
+  const handleExportCSV = async () => {
+    if (!tokens) return;
+    
+    setIsExporting(true);
+    try {
+      const params = buildQueryParams();
+      const url = `${API_BASE}/admin/rilevamenti/export${params ? `?${params}` : ""}`;
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${tokens.accessToken}` }
+      });
+      
+      if (!response.ok) throw new Error("Export fallito");
+      
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = `rilevamenti_${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error("Errore export:", error);
+      alert("Errore durante l'export");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Chiudi con ESC
   useEffect(() => {
@@ -107,10 +184,7 @@ const AdminRilevazioniPage = () => {
       <div className="rilevamenti-filters">
         <div className="filter-group">
           <label>Operaio</label>
-          <select
-            value={filterOperaio}
-            onChange={(e) => setFilterOperaio(e.target.value)}
-          >
+          <select value={filterOperaio} onChange={(e) => setFilterOperaio(e.target.value)}>
             <option value="">Tutti</option>
             {users.filter(u => u.full_name).map((u) => (
               <option key={u.id} value={u.id}>{u.full_name}</option>
@@ -118,28 +192,64 @@ const AdminRilevazioniPage = () => {
           </select>
         </div>
         <div className="filter-group">
-          <label>Data</label>
+          <label>Comune</label>
+          <select value={filterComune} onChange={(e) => setFilterComune(e.target.value)}>
+            <option value="">Tutti</option>
+            {comuni.map((c) => (
+              <option key={c.id} value={c.id}>{c.name} ({c.province})</option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-group">
+          <label>Tipo lavorazione</label>
+          <select value={filterTipo} onChange={(e) => setFilterTipo(e.target.value)}>
+            <option value="">Tutti</option>
+            {tipiLavorazione.map((t) => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-group">
+          <label>Data da</label>
           <input
             type="date"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
+            value={filterDateFrom}
+            onChange={(e) => setFilterDateFrom(e.target.value)}
           />
         </div>
-        {(filterOperaio || filterDate) && (
+        <div className="filter-group">
+          <label>Data a</label>
+          <input
+            type="date"
+            value={filterDateTo}
+            onChange={(e) => setFilterDateTo(e.target.value)}
+          />
+        </div>
+        {hasFilters && (
           <button
             type="button"
             className="button button--ghost"
-            onClick={() => { setFilterOperaio(""); setFilterDate(""); }}
+            onClick={resetFilters}
           >
-            Resetta filtri
+            ✕ Reset
           </button>
         )}
+        <div className="export-btn-wrapper">
+          <button 
+            type="button" 
+            className="button button--primary" 
+            onClick={handleExportCSV}
+            disabled={isExporting}
+          >
+            {isExporting ? "Export..." : "📥 Export CSV"}
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
       <div className="rilevamenti-stats">
         <div className="stat-pill">
-          <span className="stat-pill__value">{filteredRilevamenti.length}</span>
+          <span className="stat-pill__value">{rilevamenti.length}</span>
           <span className="stat-pill__label">Rilevamenti</span>
         </div>
       </div>
@@ -148,13 +258,13 @@ const AdminRilevazioniPage = () => {
       <div className="rilevamenti-list">
         {rilevazioniQuery.isLoading && <div className="loading-placeholder">Caricamento...</div>}
         
-        {!rilevazioniQuery.isLoading && filteredRilevamenti.length === 0 && (
+        {!rilevazioniQuery.isLoading && rilevamenti.length === 0 && (
           <div className="empty-state">
             <p>Nessun rilevamento trovato</p>
           </div>
         )}
 
-        {filteredRilevamenti.map((r) => (
+        {rilevamenti.map((r) => (
           <div
             key={r.id}
             className="rilevamento-card"
@@ -171,9 +281,10 @@ const AdminRilevazioniPage = () => {
               <span>{r.comune?.name} ({r.comune?.province})</span>
             </div>
             <div className="rilevamento-card__meta">
-              <span className="meta-tag">{r.tipo_lavorazione?.name || "—"}</span>
+              <span className="meta-tag">{r.tipo?.name || "—"}</span>
               <span className="meta-tag">{r.impresa?.name || "—"}</span>
               <span className="meta-tag">👷 {r.numero_operai}</span>
+              {r.materiale_tubo && <span className="meta-tag">{r.materiale_tubo}</span>}
             </div>
             <div className="rilevamento-card__operaio">
               Registrato da: <strong>{r.operaio?.full_name || r.operaio?.email || "—"}</strong>
@@ -198,7 +309,7 @@ const AdminRilevazioniPage = () => {
 
             <div className="rilevamento-modal__grid">
               <div className="detail-row">
-                <span className="detail-label">Data/Ora</span>
+                <span className="detail-label">Data/Ora rilevamento</span>
                 <span className="detail-value">
                   {formatDate(selectedRilevamento.rilevamento_date)} alle {formatTime(selectedRilevamento.rilevamento_time)}
                 </span>
@@ -211,7 +322,7 @@ const AdminRilevazioniPage = () => {
               </div>
               <div className="detail-row">
                 <span className="detail-label">Tipo lavorazione</span>
-                <span className="detail-value">{selectedRilevamento.tipo_lavorazione?.name || "—"}</span>
+                <span className="detail-value">{selectedRilevamento.tipo?.name || "—"}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-label">Impresa</span>
@@ -221,6 +332,24 @@ const AdminRilevazioniPage = () => {
                 <span className="detail-label">N° operai</span>
                 <span className="detail-value">{selectedRilevamento.numero_operai}</span>
               </div>
+              {selectedRilevamento.materiale_tubo && (
+                <div className="detail-row">
+                  <span className="detail-label">Materiale tubo</span>
+                  <span className="detail-value">{selectedRilevamento.materiale_tubo}</span>
+                </div>
+              )}
+              {selectedRilevamento.diametro && (
+                <div className="detail-row">
+                  <span className="detail-label">Diametro</span>
+                  <span className="detail-value">{selectedRilevamento.diametro}</span>
+                </div>
+              )}
+              {selectedRilevamento.altri_interventi && (
+                <div className="detail-row detail-row--full">
+                  <span className="detail-label">Altri interventi</span>
+                  <span className="detail-value">{selectedRilevamento.altri_interventi}</span>
+                </div>
+              )}
               <div className="detail-row">
                 <span className="detail-label">Registrato da</span>
                 <span className="detail-value">{selectedRilevamento.operaio?.full_name || selectedRilevamento.operaio?.email || "—"}</span>
@@ -232,16 +361,32 @@ const AdminRilevazioniPage = () => {
                 </div>
               )}
               <div className="detail-row">
-                <span className="detail-label">Coordinate GPS</span>
+                <span className="detail-label">Posizione mappa</span>
+                <span className="detail-value detail-value--mono">
+                  {selectedRilevamento.manual_lat 
+                    ? `${selectedRilevamento.manual_lat.toFixed(6)}, ${selectedRilevamento.manual_lon?.toFixed(6)}`
+                    : "Non specificata"}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">GPS dispositivo</span>
                 <span className="detail-value detail-value--mono">
                   {selectedRilevamento.gps_lat.toFixed(6)}, {selectedRilevamento.gps_lon.toFixed(6)}
                 </span>
               </div>
-              {selectedRilevamento.manual_lat && (
+              {selectedRilevamento.submit_timestamp && (
                 <div className="detail-row">
-                  <span className="detail-label">Coordinate manuali</span>
+                  <span className="detail-label">⏱️ Timestamp invio</span>
                   <span className="detail-value detail-value--mono">
-                    {selectedRilevamento.manual_lat.toFixed(6)}, {selectedRilevamento.manual_lon?.toFixed(6)}
+                    {new Date(selectedRilevamento.submit_timestamp).toLocaleString("it-IT")}
+                  </span>
+                </div>
+              )}
+              {selectedRilevamento.submit_gps_lat && (
+                <div className="detail-row">
+                  <span className="detail-label">📍 GPS al momento invio</span>
+                  <span className="detail-value detail-value--mono">
+                    {selectedRilevamento.submit_gps_lat.toFixed(6)}, {selectedRilevamento.submit_gps_lon?.toFixed(6)}
                   </span>
                 </div>
               )}

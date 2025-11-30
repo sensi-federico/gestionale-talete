@@ -56,6 +56,13 @@ const insertRilevamento = async (
     rilevamento_date: payload.rilevamentoDate,
     rilevamento_time: payload.rilevamentoTime,
     notes: payload.notes ?? null,
+    // Nuovi campi
+    materiale_tubo: payload.materialeTubo ?? null,
+    diametro: payload.diametro ?? null,
+    altri_interventi: payload.altriInterventi ?? null,
+    submit_timestamp: payload.submitTimestamp ?? new Date().toISOString(),
+    submit_gps_lat: payload.submitGpsLat ?? null,
+    submit_gps_lon: payload.submitGpsLon ?? null,
     sync_status: "synced"
   });
 
@@ -69,7 +76,7 @@ router.get("/", requireAuth(), async (req: AuthenticatedRequest, res: Response) 
   const query = supabaseAdmin
     .from("rilevamenti")
     .select(
-      `id, operaio_id, comune:comuni(name), impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, sync_status, created_at`
+      `id, operaio_id, comune:comuni(name), impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, materiale_tubo, diametro, altri_interventi, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at`
     )
     .order("created_at", { ascending: false });
 
@@ -106,6 +113,13 @@ type RilevamentoRequestBody = {
   rilevamentoDate: string;
   rilevamentoTime: string;
   notes?: string;
+  // Nuovi campi
+  materialeTubo?: string;
+  diametro?: string;
+  altriInterventi?: string;
+  submitTimestamp?: string;
+  submitGpsLat?: string;
+  submitGpsLon?: string;
 };
 
 router.post(
@@ -123,7 +137,9 @@ router.post(
       gpsLat: Number(req.body.gpsLat),
       gpsLon: Number(req.body.gpsLon),
       manualLat: req.body.manualLat ? Number(req.body.manualLat) : null,
-      manualLon: req.body.manualLon ? Number(req.body.manualLon) : null
+      manualLon: req.body.manualLon ? Number(req.body.manualLon) : null,
+      submitGpsLat: req.body.submitGpsLat ? Number(req.body.submitGpsLat) : undefined,
+      submitGpsLon: req.body.submitGpsLon ? Number(req.body.submitGpsLon) : undefined
     });
 
     if (!parseResult.success) {

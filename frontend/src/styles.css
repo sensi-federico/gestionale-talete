@@ -2225,8 +2225,319 @@ button {
   border-radius: 12px;
 }
 
+.empty-state__hint {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* ===== OPERAIO PAGE CON TABS - MOBILE FIRST ===== */
+.operaio-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 80px);
+  max-width: 100%;
+}
+
+/* Tab Navigation - Fixed bottom su mobile */
+.operaio-tabs {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  padding: 0.5rem 1rem;
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0));
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+}
+
+.operaio-tab {
+  flex: 1;
+  max-width: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 12px;
+}
+
+.operaio-tab svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2;
+}
+
+.operaio-tab:hover {
+  color: var(--color-primary);
+  background: rgba(28, 126, 214, 0.08);
+}
+
+.operaio-tab--active {
+  color: var(--color-primary);
+  background: rgba(28, 126, 214, 0.12);
+}
+
+.operaio-tab--active svg {
+  color: var(--color-primary);
+}
+
+/* Tab Content */
+.operaio-content {
+  flex: 1;
+  padding-bottom: 80px; /* Spazio per tab bar */
+}
+
+/* Nuovo rilevamento form wrapper */
+.nuovo-rilevamento {
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Miei rilevamenti */
+.miei-rilevamenti {
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.miei-rilevamenti__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.miei-rilevamenti__header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1f2937;
+}
+
+.miei-rilevamenti__count {
+  padding: 0.35rem 0.75rem;
+  background: rgba(28, 126, 214, 0.1);
+  color: var(--color-primary);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Sync badge per card */
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+}
+
+.sync-badge--ok {
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+}
+
+.sync-badge--pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+
+.rilevamento-card__badges {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ===== ADMIN RILEVAMENTI AGGIORNATA ===== */
+.admin-rilevamenti .rilevamenti-filters {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.admin-rilevamenti .filter-group {
+  width: 100%;
+}
+
+.admin-rilevamenti .filter-group select,
+.admin-rilevamenti .filter-group input {
+  width: 100%;
+  min-width: auto;
+}
+
+.export-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.5rem;
+}
+
+.export-btn-wrapper .button {
+  width: 100%;
+}
+
+/* ===== RESPONSIVE - TABLET E DESKTOP ===== */
+@media (min-width: 640px) {
+  /* Tab bar orizzontale in alto su tablet+ */
+  .operaio-tabs {
+    position: static;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin: 0 auto 1rem;
+    max-width: 400px;
+    border-top: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  .operaio-tab {
+    flex-direction: row;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    padding: 0.75rem 1.5rem;
+  }
+
+  .operaio-tab svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .operaio-content {
+    padding-bottom: 2rem;
+  }
+
+  /* Admin filtri in riga */
+  .admin-rilevamenti .rilevamenti-filters {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .admin-rilevamenti .filter-group {
+    width: auto;
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .admin-rilevamenti .filter-group select,
+  .admin-rilevamenti .filter-group input {
+    min-width: 150px;
+  }
+
+  .export-btn-wrapper {
+    flex: 0 0 auto;
+  }
+
+  .export-btn-wrapper .button {
+    width: auto;
+  }
+}
+
+@media (min-width: 768px) {
+  .nuovo-rilevamento,
+  .miei-rilevamenti {
+    padding: 1.5rem;
+  }
+
+  .operaio-tabs {
+    max-width: 500px;
+  }
+}
+
+/* Fix per il MapPicker - assicura che i pulsanti siano visibili */
+.map-picker {
+  position: relative;
+  border-radius: 12px;
+  overflow: visible;
+  background: #e5e7eb;
+}
+
+.map-picker__container {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.map-picker__controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.map-picker__btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.map-picker__btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.map-picker__btn:active {
+  transform: scale(0.95);
+}
+
+.map-picker__btn svg {
+  width: 22px;
+  height: 22px;
+  color: #374151;
+}
+
+.map-picker__btn--locate {
+  background: var(--color-primary);
+}
+
+.map-picker__btn--locate:hover {
+  background: var(--color-primary-dark);
+}
+
+.map-picker__btn--locate svg {
+  color: white;
+}
+
+.map-picker__btn--toggle {
+  background: white;
+}
+
+.map-picker__btn--toggle svg {
+  color: #374151;
 }

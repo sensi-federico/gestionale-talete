@@ -44,6 +44,14 @@ export interface RilevamentoBase {
   rilevamentoDate: string;
   rilevamentoTime: string;
   notes?: string;
+  // Nuovi campi dettagli lavoro
+  materialeTubo?: string;
+  diametro?: string;
+  altriInterventi?: string;
+  // Campi nascosti per tracking
+  submitTimestamp?: string;
+  submitGpsLat?: number;
+  submitGpsLon?: number;
 }
 
 export interface Rilevamento extends RilevamentoBase {

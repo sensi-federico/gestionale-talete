@@ -291,22 +291,38 @@ router.delete("/imprese/:id", requireAuth(["admin"]), async (req: AuthenticatedR
 });
 
 router.get("/rilevamenti", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
-  // Supporta filtro per operaio_id via query string: ?operaioId=uuid
+  // Supporta filtri via query string
   const operaioId = req.query.operaioId as string | undefined;
+  const comuneId = req.query.comuneId as string | undefined;
+  const tipoLavorazioneId = req.query.tipoLavorazioneId as string | undefined;
+  const dateFrom = req.query.dateFrom as string | undefined;
+  const dateTo = req.query.dateTo as string | undefined;
 
   let query = supabaseAdmin
     .from("rilevamenti")
     .select(
-      `id, operaio_id, via, numero_civico, numero_operai, foto_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, sync_status, created_at, updated_at,
-      comune:comuni(name),
-      impresa:imprese(name),
-      tipo:tipi_lavorazione(name),
+      `id, operaio_id, via, numero_civico, numero_operai, foto_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, materiale_tubo, diametro, altri_interventi, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at, updated_at,
+      comune:comuni(id, name, province),
+      impresa:imprese(id, name),
+      tipo:tipi_lavorazione(id, name),
       operaio:users(id, email, full_name)`
     )
     .order("created_at", { ascending: false });
 
   if (operaioId) {
     query = query.eq("operaio_id", operaioId);
+  }
+  if (comuneId) {
+    query = query.eq("comune_id", comuneId);
+  }
+  if (tipoLavorazioneId) {
+    query = query.eq("tipo_lavorazione_id", tipoLavorazioneId);
+  }
+  if (dateFrom) {
+    query = query.gte("rilevamento_date", dateFrom);
+  }
+  if (dateTo) {
+    query = query.lte("rilevamento_date", dateTo);
   }
 
   const { data, error } = await query;
@@ -316,8 +332,118 @@ router.get("/rilevamenti", requireAuth(["admin"]), async (req: AuthenticatedRequ
     return res.status(500).json({ message: error.message });
   }
 
-  logger.info("Lista rilevamenti recuperata", { count: data?.length ?? 0, filteredByOperaio: !!operaioId });
+  logger.info("Lista rilevamenti recuperata", { 
+    count: data?.length ?? 0, 
+    filteredByOperaio: !!operaioId,
+    filteredByComune: !!comuneId,
+    filteredByTipo: !!tipoLavorazioneId
+  });
   return res.json({ rilevamenti: data });
+});
+
+// Export CSV rilevamenti
+router.get("/rilevamenti/export", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const operaioId = req.query.operaioId as string | undefined;
+  const comuneId = req.query.comuneId as string | undefined;
+  const tipoLavorazioneId = req.query.tipoLavorazioneId as string | undefined;
+  const dateFrom = req.query.dateFrom as string | undefined;
+  const dateTo = req.query.dateTo as string | undefined;
+
+  let query = supabaseAdmin
+    .from("rilevamenti")
+    .select(
+      `id, via, numero_civico, numero_operai, foto_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, materiale_tubo, diametro, altri_interventi, submit_timestamp, submit_gps_lat, submit_gps_lon, created_at,
+      comune:comuni(name, province),
+      impresa:imprese(name),
+      tipo:tipi_lavorazione(name),
+      operaio:users(email, full_name)`
+    )
+    .order("rilevamento_date", { ascending: false });
+
+  if (operaioId) query = query.eq("operaio_id", operaioId);
+  if (comuneId) query = query.eq("comune_id", comuneId);
+  if (tipoLavorazioneId) query = query.eq("tipo_lavorazione_id", tipoLavorazioneId);
+  if (dateFrom) query = query.gte("rilevamento_date", dateFrom);
+  if (dateTo) query = query.lte("rilevamento_date", dateTo);
+
+  const { data, error } = await query;
+
+  if (error) {
+    logger.error("Errore export rilevamenti", { message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+
+  // Genera CSV
+  const headers = [
+    "Data Rilevamento",
+    "Ora Rilevamento", 
+    "Comune",
+    "Provincia",
+    "Via",
+    "Numero Civico",
+    "Tipo Lavorazione",
+    "Impresa",
+    "Numero Operai",
+    "Materiale Tubo",
+    "Diametro",
+    "Altri Interventi",
+    "Note",
+    "Operaio",
+    "Email Operaio",
+    "GPS Lat",
+    "GPS Lon",
+    "Posizione Manuale Lat",
+    "Posizione Manuale Lon",
+    "Timestamp Invio",
+    "GPS Invio Lat",
+    "GPS Invio Lon",
+    "Foto URL",
+    "Data Creazione"
+  ];
+
+  const escapeCSV = (value: unknown): string => {
+    if (value === null || value === undefined) return "";
+    const str = String(value);
+    if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const rows = (data ?? []).map((r) => [
+    r.rilevamento_date,
+    r.rilevamento_time,
+    (r.comune as { name?: string })?.name ?? "",
+    (r.comune as { province?: string })?.province ?? "",
+    r.via,
+    r.numero_civico,
+    (r.tipo as { name?: string })?.name ?? "",
+    (r.impresa as { name?: string })?.name ?? "",
+    r.numero_operai,
+    r.materiale_tubo,
+    r.diametro,
+    r.altri_interventi,
+    r.notes,
+    (r.operaio as { full_name?: string })?.full_name ?? "",
+    (r.operaio as { email?: string })?.email ?? "",
+    r.gps_lat,
+    r.gps_lon,
+    r.manual_lat,
+    r.manual_lon,
+    r.submit_timestamp,
+    r.submit_gps_lat,
+    r.submit_gps_lon,
+    r.foto_url,
+    r.created_at
+  ].map(escapeCSV).join(","));
+
+  const csv = [headers.join(","), ...rows].join("\n");
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="rilevamenti_${new Date().toISOString().split("T")[0]}.csv"`);
+  
+  logger.info("Export CSV generato", { rows: data?.length ?? 0 });
+  return res.send(csv);
 });
 
 export default router;

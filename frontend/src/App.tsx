@@ -2,7 +2,7 @@ import { useCallback, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { OfflineRilevamento } from "@shared/types";
 import LoginForm from "./components/auth/LoginForm";
-import RilevamentoPage from "./components/forms/RilevamentoPage";
+import OperaioPage from "./components/operaio/OperaioPage";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminUsersPage from "./components/admin/AdminUsersPage";
 import AdminComuniPage from "./components/admin/AdminComuniPage";
@@ -19,7 +19,7 @@ const HomeRoute = () => {
   if (role === "admin") {
     return <Navigate to="/admin/panoramica" replace />;
   }
-  return <RilevamentoPage />;
+  return <OperaioPage />;
 };
 
 const App = () => {
@@ -50,6 +50,25 @@ const App = () => {
       formData.append("rilevamentoTime", record.rilevamentoTime);
       if (record.notes) {
         formData.append("notes", record.notes);
+      }
+      // Nuovi campi
+      if (record.materialeTubo) {
+        formData.append("materialeTubo", record.materialeTubo);
+      }
+      if (record.diametro) {
+        formData.append("diametro", record.diametro);
+      }
+      if (record.altriInterventi) {
+        formData.append("altriInterventi", record.altriInterventi);
+      }
+      if (record.submitTimestamp) {
+        formData.append("submitTimestamp", record.submitTimestamp);
+      }
+      if (record.submitGpsLat) {
+        formData.append("submitGpsLat", String(record.submitGpsLat));
+      }
+      if (record.submitGpsLon) {
+        formData.append("submitGpsLon", String(record.submitGpsLon));
       }
       if (record.fileBlob) {
         formData.append("foto", record.fileBlob, `${record.localId}.webp`);
