@@ -309,9 +309,32 @@ const AdminRilevazioniPage = () => {
 
             <div className="rilevamento-modal__grid">
               <div className="detail-row">
-                <span className="detail-label">Data/Ora rilevamento</span>
+                <span className="detail-label">📅 Data/Ora rilevamento</span>
                 <span className="detail-value">
                   {formatDate(selectedRilevamento.rilevamento_date)} alle {formatTime(selectedRilevamento.rilevamento_time)}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">⏱️ Data/Ora registrazione</span>
+                <span className="detail-value">
+                  {selectedRilevamento.submit_timestamp 
+                    ? new Date(selectedRilevamento.submit_timestamp).toLocaleString("it-IT", {
+                        day: "2-digit",
+                        month: "short", 
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                      })
+                    : selectedRilevamento.created_at 
+                      ? new Date(selectedRilevamento.created_at).toLocaleString("it-IT", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric", 
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        })
+                      : "—"
+                  }
                 </span>
               </div>
               <div className="detail-row">
@@ -361,7 +384,7 @@ const AdminRilevazioniPage = () => {
                 </div>
               )}
               <div className="detail-row">
-                <span className="detail-label">Posizione mappa</span>
+                <span className="detail-label">📍 Posizione mappa</span>
                 <span className="detail-value detail-value--mono">
                   {selectedRilevamento.manual_lat 
                     ? `${selectedRilevamento.manual_lat.toFixed(6)}, ${selectedRilevamento.manual_lon?.toFixed(6)}`
@@ -369,19 +392,11 @@ const AdminRilevazioniPage = () => {
                 </span>
               </div>
               <div className="detail-row">
-                <span className="detail-label">GPS dispositivo</span>
+                <span className="detail-label">📡 GPS dispositivo</span>
                 <span className="detail-value detail-value--mono">
                   {selectedRilevamento.gps_lat.toFixed(6)}, {selectedRilevamento.gps_lon.toFixed(6)}
                 </span>
               </div>
-              {selectedRilevamento.submit_timestamp && (
-                <div className="detail-row">
-                  <span className="detail-label">⏱️ Timestamp invio</span>
-                  <span className="detail-value detail-value--mono">
-                    {new Date(selectedRilevamento.submit_timestamp).toLocaleString("it-IT")}
-                  </span>
-                </div>
-              )}
               {selectedRilevamento.submit_gps_lat && (
                 <div className="detail-row">
                   <span className="detail-label">📍 GPS al momento invio</span>
