@@ -56,24 +56,25 @@ router.get(
 );
 
 router.get("/users", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
-  const result = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
+  // Legge da public.users (sincronizzata con auth.users via trigger)
+  const { data, error } = await supabaseAdmin
+    .from("users")
+    .select("id, email, full_name, role, created_at, updated_at")
+    .order("created_at", { ascending: false });
 
-  if (result.error) {
-    logger.error("Errore recupero utenti", { message: result.error.message });
+  if (error) {
+    logger.error("Errore recupero utenti", { message: error.message });
     return res.status(500).json({ message: "Impossibile recuperare gli utenti" });
   }
 
-  const users = (result.data?.users ?? []).map((user) => {
-    const metadata = user.user_metadata ?? {};
-    return {
-      id: user.id,
-      email: user.email ?? "",
-      fullName: metadata.full_name ?? metadata.fullName ?? "",
-      role: (metadata.role ?? "operaio") as "operaio" | "admin",
-      createdAt: user.created_at ?? null,
-      lastSignInAt: user.last_sign_in_at ?? null
-    };
-  });
+  const users = (data ?? []).map((user) => ({
+    id: user.id,
+    email: user.email ?? "",
+    fullName: user.full_name ?? "",
+    role: (user.role ?? "operaio") as "operaio" | "admin",
+    createdAt: user.created_at ?? null,
+    updatedAt: user.updated_at ?? null
+  }));
 
   logger.info("Lista utenti recuperata", { count: users.length, requesterId: req.user?.id });
   return res.json({ users });
@@ -109,14 +110,24 @@ router.put("/users/:id", requireAuth(["admin"]), async (req: AuthenticatedReques
     return res.status(500).json({ message: "Impossibile aggiornare l'utente" });
   }
 
-  const metadata = data.user.user_metadata ?? {};
+  // Aggiorna anche public.users per coerenza
+  await supabaseAdmin
+    .from("users")
+    .update({
+      email: payload.email,
+      full_name: payload.fullName,
+      role: payload.role,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", req.params.id);
+
   const updatedUser = {
     id: data.user.id,
-    email: data.user.email ?? payload.email,
-    fullName: metadata.full_name ?? metadata.fullName ?? payload.fullName,
-    role: (metadata.role ?? payload.role) as "operaio" | "admin",
+    email: payload.email,
+    fullName: payload.fullName,
+    role: payload.role as "operaio" | "admin",
     createdAt: data.user.created_at ?? null,
-    lastSignInAt: data.user.last_sign_in_at ?? null
+    updatedAt: new Date().toISOString()
   };
 
   logger.info("Utente aggiornato", { userId: updatedUser.id, requesterId: req.user?.id });
@@ -279,23 +290,33 @@ router.delete("/imprese/:id", requireAuth(["admin"]), async (req: AuthenticatedR
   return res.status(204).send();
 });
 
-router.get("/rilevamenti", requireAuth(["admin"]), async (_req: Request, res: Response) => {
-  const { data, error } = await supabaseAdmin
+router.get("/rilevamenti", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  // Supporta filtro per operaio_id via query string: ?operaioId=uuid
+  const operaioId = req.query.operaioId as string | undefined;
+
+  let query = supabaseAdmin
     .from("rilevamenti")
     .select(
       `id, operaio_id, via, numero_civico, numero_operai, foto_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, sync_status, created_at, updated_at,
       comune:comuni(name),
       impresa:imprese(name),
-      tipo:tipi_lavorazione(name)`
+      tipo:tipi_lavorazione(name),
+      operaio:users(id, email, full_name)`
     )
     .order("created_at", { ascending: false });
+
+  if (operaioId) {
+    query = query.eq("operaio_id", operaioId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     logger.error("Errore recupero rilevamenti", { message: error.message });
     return res.status(500).json({ message: error.message });
   }
 
-  logger.info("Lista rilevamenti recuperata", { count: data?.length ?? 0 });
+  logger.info("Lista rilevamenti recuperata", { count: data?.length ?? 0, filteredByOperaio: !!operaioId });
   return res.json({ rilevamenti: data });
 });
 
