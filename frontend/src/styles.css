@@ -30,6 +30,17 @@ html,
 body {
   max-width: 100%;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Assicura scroll su mobile */
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  overflow-y: auto;
 }
 
 .app-shell {
@@ -38,12 +49,15 @@ body {
   flex-direction: column;
   background: radial-gradient(circle at 10% 10%, rgba(28, 126, 214, 0.08), transparent 45%),
     radial-gradient(circle at 90% 0%, rgba(116, 192, 252, 0.12), transparent 55%);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 
 .app-shell__main {
   flex: 1;
   padding: 1.5rem 1rem 3rem;
+  overflow: visible;
 }
 
 .app-header {
@@ -2241,8 +2255,10 @@ button {
 .operaio-page {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 80px);
+  min-height: 100%;
   max-width: 100%;
+  padding-bottom: 70px; /* Spazio per tab bar fissa */
+  box-sizing: border-box;
 }
 
 /* Tab Navigation - Fixed bottom su mobile */
@@ -2304,7 +2320,8 @@ button {
 /* Tab Content */
 .operaio-content {
   flex: 1;
-  padding-bottom: 80px; /* Spazio per tab bar */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Nuovo rilevamento form wrapper */
@@ -2313,6 +2330,8 @@ button {
   width: 100%;
   margin: 0 auto;
   padding: 1rem;
+  padding-bottom: 1rem;
+  box-sizing: border-box;
 }
 
 /* Miei rilevamenti */
@@ -2321,6 +2340,8 @@ button {
   width: 100%;
   margin: 0 auto;
   padding: 1rem;
+  padding-bottom: 1rem;
+  box-sizing: border-box;
 }
 
 .miei-rilevamenti__header {
@@ -2412,6 +2433,10 @@ button {
     border-top: none;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  }
+  
+  .operaio-page {
+    padding-bottom: 0; /* Rimuovi padding bottom su desktop */
   }
 
   .operaio-tab {

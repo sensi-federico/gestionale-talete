@@ -186,8 +186,8 @@ const AdminRilevazioniPage = () => {
           <label>Operaio</label>
           <select value={filterOperaio} onChange={(e) => setFilterOperaio(e.target.value)}>
             <option value="">Tutti</option>
-            {users.filter(u => u.full_name).map((u) => (
-              <option key={u.id} value={u.id}>{u.full_name}</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>{u.full_name || u.email}</option>
             ))}
           </select>
         </div>
