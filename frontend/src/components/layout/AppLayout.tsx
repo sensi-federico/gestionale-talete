@@ -112,6 +112,13 @@ const AppLayout = () => {
       <main className="app-shell__main">
         <Outlet />
       </main>
+      <footer className="app-footer">
+        <div className="app-footer__content">
+          <span className="app-footer__copyright">© {new Date().getFullYear()} Talete Spa</span>
+          <span className="app-footer__separator">•</span>
+          <span className="app-footer__version">v1.0</span>
+        </div>
+      </footer>
     </div>
   );
 };

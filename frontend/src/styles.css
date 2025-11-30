@@ -56,7 +56,7 @@ body {
 .app-shell__main {
   flex: 1;
   min-height: 0; /* Importante per permettere scroll in flex child */
-  padding: 1.5rem 1rem 3rem;
+  padding: 1rem 1rem 1.5rem;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -241,6 +241,40 @@ body {
   font-size: 0.8rem;
   color: var(--color-muted);
   text-transform: capitalize;
+}
+
+/* ===== APP FOOTER ===== */
+.app-footer {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+}
+
+.app-footer__content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.app-footer__separator {
+  color: #cbd5e1;
+}
+
+.app-footer__copyright {
+  font-weight: 500;
+}
+
+.app-footer__version {
+  font-family: "SF Mono", "Monaco", monospace;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
+  background: #f1f5f9;
+  border-radius: 4px;
 }
 
 a {
@@ -2331,7 +2365,7 @@ textarea.form-field__input {
 .detail-page {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 9999; /* Sopra tutto incluso header */
   display: flex;
   flex-direction: column;
   background: #f8fafc;
@@ -2354,25 +2388,28 @@ textarea.form-field__input {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1rem;
+  padding-top: calc(0.75rem + env(safe-area-inset-top, 0));
   background: white;
   border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   flex-shrink: 0;
+  min-height: 56px;
 }
 
 .detail-page__back {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.75rem;
-  border: none;
-  background: #f1f5f9;
-  border-radius: 8px;
-  color: #475569;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 10px;
+  color: var(--color-primary);
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .detail-page__back svg {
@@ -2381,8 +2418,14 @@ textarea.form-field__input {
 }
 
 .detail-page__back:hover {
-  background: #e2e8f0;
-  color: #1e293b;
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  transform: translateX(-2px);
+}
+
+.detail-page__back:active {
+  transform: translateX(-1px);
 }
 
 .detail-page__title {
