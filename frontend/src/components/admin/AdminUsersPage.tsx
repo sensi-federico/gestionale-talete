@@ -1,0 +1,329 @@
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuthStore } from "../../store/authStore";
+import { useAdminAlerts } from "../../hooks/useAdminAlerts";
+import AdminStatusBanner from "./AdminStatusBanner";
+import AdminActivityLog from "./AdminActivityLog";
+
+type UserRole = "operaio" | "admin";
+
+interface AdminUser {
+  id: string;
+  email: string;
+  fullName: string;
+  role: UserRole;
+  createdAt: string | null;
+  lastSignInAt: string | null;
+}
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
+
+const emptyForm = {
+  email: "",
+  fullName: "",
+  password: "",
+  role: "operaio" as UserRole
+};
+
+const AdminUsersPage = () => {
+  const { tokens } = useAuthStore();
+  const queryClient = useQueryClient();
+  const { alerts, latestAlert, pushAlert } = useAdminAlerts();
+  const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const authorizedFetch = async <T,>(path: string, init?: RequestInit) => {
+    if (!tokens) {
+      throw new Error("Token mancante");
+    }
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${tokens.accessToken}`,
+      ...(init?.headers as Record<string, string> | undefined)
+    };
+
+    if (init?.body) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    const response = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      headers
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || "Richiesta fallita");
+    }
+
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    return (await response.json()) as T;
+  };
+
+  const usersQuery = useQuery<{ users: AdminUser[] }>({
+    queryKey: ["admin", "users"],
+    queryFn: () => authorizedFetch<{ users: AdminUser[] }>("/admin/users"),
+    enabled: Boolean(tokens)
+  });
+
+  useEffect(() => {
+    if (usersQuery.isError) {
+      const message = usersQuery.error instanceof Error ? usersQuery.error.message : "Errore";
+      pushAlert({ type: "error", title: "Caricamento utenti fallito", description: message });
+    }
+  }, [usersQuery.isError, usersQuery.error, pushAlert]);
+
+  const users = useMemo(() => usersQuery.data?.users ?? [], [usersQuery.data]);
+
+  const resetForm = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!tokens) {
+      pushAlert({ type: "error", title: "Sessione scaduta", description: "Accedi nuovamente" });
+      return;
+    }
+
+    if (!editingId && form.password.trim().length < 8) {
+      pushAlert({
+        type: "error",
+        title: "Password troppo corta",
+        description: "La password deve contenere almeno 8 caratteri"
+      });
+      return;
+    }
+
+    if (editingId && form.password && form.password.trim().length > 0 && form.password.trim().length < 8) {
+      pushAlert({
+        type: "error",
+        title: "Password troppo corta",
+        description: "La nuova password deve contenere almeno 8 caratteri"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (editingId) {
+        const payload = {
+          email: form.email,
+          fullName: form.fullName,
+          role: form.role,
+          ...(form.password ? { password: form.password } : {})
+        };
+        await authorizedFetch(`/admin/users/${editingId}`, {
+          method: "PUT",
+          body: JSON.stringify(payload)
+        });
+        pushAlert({ type: "success", title: "Utente aggiornato" });
+      } else {
+        await authorizedFetch("/auth/users", {
+          method: "POST",
+          body: JSON.stringify(form)
+        });
+        pushAlert({ type: "success", title: "Utente creato" });
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      resetForm();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Errore";
+      pushAlert({
+        type: "error",
+        title: editingId ? "Aggiornamento fallito" : "Creazione fallita",
+        description: message
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = (user: AdminUser) => {
+    setEditingId(user.id);
+    setForm({
+      email: user.email,
+      fullName: user.fullName,
+      password: "",
+      role: user.role
+    });
+  };
+
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("Eliminare definitivamente l'utente?");
+    if (!confirmDelete) {
+      return;
+    }
+
+    setDeletingId(id);
+    try {
+      await authorizedFetch(`/admin/users/${id}`, { method: "DELETE" });
+      await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      pushAlert({ type: "success", title: "Utente eliminato" });
+      if (editingId === id) {
+        resetForm();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Errore";
+      pushAlert({ type: "error", title: "Eliminazione fallita", description: message });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const formatDateTime = (value: string | null) => {
+    if (!value) {
+      return "Mai";
+    }
+    return new Date(value).toLocaleString("it-IT", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  };
+
+  return (
+    <div className="page-container admin-dashboard">
+      <header className="page-heading">
+        <div>
+          <h1>Gestione utenti</h1>
+          <p>Crea, modifica ed elimina gli account operativi del gestionale.</p>
+        </div>
+      </header>
+
+      <AdminStatusBanner alert={latestAlert} />
+
+      <section className="card card--form">
+        <div className="card-heading">
+          <h2>{editingId ? "Modifica utente" : "Nuovo utente"}</h2>
+          <p>Compila i campi per {editingId ? "aggiornare" : "creare"} le credenziali di accesso.</p>
+        </div>
+        <form onSubmit={handleSubmit} className="admin-form">
+          <input
+            placeholder="Nome completo"
+            value={form.fullName}
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+              setForm((prev) => ({ ...prev, fullName: event.target.value }))
+            }
+            required
+          />
+          <input
+            placeholder="Email"
+            type="email"
+            value={form.email}
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+              setForm((prev) => ({ ...prev, email: event.target.value }))
+            }
+            required
+          />
+          <div className="form-grid">
+            <input
+              placeholder={editingId ? "Nuova password (min 8 caratteri)" : "Password temporanea (min 8 caratteri)"}
+              type="password"
+              value={form.password}
+              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                setForm((prev) => ({ ...prev, password: event.target.value }))
+              }
+              required={!editingId}
+            />
+            <select
+              value={form.role}
+              onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+                setForm((prev) => ({ ...prev, role: event.target.value as UserRole }))
+              }
+            >
+              <option value="operaio">Operaio</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div className="heading-actions">
+            <button type="submit" className="button button--primary" disabled={isSubmitting}>
+              {editingId ? "Aggiorna utente" : "Crea utente"}
+            </button>
+            {editingId && (
+              <button type="button" className="button button--ghost" onClick={resetForm} disabled={isSubmitting}>
+                Annulla modifica
+              </button>
+            )}
+          </div>
+        </form>
+      </section>
+
+      <section className="card card--table">
+        <div className="table-header">
+          <div>
+            <h2>Utenti registrati</h2>
+            <p>Elenco completo degli account con ruolo e ultimo accesso.</p>
+          </div>
+        </div>
+        <div className="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Ruolo</th>
+                <th>Ultimo accesso</th>
+                <th>Azione</th>
+              </tr>
+            </thead>
+            <tbody>
+              {usersQuery.isLoading && (
+                <tr>
+                  <td colSpan={5}>Caricamento...</td>
+                </tr>
+              )}
+              {!usersQuery.isLoading && users.length === 0 && (
+                <tr>
+                  <td colSpan={5}>Nessun utente presente.</td>
+                </tr>
+              )}
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td data-label="Nome">{user.fullName || "—"}</td>
+                  <td data-label="Email">{user.email}</td>
+                  <td data-label="Ruolo">{user.role}</td>
+                  <td data-label="Ultimo accesso">{formatDateTime(user.lastSignInAt)}</td>
+                  <td data-label="Azione">
+                    <div className="table-actions">
+                      <button type="button" className="button button--ghost" onClick={() => handleEdit(user)}>
+                        Modifica
+                      </button>
+                      <button
+                        type="button"
+                        className="button button--danger"
+                        onClick={() => handleDelete(user.id)}
+                        disabled={deletingId === user.id}
+                      >
+                        {deletingId === user.id ? "Elimino..." : "Elimina"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="card card--log">
+        <div className="card-heading">
+          <h2>Registro attività</h2>
+          <p>Operazioni recenti sulla gestione utenti.</p>
+        </div>
+        <AdminActivityLog alerts={alerts} />
+      </section>
+    </div>
+  );
+};
+
+export default AdminUsersPage;

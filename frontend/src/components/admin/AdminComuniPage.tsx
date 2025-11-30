@@ -1,0 +1,271 @@
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuthStore } from "../../store/authStore";
+import { useAdminAlerts } from "../../hooks/useAdminAlerts";
+import AdminStatusBanner from "./AdminStatusBanner";
+import AdminActivityLog from "./AdminActivityLog";
+
+interface ComuneForm {
+  name: string;
+  province: string;
+  region: string;
+}
+
+interface AdminComune {
+  id: string;
+  name: string;
+  province: string;
+  region: string;
+}
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
+
+const emptyForm: ComuneForm = {
+  name: "",
+  province: "",
+  region: ""
+};
+
+const AdminComuniPage = () => {
+  const { tokens } = useAuthStore();
+  const queryClient = useQueryClient();
+  const { alerts, latestAlert, pushAlert } = useAdminAlerts();
+  const [form, setForm] = useState<ComuneForm>(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const authorizedFetch = async <T,>(path: string, init?: RequestInit) => {
+    if (!tokens) {
+      throw new Error("Token mancante");
+    }
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${tokens.accessToken}`,
+      ...(init?.headers as Record<string, string> | undefined)
+    };
+
+    if (init?.body) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    const response = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      headers
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || "Richiesta fallita");
+    }
+
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    return (await response.json()) as T;
+  };
+
+  const comuniQuery = useQuery<{ comuni: AdminComune[] }>({
+    queryKey: ["admin", "comuni"],
+    queryFn: () => authorizedFetch<{ comuni: AdminComune[] }>("/admin/comuni"),
+    enabled: Boolean(tokens)
+  });
+
+  useEffect(() => {
+    if (comuniQuery.isError) {
+      const message = comuniQuery.error instanceof Error ? comuniQuery.error.message : "Errore";
+      pushAlert({ type: "error", title: "Caricamento comuni fallito", description: message });
+    }
+  }, [comuniQuery.isError, comuniQuery.error, pushAlert]);
+
+  const resetForm = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    try {
+      if (editingId) {
+        await authorizedFetch(`/admin/comuni/${editingId}`, {
+          method: "PUT",
+          body: JSON.stringify(form)
+        });
+        pushAlert({ type: "success", title: "Comune aggiornato" });
+      } else {
+        await authorizedFetch("/admin/comuni", {
+          method: "POST",
+          body: JSON.stringify(form)
+        });
+        pushAlert({ type: "success", title: "Comune creato" });
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["admin", "comuni"] });
+      resetForm();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Errore";
+      pushAlert({
+        type: "error",
+        title: editingId ? "Aggiornamento fallito" : "Creazione fallita",
+        description: message
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = (comune: AdminComune) => {
+    setEditingId(comune.id);
+    setForm({
+      name: comune.name,
+      province: comune.province,
+      region: comune.region
+    });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Eliminare definitivamente il comune?")) {
+      return;
+    }
+
+    setDeletingId(id);
+    try {
+      await authorizedFetch(`/admin/comuni/${id}`, { method: "DELETE" });
+      await queryClient.invalidateQueries({ queryKey: ["admin", "comuni"] });
+      pushAlert({ type: "success", title: "Comune eliminato" });
+      if (editingId === id) {
+        resetForm();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Errore";
+      pushAlert({ type: "error", title: "Eliminazione fallita", description: message });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  return (
+    <div className="page-container admin-dashboard">
+      <header className="page-heading">
+        <div>
+          <h1>Gestione comuni</h1>
+          <p>Amministra l&apos;anagrafica territoriale disponibile ai rilevatori.</p>
+        </div>
+      </header>
+
+      <AdminStatusBanner alert={latestAlert} />
+
+      <section className="card card--form">
+        <div className="card-heading">
+          <h2>{editingId ? "Modifica comune" : "Nuovo comune"}</h2>
+          <p>Compila i dati anagrafici del comune per renderlo disponibile ai rilevamenti.</p>
+        </div>
+        <form onSubmit={handleSubmit} className="admin-form">
+          <input
+            placeholder="Nome"
+            value={form.name}
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+              setForm((prev) => ({ ...prev, name: event.target.value }))
+            }
+            required
+          />
+          <div className="form-grid">
+            <input
+              placeholder="Provincia"
+              value={form.province}
+              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                setForm((prev) => ({ ...prev, province: event.target.value }))
+              }
+              required
+            />
+            <input
+              placeholder="Regione"
+              value={form.region}
+              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                setForm((prev) => ({ ...prev, region: event.target.value }))
+              }
+              required
+            />
+          </div>
+          <div className="heading-actions">
+            <button type="submit" className="button button--primary" disabled={isSubmitting}>
+              {editingId ? "Aggiorna comune" : "Crea comune"}
+            </button>
+            {editingId && (
+              <button type="button" className="button button--ghost" onClick={resetForm} disabled={isSubmitting}>
+                Annulla modifica
+              </button>
+            )}
+          </div>
+        </form>
+      </section>
+
+      <section className="card card--table">
+        <div className="table-header">
+          <div>
+            <h2>Comuni disponibili</h2>
+            <p>Elenco completo dei comuni abilitati ai rilevamenti.</p>
+          </div>
+        </div>
+        <div className="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Provincia</th>
+                <th>Regione</th>
+                <th>Azione</th>
+              </tr>
+            </thead>
+            <tbody>
+              {comuniQuery.isLoading && (
+                <tr>
+                  <td colSpan={4}>Caricamento...</td>
+                </tr>
+              )}
+              {!comuniQuery.isLoading && (comuniQuery.data?.comuni.length ?? 0) === 0 && (
+                <tr>
+                  <td colSpan={4}>Nessun comune presente.</td>
+                </tr>
+              )}
+              {comuniQuery.data?.comuni.map((comune) => (
+                <tr key={comune.id}>
+                  <td data-label="Nome">{comune.name}</td>
+                  <td data-label="Provincia">{comune.province}</td>
+                  <td data-label="Regione">{comune.region}</td>
+                  <td data-label="Azione">
+                    <div className="table-actions">
+                      <button type="button" className="button button--ghost" onClick={() => handleEdit(comune)}>
+                        Modifica
+                      </button>
+                      <button
+                        type="button"
+                        className="button button--danger"
+                        onClick={() => handleDelete(comune.id)}
+                        disabled={deletingId === comune.id}
+                      >
+                        {deletingId === comune.id ? "Elimino..." : "Elimina"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="card card--log">
+        <div className="card-heading">
+          <h2>Registro attività</h2>
+          <p>Operazioni recenti sull&apos;anagrafica comuni.</p>
+        </div>
+        <AdminActivityLog alerts={alerts} />
+      </section>
+    </div>
+  );
+};
+
+export default AdminComuniPage;
