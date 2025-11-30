@@ -4,6 +4,8 @@ import { useAuthStore } from "../../store/authStore";
 import { useLogout } from "../../hooks/useLogout";
 import OfflineSyncBanner from "../offline/OfflineSyncBanner";
 
+const basePath = import.meta.env.VITE_BASE_PATH || "/";
+
 const AppLayout = () => {
   const user = useAuthStore((state) => state.user);
   const logout = useLogout();
@@ -29,13 +31,16 @@ const AppLayout = () => {
   const displayName = user.fullName?.trim() ? user.fullName : user.email;
   const readableRole = user.role === "admin" ? "Amministratore" : "Operaio";
 
+  // Costruisci il path del logo
+  const logoPath = `${basePath}logo/logo_talete.png`.replace(/\/\//g, "/");
+
   return (
     <div className="app-shell">
       <OfflineSyncBanner />
       <header className={`app-header${isNavOpen ? " is-expanded" : ""}`}>
         <div className="app-header__top">
           <div className="app-header__brand">
-            <img src="/logo/logo_talete.png" alt="Talete Spa" className="app-brand-logo" />
+            <img src={logoPath} alt="Talete Spa" className="app-brand-logo" />
             <div className="app-header__brand-text">
               <span className="app-logo">Talete Spa</span>
               <span className="app-subtitle">Gestionale Rilevamenti</span>
@@ -56,9 +61,11 @@ const AppLayout = () => {
         </div>
         <div className={`app-header__collapsible${isNavOpen ? " is-open" : ""}`} id="primary-navigation">
           <nav className="app-header__nav">
-            <NavLink to="/" end className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
-              Rilevamenti
-            </NavLink>
+            {user.role === "operaio" && (
+              <NavLink to="/" end className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
+                Rilevamenti
+              </NavLink>
+            )}
             {user.role === "admin" && (
               <>
                 <NavLink

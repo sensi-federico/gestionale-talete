@@ -7,7 +7,34 @@ import maplibregl, {
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-const MAP_STYLE_URL = "https://demotiles.maplibre.org/style.json";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const GeolocateControl = (maplibregl as any).GeolocateControl;
+
+// Stile OpenStreetMap con tiles reali
+const MAP_STYLE: maplibregl.StyleSpecification = {
+  version: 8,
+  sources: {
+    osm: {
+      type: "raster",
+      tiles: [
+        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      ],
+      tileSize: 256,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }
+  },
+  layers: [
+    {
+      id: "osm-tiles",
+      type: "raster",
+      source: "osm",
+      minzoom: 0,
+      maxzoom: 19
+    }
+  ]
+};
 
 interface Map3DProps {
   value?: { lat: number; lon: number } | null;
@@ -26,14 +53,36 @@ const Map3D = ({ value, onChange }: Map3DProps) => {
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: MAP_STYLE_URL,
+      style: MAP_STYLE,
       center: value ? [value.lon, value.lat] : [12.4964, 41.9028],
-      zoom: value ? 14 : 5,
-      pitch: 60,
+      zoom: value ? 14 : 12,
+      pitch: 0,
       bearing: 0
     });
 
     map.addControl(new maplibregl.NavigationControl());
+    
+    // Aggiungo controllo geolocalizzazione per trovare la posizione dell'operaio
+    const geolocate = new GeolocateControl({
+      positionOptions: {
+        enableHighAccuracy: true
+      },
+      trackUserLocation: false,
+      showUserLocation: true
+    });
+    map.addControl(geolocate);
+    
+    // Quando l'utente usa la geolocalizzazione, aggiorna le coordinate
+    geolocate.on("geolocate", (e: GeolocationPosition) => {
+      const coords = { lat: e.coords.latitude, lon: e.coords.longitude };
+      if (onChange) {
+        onChange(coords);
+      }
+      if (!markerRef.current) {
+        markerRef.current = new maplibregl.Marker({ color: "#1c7ed6" });
+      }
+      markerRef.current.setLngLat([coords.lon, coords.lat]).addTo(map);
+    });
 
     map.on("click", (event: MapMouseEvent & EventData) => {
       const coords = { lat: event.lngLat.lat, lon: event.lngLat.lng };
