@@ -10,6 +10,10 @@ const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Costruisci path logo con base URL
+  const basePath = import.meta.env.BASE_URL || "/";
+  const logoPath = `${basePath}logo/logo_talete.png`;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -35,7 +39,7 @@ const LoginForm = () => {
     <div className="auth-container">
       <div className="auth-panel">
         <div className="auth-panel__info">
-          <img src="/logo/logo_talete.png" alt="Talete Spa" className="auth-panel__logo" />
+          <img src={logoPath} alt="Talete Spa" className="auth-panel__logo" />
           <h1>Gestionale Rilevamenti</h1>
           <p>
             Accedi per coordinare squadre, monitorare i rilevamenti e gestire le attività sul territorio.
