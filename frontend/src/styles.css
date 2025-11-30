@@ -1592,6 +1592,154 @@ button {
   }
 }
 
+/* ===== SUBMIT MODAL - CARICAMENTO E FEEDBACK ===== */
+.submit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.submit-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  max-width: 320px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: modalSlideUp 0.3s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.submit-modal__spinner {
+  width: 56px;
+  height: 56px;
+  border: 4px solid #e2e8f0;
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.submit-modal__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.submit-modal__icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.submit-modal__icon--success {
+  background: #dcfce7;
+  animation: successPop 0.4s ease-out;
+}
+
+.submit-modal__icon--success svg {
+  stroke: #16a34a;
+}
+
+@keyframes successPop {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.submit-modal__icon--offline {
+  background: #fef3c7;
+}
+
+.submit-modal__icon--offline svg {
+  stroke: #d97706;
+}
+
+.submit-modal__icon--error {
+  background: #fee2e2;
+}
+
+.submit-modal__icon--error svg {
+  stroke: #dc2626;
+}
+
+.submit-modal__text {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.submit-modal__subtext {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.submit-modal__btn {
+  margin-top: 1rem;
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--color-primary);
+  color: white;
+}
+
+.submit-modal__btn:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.submit-modal__btn--offline {
+  background: #f59e0b;
+}
+
+.submit-modal__btn--offline:hover {
+  background: #d97706;
+}
+
+.submit-modal__btn--error {
+  background: #6b7280;
+}
+
+.submit-modal__btn--error:hover {
+  background: #4b5563;
+}
+
 /* ===== NUOVO RILEVAMENTO - DESIGN PROFESSIONALE ===== */
 .nuovo-rilevamento {
   max-width: 640px;
@@ -2323,9 +2471,6 @@ textarea.form-field__input {
   max-width: 100%;
   padding-bottom: 80px; /* Spazio per tab bar fissa */
   box-sizing: border-box;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
 }
 
 /* Tab Navigation - Fixed bottom su mobile */

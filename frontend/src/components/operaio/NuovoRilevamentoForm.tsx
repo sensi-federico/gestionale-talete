@@ -1,9 +1,10 @@
-import { ChangeEvent, FormEvent, useMemo, useState, useRef } from "react";
+import { ChangeEvent, FormEvent, useMemo, useState, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useOfflineQueue } from "../../hooks/useOfflineQueue";
 import { useGeolocation } from "../../hooks/useGeolocation";
 import MapPicker from "../map/MapPicker";
+import SubmitModal, { SubmitStatus } from "../ui/SubmitModal";
 import { api } from "../../services/api";
 import { OfflineRilevamento } from "@shared/types";
 
@@ -81,8 +82,8 @@ const NuovoRilevamentoForm = () => {
   const [manualCoords, setManualCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
+  const [submitMessage, setSubmitMessage] = useState<string>("");
 
   const { data: referenceData, isLoading: isLoadingReference } = useQuery({
     queryKey: ["reference-data"],
@@ -197,16 +198,22 @@ const NuovoRilevamentoForm = () => {
     }
 
     await addToQueue(record);
-    setStatusMessage({ type: "info", text: "Salvato offline. Verrà sincronizzato automaticamente." });
+    setSubmitStatus("offline");
+    setSubmitMessage("Verrà sincronizzato automaticamente quando tornerai online");
     resetForm();
   };
 
+  const handleCloseModal = useCallback(() => {
+    setSubmitStatus("idle");
+    setSubmitMessage("");
+  }, []);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setStatusMessage(null);
 
     if (!tokens) {
-      setStatusMessage({ type: "error", text: "Sessione scaduta. Effettua nuovamente il login." });
+      setSubmitStatus("error");
+      setSubmitMessage("Sessione scaduta. Effettua nuovamente il login.");
       return;
     }
 
@@ -238,17 +245,18 @@ const NuovoRilevamentoForm = () => {
       formData.append("submitGpsLon", String(geolocation.position.longitude));
     }
 
-    setIsSubmitting(true);
+    // Mostra il modal di caricamento
+    setSubmitStatus("loading");
 
     try {
       await api.createRilevamento(formData, tokens.accessToken);
-      setStatusMessage({ type: "success", text: "Rilevamento inviato con successo!" });
+      setSubmitStatus("success");
+      setSubmitMessage("I dati sono stati salvati correttamente");
       resetForm();
     } catch (error) {
       console.error("Errore invio rilevamento", error);
+      // Fallback offline
       await submitOffline();
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -267,14 +275,11 @@ const NuovoRilevamentoForm = () => {
         </div>
       </div>
 
-      {statusMessage && (
-        <div className={`rilevamento-alert rilevamento-alert--${statusMessage.type}`}>
-          {statusMessage.type === "success" && "✓ "}
-          {statusMessage.type === "error" && "✕ "}
-          {statusMessage.type === "info" && "ℹ "}
-          {statusMessage.text}
-        </div>
-      )}
+      <SubmitModal
+        status={submitStatus}
+        message={submitMessage}
+        onClose={handleCloseModal}
+      />
 
       <form className="rilevamento-form" onSubmit={handleSubmit}>
         {/* SEZIONE 1: LUOGO */}
@@ -500,18 +505,9 @@ const NuovoRilevamentoForm = () => {
         <button
           type="submit"
           className="submit-button"
-          disabled={!canSubmit || isSubmitting}
+          disabled={!canSubmit || submitStatus === "loading"}
         >
-          {isSubmitting ? (
-            <>
-              <span className="submit-button__spinner" />
-              Invio in corso...
-            </>
-          ) : navigator.onLine ? (
-            "Invia rilevamento"
-          ) : (
-            "Salva offline"
-          )}
+          {navigator.onLine ? "Invia rilevamento" : "Salva offline"}
         </button>
       </form>
     </div>
