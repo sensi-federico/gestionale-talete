@@ -6,7 +6,15 @@ import { VitePWA } from "vite-plugin-pwa";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const resolveBasePath = () => {
+  const rawBase = process.env.VITE_BASE_PATH ?? "/";
+  return rawBase.endsWith("/") ? rawBase : `${rawBase}/`;
+};
+
+const basePath = resolveBasePath();
+
 export default defineConfig({
+  base: basePath,
   resolve: {
     alias: {
       "@shared": path.resolve(__dirname, "../shared")
@@ -21,20 +29,21 @@ export default defineConfig({
         name: "Gestionale Rilevamenti Operai",
         short_name: "Talete",
         description: "PWA per la gestione dei rilevamenti degli operai",
-         theme_color: "#1c7ed6",
-         background_color: "#1c7ed6",
+        theme_color: "#1c7ed6",
+        background_color: "#1c7ed6",
         display: "standalone",
-        start_url: "/",
+        start_url: basePath,
+        scope: basePath,
         icons: [
           {
-              src: "/icons/icon-192.svg",
-              sizes: "192x192",
-              type: "image/svg+xml"
+            src: `${basePath}icons/icon-192.svg`,
+            sizes: "192x192",
+            type: "image/svg+xml"
           },
           {
-              src: "/icons/icon-512.svg",
-              sizes: "512x512",
-              type: "image/svg+xml"
+            src: `${basePath}icons/icon-512.svg`,
+            sizes: "512x512",
+            type: "image/svg+xml"
           }
         ]
       },
