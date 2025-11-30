@@ -2,11 +2,11 @@ import { Router } from "express";
 import type { Response } from "express";
 import { randomUUID } from "node:crypto";
 import multer from "multer";
-import { supabaseAdmin } from "../lib/supabaseClient";
-import { createRilevamentoSchema } from "../schemas/rilevamenti";
-import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
-import { OfflineRilevamento, RilevamentoBase } from "@shared/types";
-import { logger } from "../lib/logger";
+import { supabaseAdmin } from "../lib/supabaseClient.js";
+import { createRilevamentoSchema } from "../schemas/rilevamenti.js";
+import { requireAuth, AuthenticatedRequest } from "../middleware/auth.js";
+import { OfflineRilevamento, RilevamentoBase } from "../shared/types.js";
+import { logger } from "../lib/logger.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });

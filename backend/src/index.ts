@@ -1,12 +1,12 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import authRoutes from "./routes/auth";
-import rilevamentiRoutes from "./routes/rilevamenti";
-import adminRoutes from "./routes/admin";
-import { bootstrapAdmin } from "./setup/bootstrapAdmin";
-import { requestLogger } from "./middleware/requestLogger";
-import { logger } from "./lib/logger";
+import authRoutes from "./routes/auth.js";
+import rilevamentiRoutes from "./routes/rilevamenti.js";
+import adminRoutes from "./routes/admin.js";
+import { bootstrapAdmin } from "./setup/bootstrapAdmin.js";
+import { requestLogger } from "./middleware/requestLogger.js";
+import { logger } from "./lib/logger.js";
 
 const app = express();
 

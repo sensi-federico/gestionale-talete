@@ -1,25 +1,24 @@
 # syntax=docker/dockerfile:1
+# Force rebuild: 2025-11-30-1608
 
-FROM node:20-alpine AS builder
+FROM node:20-alpine
+
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 RUN npm ci
 
-COPY tsconfig.json ./
 COPY src ./src
+COPY tsconfig.json ./
 
-RUN npm run build
+# Pulisci eventuali build precedenti e ricompila
+RUN rm -rf dist && npm run build
 
-FROM node:20-alpine AS runner
-WORKDIR /app
+# Rimuovi devDependencies per produzione
+RUN npm prune --production
+
 ENV NODE_ENV=production
 ENV PORT=4000
-
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
-
-COPY --from=builder /app/dist ./dist
 
 EXPOSE 4000
 CMD ["node", "dist/index.js"]

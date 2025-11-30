@@ -1,5 +1,5 @@
-import { supabaseAdmin } from "../lib/supabaseClient";
-import { logger } from "../lib/logger";
+import { supabaseAdmin } from "../lib/supabaseClient.js";
+import { logger } from "../lib/logger.js";
 
 const ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD;

@@ -1,11 +1,11 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { loginSchema, refreshSchema, createUserSchema } from "../schemas/auth";
-import { supabaseAdmin, supabaseClient } from "../lib/supabaseClient";
-import { signAccessToken, signRefreshToken, verifyToken } from "../lib/token";
-import { requireAuth } from "../middleware/auth";
-import { UserProfile } from "@shared/types";
-import { logger } from "../lib/logger";
+import { loginSchema, refreshSchema, createUserSchema } from "../schemas/auth.js";
+import { supabaseAdmin, supabaseClient } from "../lib/supabaseClient.js";
+import { signAccessToken, signRefreshToken, verifyToken } from "../lib/token.js";
+import { requireAuth } from "../middleware/auth.js";
+import { UserProfile } from "../shared/types.js";
+import { logger } from "../lib/logger.js";
 
 const router = Router();
 

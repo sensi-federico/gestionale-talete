@@ -1,9 +1,9 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
-import { supabaseAdmin } from "../lib/supabaseClient";
+import { requireAuth, AuthenticatedRequest } from "../middleware/auth.js";
+import { supabaseAdmin } from "../lib/supabaseClient.js";
 import { z } from "zod";
-import { logger } from "../lib/logger";
+import { logger } from "../lib/logger.js";
 
 const router = Router();
 

@@ -1,7 +1,7 @@
 import { NextFunction, Response } from "express";
 import { randomUUID } from "node:crypto";
-import { logger } from "../lib/logger";
-import { AuthenticatedRequest } from "./auth";
+import { logger } from "../lib/logger.js";
+import { AuthenticatedRequest } from "./auth.js";
 
 export const requestLogger = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const requestId = randomUUID();

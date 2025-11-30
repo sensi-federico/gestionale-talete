@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { verifyToken } from "../lib/token";
-import { UserRole, UserProfile } from "@shared/types";
-import { logger } from "../lib/logger";
+import { verifyToken } from "../lib/token.js";
+import { UserRole, UserProfile } from "../shared/types.js";
+import { logger } from "../lib/logger.js";
 
 export interface AuthenticatedRequest<TBody = unknown> extends Request<any, any, TBody, any> {
   user?: UserProfile;

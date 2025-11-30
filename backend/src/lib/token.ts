@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { UserRole } from "@shared/types";
+import { UserRole } from "../shared/types.js";
 
 interface TokenPayload {
   sub: string;
