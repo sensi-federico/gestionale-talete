@@ -41,10 +41,7 @@ const AppLayout = () => {
         <div className="app-header__top">
           <div className="app-header__brand">
             <img src={logoPath} alt="Talete Spa" className="app-brand-logo" />
-            <div className="app-header__brand-text">
-              <span className="app-logo">Talete Spa</span>
-              <span className="app-subtitle">Gestionale Rilevamenti</span>
-            </div>
+            <span className="app-subtitle">Gestionale Rilevamenti</span>
           </div>
           <button
             type="button"

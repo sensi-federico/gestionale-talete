@@ -88,31 +88,25 @@ body {
   gap: 0.75rem;
 }
 
-.app-header__brand-text {
+.app-header__brand {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .app-brand-logo {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
   filter: drop-shadow(0 10px 18px rgba(28, 126, 214, 0.25));
 }
 
-.app-logo {
-  font-size: 1.2rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-primary-dark);
-}
-
 .app-subtitle {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: rgba(16, 35, 61, 0.65);
   letter-spacing: 0.02em;
+  text-align: center;
 }
 
 .app-header__toggle {
@@ -1243,15 +1237,12 @@ th {
 
 @media (max-width: 480px) {
   .app-brand-logo {
-    width: 44px;
-  }
-
-  .app-logo {
-    font-size: 1.05rem;
+    width: 48px;
+    height: 48px;
   }
 
   .app-subtitle {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 
   .top-nav-link {
@@ -1774,12 +1765,12 @@ button {
 }
 
 .map-picker__btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   border: none;
   background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1789,7 +1780,7 @@ button {
 
 .map-picker__btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 
 .map-picker__btn:active {
@@ -1797,9 +1788,10 @@ button {
 }
 
 .map-picker__btn svg {
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   color: #374151;
+  stroke-width: 2.5;
 }
 
 .map-picker__btn--locate {
@@ -2518,12 +2510,12 @@ button {
 }
 
 .map-picker__btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   border: none;
   background: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -2534,7 +2526,7 @@ button {
 
 .map-picker__btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 
 .map-picker__btn:active {
@@ -2542,9 +2534,10 @@ button {
 }
 
 .map-picker__btn svg {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   color: #374151;
+  stroke-width: 2.5;
 }
 
 .map-picker__btn--locate {
@@ -2565,4 +2558,5 @@ button {
 
 .map-picker__btn--toggle svg {
   color: #374151;
+  stroke-width: 2;
 }
