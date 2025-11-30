@@ -45,18 +45,21 @@ body {
 
 .app-shell {
   min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: #f8fafc;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden; /* Previene doppio scroll */
 }
 
 
 .app-shell__main {
   flex: 1;
+  min-height: 0; /* Importante per permettere scroll in flex child */
   padding: 1.5rem 1rem 3rem;
-  overflow: visible;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .app-header {
@@ -1051,7 +1054,7 @@ th {
 }
 
 .auth-panel__logo {
-  width: 120px;
+  width: 180px;
   height: auto;
   object-fit: contain;
 }
@@ -2315,11 +2318,13 @@ textarea.form-field__input {
 .operaio-page {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 120px); /* Altezza viewport meno header */
+  flex: 1;
+  min-height: 0; /* Importante per flex child */
   max-width: 100%;
   padding-bottom: 80px; /* Spazio per tab bar fissa */
   box-sizing: border-box;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
