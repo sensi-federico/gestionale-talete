@@ -38,8 +38,10 @@ jobs:
           echo "base=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_OUTPUT"
 
       - name: Build project
-        run: |
-          VITE_BASE_PATH="${{ steps.pages.outputs.base }}" npm run build
+        env:
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base }}
+          VITE_API_BASE_URL: https://gestionaletalete-backend.fly.dev/api
+        run: npm run build
 
       - name: Create SPA fallback
         run: |

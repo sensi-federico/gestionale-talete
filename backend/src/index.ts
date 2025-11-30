@@ -10,9 +10,21 @@ import { logger } from "./lib/logger";
 
 const app = express();
 
+const defaultOrigins = ["http://localhost:5173"];
+const envOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean)
+  : [];
+const allowedOrigins = Array.from(new Set([...defaultOrigins, ...envOrigins]));
+
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin(requestOrigin, callback) {
+      if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error(`Origin not allowed by CORS: ${requestOrigin}`));
+    },
     credentials: true
   })
 );
