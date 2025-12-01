@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import RilevamentoDetail from "../ui/RilevamentoDetail";
@@ -61,10 +61,14 @@ const MieiRilevamenti = () => {
     const tipi = rilevamenti.map(r => r.tipo?.name).filter(Boolean) as string[];
     return Array.from(new Set(tipi)).sort();
   }, [rilevamenti]);
+
+  // Reset pagina quando cambiano i filtri
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchText, filterTipo, filterDateFrom, filterDateTo]);
   
   // Applica filtri
   const filteredRilevamenti = useMemo(() => {
-    setCurrentPage(1); // Reset pagina quando cambiano i filtri
     return rilevamenti.filter(r => {
       // Filtro testo (via, comune)
       if (searchText) {
