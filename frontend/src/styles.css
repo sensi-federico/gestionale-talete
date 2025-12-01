@@ -2364,8 +2364,11 @@ textarea.form-field__input {
 /* ===== RILEVAMENTO DETAIL PAGE - FULLSCREEN ===== */
 .detail-page {
   position: fixed;
-  inset: 0;
-  z-index: 9999; /* Sopra tutto incluso header */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99999; /* Sopra tutto incluso header app */
   display: flex;
   flex-direction: column;
   background: #f8fafc;
@@ -2384,27 +2387,27 @@ textarea.form-field__input {
 }
 
 .detail-page__header {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 100;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
-  padding-top: calc(0.75rem + env(safe-area-inset-top, 0));
+  gap: 0.75rem;
+  padding: 1rem;
+  padding-top: calc(1rem + env(safe-area-inset-top, 0));
   background: white;
   border-bottom: 1px solid #e2e8f0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   flex-shrink: 0;
-  min-height: 56px;
+  min-height: 60px;
 }
 
 .detail-page__back {
-  position: relative;
-  z-index: 10;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1rem;
+  padding: 0.65rem 1rem;
   border: 1px solid #e2e8f0;
   background: white;
   border-radius: 10px;
@@ -2413,7 +2416,7 @@ textarea.form-field__input {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   -webkit-tap-highlight-color: rgba(0, 102, 204, 0.2);
   touch-action: manipulation;
 }
