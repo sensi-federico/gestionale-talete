@@ -204,6 +204,12 @@ const NuovoRilevamentoForm = () => {
     navigate("/miei-rilevamenti");
   }, [navigate]);
 
+  const handleGoHome = useCallback(() => {
+    setSubmitStatus("idle");
+    setSubmitMessage("");
+    navigate("/");
+  }, [navigate]);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -277,6 +283,7 @@ const NuovoRilevamentoForm = () => {
         onClose={handleCloseModal}
         onNewRilevamento={handleNewRilevamento}
         onViewRilevamenti={handleViewRilevamenti}
+        onGoHome={handleGoHome}
       />
 
       <form className="rilevamento-form" onSubmit={handleSubmit}>

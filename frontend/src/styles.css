@@ -2427,9 +2427,8 @@ textarea.form-field__input {
 }
 
 .detail-page__header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  position: relative;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -2437,7 +2436,6 @@ textarea.form-field__input {
   padding-top: calc(1rem + env(safe-area-inset-top, 0));
   background: white;
   border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   flex-shrink: 0;
   min-height: 60px;
 }
@@ -3224,7 +3222,8 @@ textarea.form-field__input {
 }
 
 .submit-modal__btn--primary,
-.submit-modal__btn--secondary {
+.submit-modal__btn--secondary,
+.submit-modal__btn--tertiary {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3234,7 +3233,8 @@ textarea.form-field__input {
 }
 
 .submit-modal__btn--primary svg,
-.submit-modal__btn--secondary svg {
+.submit-modal__btn--secondary svg,
+.submit-modal__btn--tertiary svg {
   width: 20px;
   height: 20px;
 }
@@ -3255,6 +3255,17 @@ textarea.form-field__input {
 
 .submit-modal__btn--secondary:hover {
   background: #e2e8f0;
+}
+
+.submit-modal__btn--tertiary {
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.submit-modal__btn--tertiary:hover {
+  background: #f8fafc;
+  color: #334155;
 }
 
 /* ===== MOBILE BOTTOM NAV OTTIMIZZATA ===== */

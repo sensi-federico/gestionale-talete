@@ -261,7 +261,7 @@ const AdminUsersPage = () => {
                 setForm((prev) => ({ ...prev, role: event.target.value as UserRole }))
               }
             >
-              <option value="operaio">Operaio</option>
+              <option value="operaio">Tecnico</option>
               <option value="admin">Admin</option>
             </select>
           </div>

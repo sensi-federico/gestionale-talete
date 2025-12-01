@@ -8,9 +8,10 @@ export interface SubmitModalProps {
   onClose: () => void;
   onNewRilevamento?: () => void;
   onViewRilevamenti?: () => void;
+  onGoHome?: () => void;
 }
 
-const SubmitModal = ({ status, message, onClose, onNewRilevamento, onViewRilevamenti }: SubmitModalProps) => {
+const SubmitModal = ({ status, message, onClose, onNewRilevamento, onViewRilevamenti, onGoHome }: SubmitModalProps) => {
   useEffect(() => {
     if (status !== "idle") {
       document.body.style.overflow = "hidden";
@@ -82,7 +83,7 @@ const SubmitModal = ({ status, message, onClose, onNewRilevamento, onViewRilevam
             </div>
             <p className="submit-modal__text">Rilevamento inviato!</p>
             <p className="submit-modal__subtext">{message || "I dati sono stati salvati correttamente"}</p>
-            {(onNewRilevamento || onViewRilevamenti) ? (
+            {(onNewRilevamento || onViewRilevamenti || onGoHome) ? (
               <div className="submit-modal__actions">
                 <p className="submit-modal__question">Cosa vuoi fare ora?</p>
                 {onNewRilevamento && (
@@ -100,6 +101,15 @@ const SubmitModal = ({ status, message, onClose, onNewRilevamento, onViewRilevam
                       <rect x="9" y="3" width="6" height="4" rx="1" />
                     </svg>
                     Vedi i miei rilevamenti
+                  </button>
+                )}
+                {onGoHome && (
+                  <button type="button" className="submit-modal__btn submit-modal__btn--tertiary" onClick={onGoHome}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                    Torna alla Home
                   </button>
                 )}
               </div>
@@ -120,7 +130,7 @@ const SubmitModal = ({ status, message, onClose, onNewRilevamento, onViewRilevam
             </div>
             <p className="submit-modal__text">Salvato offline</p>
             <p className="submit-modal__subtext">{message || "Verrà sincronizzato automaticamente quando tornerai online"}</p>
-            {(onNewRilevamento || onViewRilevamenti) ? (
+            {(onNewRilevamento || onViewRilevamenti || onGoHome) ? (
               <div className="submit-modal__actions">
                 <p className="submit-modal__question">Cosa vuoi fare ora?</p>
                 {onNewRilevamento && (
@@ -138,6 +148,15 @@ const SubmitModal = ({ status, message, onClose, onNewRilevamento, onViewRilevam
                       <rect x="9" y="3" width="6" height="4" rx="1" />
                     </svg>
                     Vedi i miei rilevamenti
+                  </button>
+                )}
+                {onGoHome && (
+                  <button type="button" className="submit-modal__btn submit-modal__btn--tertiary" onClick={onGoHome}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                    Torna alla Home
                   </button>
                 )}
               </div>

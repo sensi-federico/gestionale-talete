@@ -175,7 +175,7 @@ const AdminRilevazioniPage = () => {
       {/* Filtri */}
       <div className="rilevamenti-filters">
         <div className="filter-group">
-          <label>Operaio</label>
+          <label>Tecnico</label>
           <select value={filterOperaio} onChange={(e) => setFilterOperaio(e.target.value)}>
             <option value="">Tutti</option>
             {users.map((u) => (
