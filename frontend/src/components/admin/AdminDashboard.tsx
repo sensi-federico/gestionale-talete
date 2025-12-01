@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
+import Pagination from "../ui/Pagination";
 
 interface AdminComune {
   id: string;
@@ -32,6 +33,7 @@ interface AdminRilevamento {
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const ITEMS_PER_PAGE = 10;
 
 const formatNumber = (value: number) => new Intl.NumberFormat("it-IT").format(value);
 
@@ -39,6 +41,7 @@ const AdminDashboard = () => {
   const { tokens } = useAuthStore();
   const { alerts, latestAlert, pushAlert } = useAdminAlerts();
   const healthStatusRef = useRef<"idle" | "success" | "error">("idle");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const adminFetch = async <T,>(path: string) => {
     if (!tokens) {
@@ -137,6 +140,13 @@ const AdminDashboard = () => {
       impreseCoinvolte
     };
   }, [rilevamentiData]);
+
+  const rilevamenti = rilevamentiData?.rilevamenti ?? [];
+  const totalPages = Math.ceil(rilevamenti.length / ITEMS_PER_PAGE);
+  const paginatedRilevamenti = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return rilevamenti.slice(start, start + ITEMS_PER_PAGE);
+  }, [rilevamenti, currentPage]);
 
   const comuneCount = comuniData?.comuni.length ?? 0;
   const impresaCount = impreseData?.imprese.length ?? 0;
@@ -270,7 +280,7 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {rilevamentiData?.rilevamenti.map((row) => (
+              {paginatedRilevamenti.map((row) => (
                 <tr key={row.id}>
                   <td data-label="Comune">{row.comune?.name ?? ""}</td>
                   <td data-label="Impresa">{row.impresa?.name ?? ""}</td>
@@ -290,6 +300,15 @@ const AdminDashboard = () => {
             </tbody>
           </table>
         </div>
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={rilevamenti.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+          />
+        )}
       </section>
 
       <section className="card card--info">
