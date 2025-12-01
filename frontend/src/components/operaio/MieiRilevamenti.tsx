@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import RilevamentoDetail from "../ui/RilevamentoDetail";
+import Pagination from "../ui/Pagination";
 
 interface Rilevamento {
   id: string;
@@ -27,10 +28,12 @@ interface Rilevamento {
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const ITEMS_PER_PAGE = 10;
 
 const MieiRilevamenti = () => {
   const { tokens } = useAuthStore();
   const [selectedRilevamento, setSelectedRilevamento] = useState<Rilevamento | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   
   // Filtri
   const [searchText, setSearchText] = useState("");
@@ -61,6 +64,7 @@ const MieiRilevamenti = () => {
   
   // Applica filtri
   const filteredRilevamenti = useMemo(() => {
+    setCurrentPage(1); // Reset pagina quando cambiano i filtri
     return rilevamenti.filter(r => {
       // Filtro testo (via, comune)
       if (searchText) {
@@ -88,6 +92,13 @@ const MieiRilevamenti = () => {
       return true;
     });
   }, [rilevamenti, searchText, filterTipo, filterDateFrom, filterDateTo]);
+
+  // Paginazione
+  const totalPages = Math.ceil(filteredRilevamenti.length / ITEMS_PER_PAGE);
+  const paginatedRilevamenti = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredRilevamenti.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredRilevamenti, currentPage]);
   
   const hasActiveFilters = searchText || filterTipo || filterDateFrom || filterDateTo;
   
@@ -96,6 +107,7 @@ const MieiRilevamenti = () => {
     setFilterTipo("");
     setFilterDateFrom("");
     setFilterDateTo("");
+    setCurrentPage(1);
   };
 
   const formatDate = (dateStr: string) => {
@@ -158,21 +170,25 @@ const MieiRilevamenti = () => {
             ))}
           </select>
         </div>
-        <div className="filter-row">
-          <input
-            type="date"
-            value={filterDateFrom}
-            onChange={(e) => setFilterDateFrom(e.target.value)}
-            className="filter-input"
-            placeholder="Dal"
-          />
-          <input
-            type="date"
-            value={filterDateTo}
-            onChange={(e) => setFilterDateTo(e.target.value)}
-            className="filter-input"
-            placeholder="Al"
-          />
+        <div className="filter-row filter-row--dates">
+          <div className="filter-date-group">
+            <label className="filter-date-label">Data da</label>
+            <input
+              type="date"
+              value={filterDateFrom}
+              onChange={(e) => setFilterDateFrom(e.target.value)}
+              className="filter-input"
+            />
+          </div>
+          <div className="filter-date-group">
+            <label className="filter-date-label">Data a</label>
+            <input
+              type="date"
+              value={filterDateTo}
+              onChange={(e) => setFilterDateTo(e.target.value)}
+              className="filter-input"
+            />
+          </div>
           {hasActiveFilters && (
             <button 
               type="button" 
@@ -202,38 +218,47 @@ const MieiRilevamenti = () => {
           )}
         </div>
       ) : (
-        <div className="rilevamenti-list">
-          {filteredRilevamenti.map((r) => (
-            <div
-              key={r.id}
-              className="rilevamento-card"
-              onClick={() => setSelectedRilevamento(r)}
-            >
-              <div className="rilevamento-card__header">
-                <span className="rilevamento-card__date">
-                  {formatDate(r.rilevamento_date)} • {formatTime(r.rilevamento_time)}
-                </span>
-                <div className="rilevamento-card__badges">
-                  {r.foto_url && <span className="rilevamento-card__photo-badge">📷</span>}
-                  {r.sync_status === "synced" ? (
-                    <span className="sync-badge sync-badge--ok" title="Sincronizzato">✓</span>
-                  ) : (
-                    <span className="sync-badge sync-badge--pending" title="In attesa">⏳</span>
-                  )}
+        <>
+          <div className="rilevamenti-list">
+            {paginatedRilevamenti.map((r) => (
+              <div
+                key={r.id}
+                className="rilevamento-card"
+                onClick={() => setSelectedRilevamento(r)}
+              >
+                <div className="rilevamento-card__header">
+                  <span className="rilevamento-card__date">
+                    {formatDate(r.rilevamento_date)} • {formatTime(r.rilevamento_time)}
+                  </span>
+                  <div className="rilevamento-card__badges">
+                    {r.foto_url && <span className="rilevamento-card__photo-badge">📷</span>}
+                    {r.sync_status === "synced" ? (
+                      <span className="sync-badge sync-badge--ok" title="Sincronizzato">✓</span>
+                    ) : (
+                      <span className="sync-badge sync-badge--pending" title="In attesa">⏳</span>
+                    )}
+                  </div>
+                </div>
+                <div className="rilevamento-card__location">
+                  <strong>{r.via} {r.numero_civico}</strong>
+                  <span>{r.comune?.name}</span>
+                </div>
+                <div className="rilevamento-card__meta">
+                  <span className="meta-tag">{r.tipo?.name || "—"}</span>
+                  <span className="meta-tag">{r.impresa?.name || "—"}</span>
+                  {r.materiale_tubo && <span className="meta-tag">{r.materiale_tubo}</span>}
                 </div>
               </div>
-              <div className="rilevamento-card__location">
-                <strong>{r.via} {r.numero_civico}</strong>
-                <span>{r.comune?.name}</span>
-              </div>
-              <div className="rilevamento-card__meta">
-                <span className="meta-tag">{r.tipo?.name || "—"}</span>
-                <span className="meta-tag">{r.impresa?.name || "—"}</span>
-                {r.materiale_tubo && <span className="meta-tag">{r.materiale_tubo}</span>}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filteredRilevamenti.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+          />
+        </>
       )}
 
       {/* Pagina dettaglio fullscreen */}

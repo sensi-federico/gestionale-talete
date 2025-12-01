@@ -2489,6 +2489,50 @@ textarea.form-field__input {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  padding-bottom: 100px; /* Spazio per il footer */
+}
+
+.detail-page__footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 1rem;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.detail-page__back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.detail-page__back-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.detail-page__back-btn:hover {
+  background: var(--color-primary-dark);
+}
+
+.detail-page__back-btn:active {
+  transform: scale(0.98);
 }
 
 .detail-page__hero {
@@ -3531,4 +3575,85 @@ textarea.form-field__input {
 .profile-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ===== PAGINATION ===== */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  margin-top: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+.pagination__info {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.pagination__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 10px;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination__btn:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.pagination__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination__btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pagination__page {
+  padding: 0 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* ===== FILTER DATE GROUP ===== */
+.filter-row--dates {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.filter-date-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.filter-date-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  padding-left: 0.25rem;
 }

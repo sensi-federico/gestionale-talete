@@ -91,21 +91,6 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false }: Rileva
 
   return (
     <div className="detail-page">
-      {/* Header fisso */}
-      <header className="detail-page__header">
-        <button 
-          type="button"
-          className="detail-page__back" 
-          onClick={handleBackClick}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span>Indietro</span>
-        </button>
-        <h1 className="detail-page__title">Dettaglio Rilevamento</h1>
-      </header>
-
       {/* Contenuto scrollabile */}
       <div className="detail-page__content">
         {/* Hero con foto */}
@@ -228,6 +213,20 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false }: Rileva
           </section>
         )}
       </div>
+
+      {/* Footer con pulsante indietro */}
+      <footer className="detail-page__footer">
+        <button 
+          type="button"
+          className="detail-page__back-btn" 
+          onClick={handleBackClick}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Torna indietro
+        </button>
+      </footer>
     </div>
   );
 };

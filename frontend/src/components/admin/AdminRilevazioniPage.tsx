@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import RilevamentoDetail from "../ui/RilevamentoDetail";
+import Pagination from "../ui/Pagination";
 
 interface Rilevamento {
   id: string;
@@ -47,10 +48,12 @@ interface TipoLavorazione {
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const ITEMS_PER_PAGE = 10;
 
 const AdminRilevazioniPage = () => {
   const { tokens } = useAuthStore();
   const [selectedRilevamento, setSelectedRilevamento] = useState<Rilevamento | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [filterOperaio, setFilterOperaio] = useState<string>("");
   const [filterComune, setFilterComune] = useState<string>("");
   const [filterTipo, setFilterTipo] = useState<string>("");
@@ -108,6 +111,13 @@ const AdminRilevazioniPage = () => {
   const comuni = referenceQuery.data?.comuni ?? [];
   const tipiLavorazione = referenceQuery.data?.tipiLavorazione ?? [];
 
+  // Paginazione
+  const totalPages = Math.ceil(rilevamenti.length / ITEMS_PER_PAGE);
+  const paginatedRilevamenti = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return rilevamenti.slice(start, start + ITEMS_PER_PAGE);
+  }, [rilevamenti, currentPage]);
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("it-IT", {
       day: "2-digit",
@@ -128,6 +138,7 @@ const AdminRilevazioniPage = () => {
     setFilterTipo("");
     setFilterDateFrom("");
     setFilterDateTo("");
+    setCurrentPage(1);
   };
 
   const hasFilters = filterOperaio || filterComune || filterTipo || filterDateFrom || filterDateTo;
@@ -256,7 +267,7 @@ const AdminRilevazioniPage = () => {
           </div>
         )}
 
-        {rilevamenti.map((r) => (
+        {paginatedRilevamenti.map((r) => (
           <div
             key={r.id}
             className="rilevamento-card"
@@ -284,6 +295,15 @@ const AdminRilevazioniPage = () => {
           </div>
         ))}
       </div>
+
+      {/* Paginazione */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        totalItems={rilevamenti.length}
+        itemsPerPage={ITEMS_PER_PAGE}
+      />
 
       {/* Pagina dettaglio fullscreen */}
       {selectedRilevamento && (
