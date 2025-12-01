@@ -5,6 +5,7 @@ import LoginForm from "./components/auth/LoginForm";
 import TecnicoDashboard from "./components/operaio/TecnicoDashboard";
 import NuovoRilevamentoPage from "./components/operaio/NuovoRilevamentoPage";
 import MieiRilevamentiPage from "./components/operaio/MieiRilevamentiPage";
+import ProfilePage from "./components/profile/ProfilePage";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminUsersPage from "./components/admin/AdminUsersPage";
 import AdminComuniPage from "./components/admin/AdminComuniPage";
@@ -108,6 +109,8 @@ const App = () => {
       <Route element={<ProtectedRoute allowedRoles={["operaio", "admin"]} />}>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<HomeRoute />} />
+          {/* Profilo - accessibile da tutti */}
+          <Route path="profilo" element={<ProfilePage />} />
           {/* Rotte tecnico */}
           <Route element={<ProtectedRoute allowedRoles={["operaio"]} />}>
             <Route path="nuovo" element={<NuovoRilevamentoPage />} />
