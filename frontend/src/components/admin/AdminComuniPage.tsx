@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
@@ -6,6 +6,8 @@ import { useConfirmModal } from "../../hooks/useConfirmModal";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
 import ConfirmModal from "../ui/ConfirmModal";
+import FormModal from "../ui/FormModal";
+import Pagination from "../ui/Pagination";
 
 interface ComuneForm {
   name: string;
@@ -28,6 +30,8 @@ const emptyForm: ComuneForm = {
   region: ""
 };
 
+const ITEMS_PER_PAGE = 10;
+
 const AdminComuniPage = () => {
   const { tokens } = useAuthStore();
   const queryClient = useQueryClient();
@@ -37,6 +41,8 @@ const AdminComuniPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const authorizedFetch = async <T,>(path: string, init?: RequestInit) => {
     if (!tokens) {
@@ -82,9 +88,23 @@ const AdminComuniPage = () => {
     }
   }, [comuniQuery.isError, comuniQuery.error, pushAlert]);
 
+  const comuni = useMemo(() => comuniQuery.data?.comuni ?? [], [comuniQuery.data]);
+  const totalPages = Math.ceil(comuni.length / ITEMS_PER_PAGE);
+  const paginatedComuni = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return comuni.slice(start, start + ITEMS_PER_PAGE);
+  }, [comuni, currentPage]);
+
   const resetForm = () => {
     setForm(emptyForm);
     setEditingId(null);
+    setIsFormModalOpen(false);
+  };
+
+  const openCreateForm = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+    setIsFormModalOpen(true);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -126,6 +146,7 @@ const AdminComuniPage = () => {
       province: comune.province,
       region: comune.region
     });
+    setIsFormModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -164,15 +185,91 @@ const AdminComuniPage = () => {
           <h1>Gestione comuni</h1>
           <p>Amministra l&apos;anagrafica territoriale disponibile ai rilevatori.</p>
         </div>
+        <button type="button" className="button button--primary" onClick={openCreateForm}>
+          + Aggiungi comune
+        </button>
       </header>
 
       <AdminStatusBanner alert={latestAlert} />
 
-      <section className="card card--form">
-        <div className="card-heading">
-          <h2>{editingId ? "Modifica comune" : "Nuovo comune"}</h2>
-          <p>Compila i dati anagrafici del comune per renderlo disponibile ai rilevamenti.</p>
+      <section className="card card--table">
+        <div className="table-header">
+          <div>
+            <h2>Comuni disponibili</h2>
+            <p>Elenco completo dei comuni abilitati ai rilevamenti.</p>
+          </div>
         </div>
+        <div className="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Provincia</th>
+                <th>Regione</th>
+                <th>Azione</th>
+              </tr>
+            </thead>
+            <tbody>
+              {comuniQuery.isLoading && (
+                <tr>
+                  <td colSpan={4}>Caricamento...</td>
+                </tr>
+              )}
+              {!comuniQuery.isLoading && comuni.length === 0 && (
+                <tr>
+                  <td colSpan={4}>Nessun comune presente.</td>
+                </tr>
+              )}
+              {paginatedComuni.map((comune) => (
+                <tr key={comune.id}>
+                  <td data-label="Nome">{comune.name}</td>
+                  <td data-label="Provincia">{comune.province}</td>
+                  <td data-label="Regione">{comune.region}</td>
+                  <td data-label="Azione">
+                    <div className="table-actions">
+                      <button type="button" className="button button--ghost" onClick={() => handleEdit(comune)}>
+                        Modifica
+                      </button>
+                      <button
+                        type="button"
+                        className="button button--danger"
+                        onClick={() => handleDelete(comune.id)}
+                        disabled={deletingId === comune.id}
+                      >
+                        {deletingId === comune.id ? "Elimino..." : "Elimina"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={comuni.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+          />
+        )}
+      </section>
+
+      <section className="card card--log">
+        <div className="card-heading">
+          <h2>Registro attività</h2>
+          <p>Operazioni recenti sull&apos;anagrafica comuni.</p>
+        </div>
+        <AdminActivityLog alerts={alerts} />
+      </section>
+
+      <FormModal
+        isOpen={isFormModalOpen}
+        title={editingId ? "Modifica comune" : "Nuovo comune"}
+        description="Compila i dati anagrafici del comune per renderlo disponibile ai rilevamenti."
+        onClose={resetForm}
+      >
         <form onSubmit={handleSubmit} className="admin-form">
           <input
             placeholder="Nome"
@@ -202,7 +299,7 @@ const AdminComuniPage = () => {
           </div>
           <div className="heading-actions">
             <button type="submit" className="button button--primary" disabled={isSubmitting}>
-              {editingId ? "Aggiorna comune" : "Crea comune"}
+              {isSubmitting ? "Salvataggio..." : (editingId ? "Aggiorna comune" : "Crea comune")}
             </button>
             {editingId && (
               <button type="button" className="button button--ghost" onClick={resetForm} disabled={isSubmitting}>
@@ -211,70 +308,7 @@ const AdminComuniPage = () => {
             )}
           </div>
         </form>
-      </section>
-
-      <section className="card card--table">
-        <div className="table-header">
-          <div>
-            <h2>Comuni disponibili</h2>
-            <p>Elenco completo dei comuni abilitati ai rilevamenti.</p>
-          </div>
-        </div>
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Provincia</th>
-                <th>Regione</th>
-                <th>Azione</th>
-              </tr>
-            </thead>
-            <tbody>
-              {comuniQuery.isLoading && (
-                <tr>
-                  <td colSpan={4}>Caricamento...</td>
-                </tr>
-              )}
-              {!comuniQuery.isLoading && (comuniQuery.data?.comuni.length ?? 0) === 0 && (
-                <tr>
-                  <td colSpan={4}>Nessun comune presente.</td>
-                </tr>
-              )}
-              {comuniQuery.data?.comuni.map((comune) => (
-                <tr key={comune.id}>
-                  <td data-label="Nome">{comune.name}</td>
-                  <td data-label="Provincia">{comune.province}</td>
-                  <td data-label="Regione">{comune.region}</td>
-                  <td data-label="Azione">
-                    <div className="table-actions">
-                      <button type="button" className="button button--ghost" onClick={() => handleEdit(comune)}>
-                        Modifica
-                      </button>
-                      <button
-                        type="button"
-                        className="button button--danger"
-                        onClick={() => handleDelete(comune.id)}
-                        disabled={deletingId === comune.id}
-                      >
-                        {deletingId === comune.id ? "Elimino..." : "Elimina"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="card card--log">
-        <div className="card-heading">
-          <h2>Registro attività</h2>
-          <p>Operazioni recenti sull&apos;anagrafica comuni.</p>
-        </div>
-        <AdminActivityLog alerts={alerts} />
-      </section>
+      </FormModal>
 
       <ConfirmModal
         isOpen={confirmModal.isOpen}

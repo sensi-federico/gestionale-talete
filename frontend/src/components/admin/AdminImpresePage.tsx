@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
@@ -6,6 +6,8 @@ import { useConfirmModal } from "../../hooks/useConfirmModal";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
 import ConfirmModal from "../ui/ConfirmModal";
+import FormModal from "../ui/FormModal";
+import Pagination from "../ui/Pagination";
 
 interface ImpresaForm {
   name: string;
@@ -34,6 +36,8 @@ const emptyForm: ImpresaForm = {
   address: ""
 };
 
+const ITEMS_PER_PAGE = 10;
+
 const AdminImpresePage = () => {
   const { tokens } = useAuthStore();
   const queryClient = useQueryClient();
@@ -43,6 +47,8 @@ const AdminImpresePage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const authorizedFetch = async <T,>(path: string, init?: RequestInit) => {
     if (!tokens) {
@@ -88,10 +94,25 @@ const AdminImpresePage = () => {
     }
   }, [impreseQuery.isError, impreseQuery.error, pushAlert]);
 
+  const imprese = useMemo(() => impreseQuery.data?.imprese ?? [], [impreseQuery.data]);
+  const totalPages = Math.ceil(imprese.length / ITEMS_PER_PAGE);
+  const paginatedImprese = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return imprese.slice(start, start + ITEMS_PER_PAGE);
+  }, [imprese, currentPage]);
+
   const resetForm = () => {
     setForm(emptyForm);
     setEditingId(null);
+    setIsFormModalOpen(false);
   };
+
+  const openCreateForm = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+    setIsFormModalOpen(true);
+  };
+
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -142,7 +163,9 @@ const AdminImpresePage = () => {
       email: impresa.email ?? "",
       address: impresa.address ?? ""
     });
+    setIsFormModalOpen(true);
   };
+
 
   const handleDelete = async (id: string) => {
     const confirmDelete = await confirmModal.confirm({
@@ -180,15 +203,93 @@ const AdminImpresePage = () => {
           <h1>Gestione imprese</h1>
           <p>Registra e aggiorna le aziende incaricate delle attività sul territorio.</p>
         </div>
+        <button type="button" className="button button--primary" onClick={openCreateForm}>
+          + Aggiungi impresa
+        </button>
       </header>
 
       <AdminStatusBanner alert={latestAlert} />
 
-      <section className="card card--form">
-        <div className="card-heading">
-          <h2>{editingId ? "Modifica impresa" : "Nuova impresa"}</h2>
-          <p>Completa i dati dell&apos;azienda per consentire l&apos;assegnazione nei rilevamenti.</p>
+      <section className="card card--table">
+        <div className="table-header">
+          <div>
+            <h2>Imprese registrate</h2>
+            <p>Catalogo delle aziende disponibili per l&apos;assegnazione degli interventi.</p>
+          </div>
         </div>
+        <div className="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Partita IVA</th>
+                <th>Email</th>
+                <th>Telefono</th>
+                <th>Azione</th>
+              </tr>
+            </thead>
+            <tbody>
+              {impreseQuery.isLoading && (
+                <tr>
+                  <td colSpan={5}>Caricamento...</td>
+                </tr>
+              )}
+              {!impreseQuery.isLoading && imprese.length === 0 && (
+                <tr>
+                  <td colSpan={5}>Nessuna impresa presente.</td>
+                </tr>
+              )}
+              {paginatedImprese.map((impresa) => (
+                <tr key={impresa.id}>
+                  <td data-label="Nome">{impresa.name}</td>
+                  <td data-label="Partita IVA">{impresa.partita_iva}</td>
+                  <td data-label="Email">{impresa.email ?? "—"}</td>
+                  <td data-label="Telefono">{impresa.phone ?? "—"}</td>
+                  <td data-label="Azione">
+                    <div className="table-actions">
+                      <button type="button" className="button button--ghost" onClick={() => handleEdit(impresa)}>
+                        Modifica
+                      </button>
+                      <button
+                        type="button"
+                        className="button button--danger"
+                        onClick={() => handleDelete(impresa.id)}
+                        disabled={deletingId === impresa.id}
+                      >
+                        {deletingId === impresa.id ? "Elimino..." : "Elimina"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={imprese.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+          />
+        )}
+      </section>
+
+      <section className="card card--log">
+        <div className="card-heading">
+          <h2>Registro attività</h2>
+          <p>Operazioni recenti sulla gestione imprese.</p>
+        </div>
+        <AdminActivityLog alerts={alerts} />
+      </section>
+
+      <FormModal
+        isOpen={isFormModalOpen}
+        title={editingId ? "Modifica impresa" : "Nuova impresa"}
+        description="Completa i dati dell'azienda per consentire l'assegnazione nei rilevamenti."
+        onClose={resetForm}
+      >
         <form onSubmit={handleSubmit} className="admin-form">
           <input
             placeholder="Nome"
@@ -235,7 +336,7 @@ const AdminImpresePage = () => {
           </div>
           <div className="heading-actions">
             <button type="submit" className="button button--primary" disabled={isSubmitting}>
-              {editingId ? "Aggiorna impresa" : "Crea impresa"}
+              {isSubmitting ? "Salvataggio..." : (editingId ? "Aggiorna impresa" : "Crea impresa")}
             </button>
             {editingId && (
               <button type="button" className="button button--ghost" onClick={resetForm} disabled={isSubmitting}>
@@ -244,72 +345,7 @@ const AdminImpresePage = () => {
             )}
           </div>
         </form>
-      </section>
-
-      <section className="card card--table">
-        <div className="table-header">
-          <div>
-            <h2>Imprese registrate</h2>
-            <p>Catalogo delle aziende disponibili per l&apos;assegnazione degli interventi.</p>
-          </div>
-        </div>
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Partita IVA</th>
-                <th>Email</th>
-                <th>Telefono</th>
-                <th>Azione</th>
-              </tr>
-            </thead>
-            <tbody>
-              {impreseQuery.isLoading && (
-                <tr>
-                  <td colSpan={5}>Caricamento...</td>
-                </tr>
-              )}
-              {!impreseQuery.isLoading && (impreseQuery.data?.imprese.length ?? 0) === 0 && (
-                <tr>
-                  <td colSpan={5}>Nessuna impresa presente.</td>
-                </tr>
-              )}
-              {impreseQuery.data?.imprese.map((impresa) => (
-                <tr key={impresa.id}>
-                  <td data-label="Nome">{impresa.name}</td>
-                  <td data-label="Partita IVA">{impresa.partita_iva}</td>
-                  <td data-label="Email">{impresa.email ?? "—"}</td>
-                  <td data-label="Telefono">{impresa.phone ?? "—"}</td>
-                  <td data-label="Azione">
-                    <div className="table-actions">
-                      <button type="button" className="button button--ghost" onClick={() => handleEdit(impresa)}>
-                        Modifica
-                      </button>
-                      <button
-                        type="button"
-                        className="button button--danger"
-                        onClick={() => handleDelete(impresa.id)}
-                        disabled={deletingId === impresa.id}
-                      >
-                        {deletingId === impresa.id ? "Elimino..." : "Elimina"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="card card--log">
-        <div className="card-heading">
-          <h2>Registro attività</h2>
-          <p>Operazioni recenti sulla gestione imprese.</p>
-        </div>
-        <AdminActivityLog alerts={alerts} />
-      </section>
+      </FormModal>
 
       <ConfirmModal
         isOpen={confirmModal.isOpen}

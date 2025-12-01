@@ -6,6 +6,8 @@ import { useConfirmModal } from "../../hooks/useConfirmModal";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
 import ConfirmModal from "../ui/ConfirmModal";
+import FormModal from "../ui/FormModal";
+import Pagination from "../ui/Pagination";
 
 type UserRole = "operaio" | "admin";
 
@@ -27,6 +29,8 @@ const emptyForm = {
   role: "operaio" as UserRole
 };
 
+const ITEMS_PER_PAGE = 10;
+
 const AdminUsersPage = () => {
   const { tokens, user: currentUser } = useAuthStore();
   const queryClient = useQueryClient();
@@ -36,6 +40,9 @@ const AdminUsersPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
 
   const authorizedFetch = async <T,>(path: string, init?: RequestInit) => {
     if (!tokens) {
@@ -82,10 +89,22 @@ const AdminUsersPage = () => {
   }, [usersQuery.isError, usersQuery.error, pushAlert]);
 
   const users = useMemo(() => usersQuery.data?.users ?? [], [usersQuery.data]);
+  const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return users.slice(start, start + ITEMS_PER_PAGE);
+  }, [users, currentPage]);
 
   const resetForm = () => {
     setForm(emptyForm);
     setEditingId(null);
+    setIsFormModalOpen(false);
+  };
+
+  const openCreateForm = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+    setIsFormModalOpen(true);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -157,6 +176,7 @@ const AdminUsersPage = () => {
       password: "",
       role: user.role
     });
+    setIsFormModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -218,15 +238,94 @@ const AdminUsersPage = () => {
           <h1>Gestione utenti</h1>
           <p>Crea, modifica ed elimina gli account operativi del gestionale.</p>
         </div>
+        <button type="button" className="button button--primary" onClick={openCreateForm}>
+          + Aggiungi utente
+        </button>
       </header>
 
       <AdminStatusBanner alert={latestAlert} />
 
-      <section className="card card--form">
-        <div className="card-heading">
-          <h2>{editingId ? "Modifica utente" : "Nuovo utente"}</h2>
-          <p>Compila i campi per {editingId ? "aggiornare" : "creare"} le credenziali di accesso.</p>
+      <section className="card card--table">
+        <div className="table-header">
+          <div>
+            <h2>Utenti registrati</h2>
+            <p>Elenco completo degli account con ruolo e ultimo accesso.</p>
+          </div>
         </div>
+        <div className="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Ruolo</th>
+                <th>Ultimo accesso</th>
+                <th>Azione</th>
+              </tr>
+            </thead>
+            <tbody>
+              {usersQuery.isLoading && (
+                <tr>
+                  <td colSpan={5}>Caricamento...</td>
+                </tr>
+              )}
+              {!usersQuery.isLoading && users.length === 0 && (
+                <tr>
+                  <td colSpan={5}>Nessun utente presente.</td>
+                </tr>
+              )}
+              {paginatedUsers.map((user) => (
+                <tr key={user.id}>
+                  <td data-label="Nome">{user.fullName || "—"}</td>
+                  <td data-label="Email">{user.email}</td>
+                  <td data-label="Ruolo">{user.role === "operaio" ? "Tecnico" : "Admin"}</td>
+                  <td data-label="Ultimo accesso">{formatDateTime(user.lastSignInAt)}</td>
+                  <td data-label="Azione">
+                    <div className="table-actions">
+                      <button type="button" className="button button--ghost" onClick={() => handleEdit(user)}>
+                        Modifica
+                      </button>
+                      <button
+                        type="button"
+                        className="button button--danger"
+                        onClick={() => handleDelete(user.id)}
+                        disabled={deletingId === user.id || currentUser?.id === user.id}
+                        title={currentUser?.id === user.id ? "Non puoi eliminare te stesso" : undefined}
+                      >
+                        {deletingId === user.id ? "Elimino..." : "Elimina"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={users.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+          />
+        )}
+      </section>
+
+      <section className="card card--log">
+        <div className="card-heading">
+          <h2>Registro attività</h2>
+          <p>Operazioni recenti sulla gestione utenti.</p>
+        </div>
+        <AdminActivityLog alerts={alerts} />
+      </section>
+
+      <FormModal
+        isOpen={isFormModalOpen}
+        title={editingId ? "Modifica utente" : "Nuovo utente"}
+        description={`Compila i campi per ${editingId ? "aggiornare" : "creare"} le credenziali di accesso.`}
+        onClose={resetForm}
+      >
         <form onSubmit={handleSubmit} className="admin-form">
           <input
             placeholder="Nome completo"
@@ -267,7 +366,7 @@ const AdminUsersPage = () => {
           </div>
           <div className="heading-actions">
             <button type="submit" className="button button--primary" disabled={isSubmitting}>
-              {editingId ? "Aggiorna utente" : "Crea utente"}
+              {isSubmitting ? "Salvataggio..." : (editingId ? "Aggiorna utente" : "Crea utente")}
             </button>
             {editingId && (
               <button type="button" className="button button--ghost" onClick={resetForm} disabled={isSubmitting}>
@@ -276,73 +375,7 @@ const AdminUsersPage = () => {
             )}
           </div>
         </form>
-      </section>
-
-      <section className="card card--table">
-        <div className="table-header">
-          <div>
-            <h2>Utenti registrati</h2>
-            <p>Elenco completo degli account con ruolo e ultimo accesso.</p>
-          </div>
-        </div>
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Email</th>
-                <th>Ruolo</th>
-                <th>Ultimo accesso</th>
-                <th>Azione</th>
-              </tr>
-            </thead>
-            <tbody>
-              {usersQuery.isLoading && (
-                <tr>
-                  <td colSpan={5}>Caricamento...</td>
-                </tr>
-              )}
-              {!usersQuery.isLoading && users.length === 0 && (
-                <tr>
-                  <td colSpan={5}>Nessun utente presente.</td>
-                </tr>
-              )}
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td data-label="Nome">{user.fullName || "—"}</td>
-                  <td data-label="Email">{user.email}</td>
-                  <td data-label="Ruolo">{user.role}</td>
-                  <td data-label="Ultimo accesso">{formatDateTime(user.lastSignInAt)}</td>
-                  <td data-label="Azione">
-                    <div className="table-actions">
-                      <button type="button" className="button button--ghost" onClick={() => handleEdit(user)}>
-                        Modifica
-                      </button>
-                      <button
-                        type="button"
-                        className="button button--danger"
-                        onClick={() => handleDelete(user.id)}
-                        disabled={deletingId === user.id || currentUser?.id === user.id}
-                        title={currentUser?.id === user.id ? "Non puoi eliminare te stesso" : undefined}
-                      >
-                        {deletingId === user.id ? "Elimino..." : "Elimina"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="card card--log">
-        <div className="card-heading">
-          <h2>Registro attività</h2>
-          <p>Operazioni recenti sulla gestione utenti.</p>
-        </div>
-        <AdminActivityLog alerts={alerts} />
-      </section>
+      </FormModal>
 
       <ConfirmModal
         isOpen={confirmModal.isOpen}
