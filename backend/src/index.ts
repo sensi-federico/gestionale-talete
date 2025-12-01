@@ -5,6 +5,7 @@ import authRoutes from "./routes/auth.js";
 import rilevamentiRoutes from "./routes/rilevamenti.js";
 import adminRoutes from "./routes/admin.js";
 import { bootstrapAdmin } from "./setup/bootstrapAdmin.js";
+import { seedTipiLavorazione } from "./setup/seedTipiLavorazione.js";
 import { requestLogger } from "./middleware/requestLogger.js";
 import { logger } from "./lib/logger.js";
 
@@ -55,6 +56,7 @@ const port = Number(process.env.PORT) || 4000;
 
 const startServer = async () => {
   await bootstrapAdmin();
+  await seedTipiLavorazione();
 
   app.listen(port, () => {
     logger.info(`Backend server avviato su http://localhost:${port}`);

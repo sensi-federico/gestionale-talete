@@ -1,4 +1,5 @@
 import { ChangeEvent, FormEvent, useMemo, useState, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useOfflineQueue } from "../../hooks/useOfflineQueue";
@@ -28,25 +29,6 @@ const MATERIALI_TUBO = [
   { value: "Altro", label: "Altro" }
 ];
 
-const DIAMETRI = [
-  { value: "", label: "Seleziona..." },
-  { value: "DN20", label: "DN 20" },
-  { value: "DN25", label: "DN 25" },
-  { value: "DN32", label: "DN 32" },
-  { value: "DN40", label: "DN 40" },
-  { value: "DN50", label: "DN 50" },
-  { value: "DN63", label: "DN 63" },
-  { value: "DN75", label: "DN 75" },
-  { value: "DN90", label: "DN 90" },
-  { value: "DN110", label: "DN 110" },
-  { value: "DN125", label: "DN 125" },
-  { value: "DN160", label: "DN 160" },
-  { value: "DN200", label: "DN 200" },
-  { value: "DN250", label: "DN 250" },
-  { value: "DN315", label: "DN 315" },
-  { value: "Altro", label: "Altro" }
-];
-
 type FormState = {
   comuneId: string;
   via: string;
@@ -62,6 +44,7 @@ type FormState = {
 };
 
 const NuovoRilevamentoForm = () => {
+  const navigate = useNavigate();
   const { tokens, user } = useAuthStore();
   const { addToQueue } = useOfflineQueue();
   const geolocation = useGeolocation();
@@ -208,6 +191,19 @@ const NuovoRilevamentoForm = () => {
     setSubmitMessage("");
   }, []);
 
+  const handleNewRilevamento = useCallback(() => {
+    setSubmitStatus("idle");
+    setSubmitMessage("");
+    // Il form è già resettato, scrolliamo in cima
+    window.scrollTo(0, 0);
+  }, []);
+
+  const handleViewRilevamenti = useCallback(() => {
+    setSubmitStatus("idle");
+    setSubmitMessage("");
+    navigate("/miei-rilevamenti");
+  }, [navigate]);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -279,6 +275,8 @@ const NuovoRilevamentoForm = () => {
         status={submitStatus}
         message={submitMessage}
         onClose={handleCloseModal}
+        onNewRilevamento={handleNewRilevamento}
+        onViewRilevamenti={handleViewRilevamenti}
       />
 
       <form className="rilevamento-form" onSubmit={handleSubmit}>
@@ -299,7 +297,7 @@ const NuovoRilevamentoForm = () => {
               >
                 <option value="">Seleziona...</option>
                 {referenceData?.comuni.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.province})</option>
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
             </label>
@@ -406,17 +404,15 @@ const NuovoRilevamentoForm = () => {
               </select>
             </label>
             <label className="form-field">
-              <span className="form-field__label">Diametro</span>
-              <select
+              <span className="form-field__label">Diametro (mm)</span>
+              <input
+                type="text"
                 name="diametro"
                 value={formState.diametro}
                 onChange={handleChange}
                 className="form-field__input"
-              >
-                {DIAMETRI.map((d) => (
-                  <option key={d.value} value={d.value}>{d.label}</option>
-                ))}
-              </select>
+                placeholder="es. 110"
+              />
             </label>
           </div>
 

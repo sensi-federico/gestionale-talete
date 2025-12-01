@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import RilevamentoDetail from "../ui/RilevamentoDetail";
@@ -31,6 +31,12 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
 const MieiRilevamenti = () => {
   const { tokens } = useAuthStore();
   const [selectedRilevamento, setSelectedRilevamento] = useState<Rilevamento | null>(null);
+  
+  // Filtri
+  const [searchText, setSearchText] = useState("");
+  const [filterTipo, setFilterTipo] = useState("");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
 
   const { data, isLoading, error } = useQuery<{ rilevamenti: Rilevamento[] }>({
     queryKey: ["miei-rilevamenti"],
@@ -46,6 +52,51 @@ const MieiRilevamenti = () => {
   });
 
   const rilevamenti = data?.rilevamenti ?? [];
+  
+  // Estrai lista unica dei tipi per il filtro
+  const tipiUnique = useMemo(() => {
+    const tipi = rilevamenti.map(r => r.tipo?.name).filter(Boolean) as string[];
+    return Array.from(new Set(tipi)).sort();
+  }, [rilevamenti]);
+  
+  // Applica filtri
+  const filteredRilevamenti = useMemo(() => {
+    return rilevamenti.filter(r => {
+      // Filtro testo (via, comune)
+      if (searchText) {
+        const search = searchText.toLowerCase();
+        const matchVia = r.via.toLowerCase().includes(search);
+        const matchComune = r.comune?.name.toLowerCase().includes(search);
+        if (!matchVia && !matchComune) return false;
+      }
+      
+      // Filtro tipo
+      if (filterTipo && r.tipo?.name !== filterTipo) {
+        return false;
+      }
+      
+      // Filtro data da
+      if (filterDateFrom && r.rilevamento_date < filterDateFrom) {
+        return false;
+      }
+      
+      // Filtro data a
+      if (filterDateTo && r.rilevamento_date > filterDateTo) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [rilevamenti, searchText, filterTipo, filterDateFrom, filterDateTo]);
+  
+  const hasActiveFilters = searchText || filterTipo || filterDateFrom || filterDateTo;
+  
+  const clearFilters = () => {
+    setSearchText("");
+    setFilterTipo("");
+    setFilterDateFrom("");
+    setFilterDateTo("");
+  };
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("it-IT", {
@@ -83,17 +134,76 @@ const MieiRilevamenti = () => {
     <div className="miei-rilevamenti">
       <div className="miei-rilevamenti__header">
         <h2>I miei rilevamenti</h2>
-        <span className="miei-rilevamenti__count">{rilevamenti.length} totali</span>
+        <span className="miei-rilevamenti__count">{filteredRilevamenti.length} di {rilevamenti.length}</span>
       </div>
 
-      {rilevamenti.length === 0 ? (
+      {/* Filtri */}
+      <div className="miei-rilevamenti__filters">
+        <div className="filter-row">
+          <input
+            type="text"
+            placeholder="🔍 Cerca via o comune..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="filter-input filter-input--search"
+          />
+          <select
+            value={filterTipo}
+            onChange={(e) => setFilterTipo(e.target.value)}
+            className="filter-input"
+          >
+            <option value="">Tutti i tipi</option>
+            {tipiUnique.map(tipo => (
+              <option key={tipo} value={tipo}>{tipo}</option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-row">
+          <input
+            type="date"
+            value={filterDateFrom}
+            onChange={(e) => setFilterDateFrom(e.target.value)}
+            className="filter-input"
+            placeholder="Dal"
+          />
+          <input
+            type="date"
+            value={filterDateTo}
+            onChange={(e) => setFilterDateTo(e.target.value)}
+            className="filter-input"
+            placeholder="Al"
+          />
+          {hasActiveFilters && (
+            <button 
+              type="button" 
+              className="filter-clear-btn"
+              onClick={clearFilters}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      {filteredRilevamenti.length === 0 ? (
         <div className="empty-state">
-          <p>Non hai ancora registrato nessun rilevamento.</p>
-          <p className="empty-state__hint">Usa la tab "Nuovo" per creare il tuo primo rilevamento!</p>
+          {hasActiveFilters ? (
+            <>
+              <p>Nessun rilevamento trovato con i filtri applicati.</p>
+              <button type="button" className="button button--secondary" onClick={clearFilters}>
+                Rimuovi filtri
+              </button>
+            </>
+          ) : (
+            <>
+              <p>Non hai ancora registrato nessun rilevamento.</p>
+              <p className="empty-state__hint">Vai su "Nuovo" per creare il tuo primo rilevamento!</p>
+            </>
+          )}
         </div>
       ) : (
         <div className="rilevamenti-list">
-          {rilevamenti.map((r) => (
+          {filteredRilevamenti.map((r) => (
             <div
               key={r.id}
               className="rilevamento-card"
@@ -136,4 +246,5 @@ const MieiRilevamenti = () => {
     </div>
   );
 };
+
 export default MieiRilevamenti;

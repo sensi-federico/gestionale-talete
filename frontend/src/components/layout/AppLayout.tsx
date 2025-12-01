@@ -29,7 +29,7 @@ const AppLayout = () => {
   };
 
   const displayName = user.fullName?.trim() ? user.fullName : user.email;
-  const readableRole = user.role === "admin" ? "Amministratore" : "Operaio";
+  const readableRole = user.role === "admin" ? "Amministratore" : "Tecnico";
 
   // Costruisci il path del logo usando BASE_URL di Vite
   const logoPath = `${basePath}logo/logo_talete.png`;
@@ -60,11 +60,14 @@ const AppLayout = () => {
           <nav className="app-header__nav">
             {user.role === "operaio" && (
               <>
+                <NavLink to="/" end className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
+                  Home
+                </NavLink>
                 <NavLink to="/nuovo" className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
                   Nuovo
                 </NavLink>
                 <NavLink to="/miei-rilevamenti" className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
-                  I miei rilevamenti
+                  I miei
                 </NavLink>
               </>
             )}

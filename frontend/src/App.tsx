@@ -2,6 +2,7 @@ import { useCallback, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { OfflineRilevamento } from "@shared/types";
 import LoginForm from "./components/auth/LoginForm";
+import TecnicoDashboard from "./components/operaio/TecnicoDashboard";
 import NuovoRilevamentoPage from "./components/operaio/NuovoRilevamentoPage";
 import MieiRilevamentiPage from "./components/operaio/MieiRilevamentiPage";
 import AdminDashboard from "./components/admin/AdminDashboard";
@@ -20,8 +21,8 @@ const HomeRoute = () => {
   if (role === "admin") {
     return <Navigate to="/admin/panoramica" replace />;
   }
-  // Operaio: redirect a nuovo rilevamento di default
-  return <Navigate to="/nuovo" replace />;
+  // Tecnico: mostra dashboard
+  return <TecnicoDashboard />;
 };
 
 const App = () => {
@@ -107,7 +108,7 @@ const App = () => {
       <Route element={<ProtectedRoute allowedRoles={["operaio", "admin"]} />}>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<HomeRoute />} />
-          {/* Rotte operaio */}
+          {/* Rotte tecnico */}
           <Route element={<ProtectedRoute allowedRoles={["operaio"]} />}>
             <Route path="nuovo" element={<NuovoRilevamentoPage />} />
             <Route path="miei-rilevamenti" element={<MieiRilevamentiPage />} />
