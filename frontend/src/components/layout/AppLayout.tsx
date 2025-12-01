@@ -69,6 +69,9 @@ const AppLayout = () => {
                 <NavLink to="/miei-rilevamenti" className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
                   I miei
                 </NavLink>
+                <NavLink to="/profilo" className={({ isActive }) => `top-nav-link top-nav-link--mobile-only${isActive ? " active" : ""}`}>
+                  Profilo
+                </NavLink>
               </>
             )}
             {user.role === "admin" && (
@@ -102,6 +105,12 @@ const AppLayout = () => {
                   className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
                 >
                   Imprese
+                </NavLink>
+                <NavLink
+                  to="/profilo"
+                  className={({ isActive }) => `top-nav-link top-nav-link--mobile-only${isActive ? " active" : ""}`}
+                >
+                  Profilo
                 </NavLink>
               </>
             )}
