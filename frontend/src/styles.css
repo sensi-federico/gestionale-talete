@@ -2384,6 +2384,8 @@ textarea.form-field__input {
 }
 
 .detail-page__header {
+  position: relative;
+  z-index: 100;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -2397,6 +2399,8 @@ textarea.form-field__input {
 }
 
 .detail-page__back {
+  position: relative;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -2410,6 +2414,8 @@ textarea.form-field__input {
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  -webkit-tap-highlight-color: rgba(0, 102, 204, 0.2);
+  touch-action: manipulation;
 }
 
 .detail-page__back svg {

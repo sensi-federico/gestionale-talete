@@ -61,20 +61,14 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false }: Rileva
     // Salva la posizione corrente dello scroll
     const scrollY = window.scrollY;
     
-    // Blocca lo scroll su html e body
-    document.documentElement.style.overflow = "hidden";
+    // Blocca lo scroll - metodo più semplice e compatibile
     document.body.style.overflow = "hidden";
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
+    document.body.style.touchAction = "none";
     
     return () => {
       // Ripristina lo scroll
-      document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
+      document.body.style.touchAction = "";
       window.scrollTo(0, scrollY);
     };
   }, []);
@@ -91,11 +85,19 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false }: Rileva
   const lat = rilevamento.manual_lat || rilevamento.gps_lat;
   const lon = rilevamento.manual_lon || rilevamento.gps_lon;
 
+  const handleBackClick = () => {
+    onClose();
+  };
+
   return (
     <div className="detail-page">
       {/* Header fisso */}
       <header className="detail-page__header">
-        <button className="detail-page__back" onClick={onClose}>
+        <button 
+          type="button"
+          className="detail-page__back" 
+          onClick={handleBackClick}
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
