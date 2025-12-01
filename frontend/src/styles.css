@@ -2437,10 +2437,11 @@ textarea.form-field__input {
 
 .detail-page__content {
   flex: 1;
+  min-height: 0; /* Cruciale per flex scroll */
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: env(safe-area-inset-bottom, 1rem);
+  overscroll-behavior: contain;
 }
 
 .detail-page__hero {
@@ -2466,7 +2467,8 @@ textarea.form-field__input {
 
 .detail-section:last-child {
   border-bottom: none;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 1rem));
 }
 
 .detail-section--meta {

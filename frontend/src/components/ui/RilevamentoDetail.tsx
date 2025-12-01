@@ -58,9 +58,24 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false }: Rileva
 
   // Blocca scroll del body quando la pagina è aperta
   useEffect(() => {
+    // Salva la posizione corrente dello scroll
+    const scrollY = window.scrollY;
+    
+    // Blocca lo scroll su html e body
+    document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    
     return () => {
+      // Ripristina lo scroll
+      document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      window.scrollTo(0, scrollY);
     };
   }, []);
 
