@@ -2,7 +2,8 @@ import { useCallback, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { OfflineRilevamento } from "@shared/types";
 import LoginForm from "./components/auth/LoginForm";
-import OperaioPage from "./components/operaio/OperaioPage";
+import NuovoRilevamentoPage from "./components/operaio/NuovoRilevamentoPage";
+import MieiRilevamentiPage from "./components/operaio/MieiRilevamentiPage";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminUsersPage from "./components/admin/AdminUsersPage";
 import AdminComuniPage from "./components/admin/AdminComuniPage";
@@ -19,7 +20,8 @@ const HomeRoute = () => {
   if (role === "admin") {
     return <Navigate to="/admin/panoramica" replace />;
   }
-  return <OperaioPage />;
+  // Operaio: redirect a nuovo rilevamento di default
+  return <Navigate to="/nuovo" replace />;
 };
 
 const App = () => {
@@ -105,6 +107,12 @@ const App = () => {
       <Route element={<ProtectedRoute allowedRoles={["operaio", "admin"]} />}>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<HomeRoute />} />
+          {/* Rotte operaio */}
+          <Route element={<ProtectedRoute allowedRoles={["operaio"]} />}>
+            <Route path="nuovo" element={<NuovoRilevamentoPage />} />
+            <Route path="miei-rilevamenti" element={<MieiRilevamentiPage />} />
+          </Route>
+          {/* Rotte admin */}
           <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
             <Route path="admin">
               <Route index element={<Navigate to="panoramica" replace />} />

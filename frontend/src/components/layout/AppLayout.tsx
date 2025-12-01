@@ -59,9 +59,14 @@ const AppLayout = () => {
         <div className={`app-header__collapsible${isNavOpen ? " is-open" : ""}`} id="primary-navigation">
           <nav className="app-header__nav">
             {user.role === "operaio" && (
-              <NavLink to="/" end className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
-                Rilevamenti
-              </NavLink>
+              <>
+                <NavLink to="/nuovo" className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
+                  Nuovo
+                </NavLink>
+                <NavLink to="/miei-rilevamenti" className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
+                  I miei rilevamenti
+                </NavLink>
+              </>
             )}
             {user.role === "admin" && (
               <>
@@ -112,16 +117,13 @@ const AppLayout = () => {
       <main className="app-shell__main">
         <Outlet />
       </main>
-      {/* Footer solo per admin - operai hanno le tabs in basso */}
-      {user.role === "admin" && (
-        <footer className="app-footer">
-          <div className="app-footer__content">
-            <span className="app-footer__copyright">© {new Date().getFullYear()} Talete Spa</span>
-            <span className="app-footer__separator">•</span>
-            <span className="app-footer__version">v1.0</span>
-          </div>
-        </footer>
-      )}
+      <footer className="app-footer">
+        <div className="app-footer__content">
+          <span className="app-footer__copyright">© {new Date().getFullYear()} Talete Spa</span>
+          <span className="app-footer__separator">•</span>
+          <span className="app-footer__version">v1.0</span>
+        </div>
+      </footer>
     </div>
   );
 };
