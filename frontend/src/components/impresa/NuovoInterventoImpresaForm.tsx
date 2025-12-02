@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { useReferenceData } from "../../hooks/useOfflineCache";
 import { useGeolocation } from "../../hooks/useGeolocation";
+import { useOfflineQueue } from "../../hooks/useOfflineQueue";
 import MapPicker from "../map/MapPicker";
 import SubmitModal, { SubmitStatus } from "../ui/SubmitModal";
 import LocationPermissionModal from "../ui/LocationPermissionModal";
 import { api } from "../../services/api";
+import { OfflineRilevamento } from "@shared/types";
 
 // Opzioni mezzi disponibili
 const MEZZI_OPTIONS = [
@@ -43,6 +45,7 @@ const NuovoInterventoImpresaForm = () => {
   const navigate = useNavigate();
   const { tokens, user } = useAuthStore();
   const geolocation = useGeolocation(true);
+  const { addToQueue } = useOfflineQueue();
   const [{ date }, setDateTime] = useState(() => formatDateTime());
   const [manualCoords, setManualCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [formState, setFormState] = useState<FormState>({
@@ -127,6 +130,41 @@ const NuovoInterventoImpresaForm = () => {
     navigate("/");
   }, [navigate]);
 
+  const submitOffline = async () => {
+    if (!user) throw new Error("Utente non autenticato");
+
+    const extraInfo = `Mezzi: ${formState.mezzi.join(", ")}\nOra fine: ${formState.oraFine}`;
+    const notes = formState.notes ? `${extraInfo}\n\n${formState.notes}` : extraInfo;
+
+    const record: OfflineRilevamento = {
+      comuneId: formState.comuneId,
+      via: formState.via,
+      numeroCivico: formState.numeroCivico || undefined,
+      tipoLavorazioneId: formState.tipoLavorazioneId,
+      impresaId: user.impresaId || undefined,
+      numeroOperai: formState.numeroOperai,
+      fotoUrl: undefined,
+      gpsLat: manualCoords?.lat ?? geolocation.position?.latitude ?? 0,
+      gpsLon: manualCoords?.lon ?? geolocation.position?.longitude ?? 0,
+      manualLat: manualCoords?.lat ?? null,
+      manualLon: manualCoords?.lon ?? null,
+      rilevamentoDate: date,
+      rilevamentoTime: formState.oraInizio,
+      notes,
+      submitTimestamp: new Date().toISOString(),
+      submitGpsLat: geolocation.position?.latitude,
+      submitGpsLon: geolocation.position?.longitude,
+      localId: crypto.randomUUID(),
+      isSynced: false,
+      localCreatedAt: new Date().toISOString()
+    };
+
+    await addToQueue(record);
+    setSubmitStatus("offline");
+    setSubmitMessage("Salvato! Verrà sincronizzato automaticamente");
+    handleNewIntervento();
+  };
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!canSubmit || !tokens || !user) return;
@@ -160,10 +198,11 @@ const NuovoInterventoImpresaForm = () => {
       await api.createRilevamento(formData, tokens.accessToken);
       setSubmitStatus("success");
       setSubmitMessage("L'intervento è stato registrato correttamente");
+      handleNewIntervento();
     } catch (error) {
       console.error("Errore invio intervento", error);
-      setSubmitStatus("error");
-      setSubmitMessage("Si è verificato un errore. Riprova.");
+      // Fallback offline
+      await submitOffline();
     }
   };
 

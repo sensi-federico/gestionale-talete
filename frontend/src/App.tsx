@@ -47,9 +47,11 @@ const App = () => {
       const formData = new FormData();
       formData.append("comuneId", record.comuneId);
       formData.append("via", record.via);
-      formData.append("numeroCivico", record.numeroCivico);
+      formData.append("numeroCivico", record.numeroCivico ?? "");
       formData.append("tipoLavorazioneId", record.tipoLavorazioneId);
-      formData.append("impresaId", record.impresaId);
+      if (record.impresaId) {
+        formData.append("impresaId", record.impresaId);
+      }
       formData.append("numeroOperai", String(record.numeroOperai));
       formData.append("gpsLat", String(record.gpsLat));
       formData.append("gpsLon", String(record.gpsLon));
