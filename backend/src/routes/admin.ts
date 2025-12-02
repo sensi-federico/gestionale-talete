@@ -26,7 +26,7 @@ const updateUserSchema = z.object({
   fullName: z.string().min(2),
   role: z.enum(["operaio", "admin", "impresa"]),
   password: z.string().min(6).optional(),
-  impresaId: z.string().uuid().optional()
+  impresaId: z.string().nullable().optional().transform((val) => (val && val.trim() !== "" ? val : null))
 }).refine(
   (data) => {
     if (data.role === "impresa" && !data.impresaId) {

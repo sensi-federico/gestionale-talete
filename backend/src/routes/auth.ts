@@ -95,14 +95,15 @@ router.post("/users", requireAuth(["admin"]), async (req: Request, res: Response
     return res.status(400).json({ message: "Dati non validi" });
   }
 
-  const { email, password, fullName, role } = parseResult.data;
+  const { email, password, fullName, role, impresaId } = parseResult.data;
 
   const { data, error } = await supabaseAdmin.auth.admin.createUser({
     email,
     password,
     user_metadata: {
       full_name: fullName,
-      role
+      role,
+      impresa_id: impresaId ?? null
     },
     email_confirm: true
   });
@@ -114,11 +115,20 @@ router.post("/users", requireAuth(["admin"]), async (req: Request, res: Response
     return res.status(500).json({ message: "Impossibile creare l'utente" });
   }
 
+  // Aggiorna public.users con impresa_id
+  if (impresaId) {
+    await supabaseAdmin
+      .from("users")
+      .update({ impresa_id: impresaId })
+      .eq("id", data.user.id);
+  }
+
   const createdUser: UserProfile = {
     id: data.user.id,
     email: data.user.email ?? email,
     fullName,
-    role
+    role,
+    impresaId: impresaId ?? undefined
   };
 
   logger.info("Utente creato", { userId: createdUser.id, role: createdUser.role });

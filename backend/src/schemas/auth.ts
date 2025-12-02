@@ -14,7 +14,7 @@ export const createUserSchema = z.object({
   password: z.string().min(8),
   fullName: z.string().min(2),
   role: z.enum(["operaio", "admin", "impresa"]),
-  impresaId: z.string().uuid().optional() // Obbligatorio se role=impresa
+  impresaId: z.string().optional().transform((val) => (val && val.trim() !== "" ? val : undefined))
 }).refine(
   (data) => {
     // Se ruolo è impresa, impresaId deve essere presente
