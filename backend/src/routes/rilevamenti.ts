@@ -128,7 +128,7 @@ type RilevamentoRequestBody = {
 
 router.post(
   "/",
-  requireAuth(["operaio", "admin"]),
+  requireAuth(["operaio", "admin", "impresa"]),
   upload.single("foto"),
   async (req: AuthenticatedRequest<RilevamentoRequestBody>, res: Response) => {
     if (!req.user) {

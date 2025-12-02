@@ -120,11 +120,13 @@ const App = () => {
           {/* Rotte tecnico */}
           <Route element={<ProtectedRoute allowedRoles={["operaio"]} />}>
             <Route path="nuovo" element={<NuovoRilevamentoPage />} />
-            <Route path="miei-rilevamenti" element={<MieiRilevamentiPage />} />
           </Route>
           {/* Rotte impresa */}
           <Route element={<ProtectedRoute allowedRoles={["impresa"]} />}>
             <Route path="nuovo-impresa" element={<NuovoInterventoImpresaPage />} />
+          </Route>
+          {/* Miei rilevamenti - accessibile da operaio e impresa */}
+          <Route element={<ProtectedRoute allowedRoles={["operaio", "impresa"]} />}>
             <Route path="miei-rilevamenti" element={<MieiRilevamentiPage />} />
           </Route>
           {/* Rotte admin */}
