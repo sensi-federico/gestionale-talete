@@ -31,16 +31,16 @@ const MATERIALI_TUBO = [
 
 // Opzioni mezzi disponibili
 const MEZZI_OPTIONS = [
-  { value: "furgone", label: "Furgone" },
-  { value: "camion", label: "Camion" },
-  { value: "auto", label: "Auto" },
-  { value: "escavatore", label: "Escavatore" },
-  { value: "minipala", label: "Minipala" },
-  { value: "autocarro", label: "Autocarro" },
-  { value: "gru", label: "Gru" },
-  { value: "compressore", label: "Compressore" },
-  { value: "generatore", label: "Generatore" },
-  { value: "altro", label: "Altro" }
+  { value: "furgone", label: "🚐 Furgone" },
+  { value: "camion", label: "🚚 Camion" },
+  { value: "auto", label: "🚗 Auto" },
+  { value: "escavatore", label: "🚧 Escavatore" },
+  { value: "minipala", label: "🚧 Minipala" },
+  { value: "autocarro", label: "🚛 Autocarro" },
+  { value: "gru", label: "🏗️ Gru" },
+  { value: "compressore", label: "🛠️ Compressore" },
+  { value: "generatore", label: "⚡ Generatore" },
+  { value: "altro", label: "📦 Altro" }
 ];
 
 type FormState = {
