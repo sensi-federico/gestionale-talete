@@ -63,54 +63,54 @@ const VIE = [
 
 // Note realistiche per tipo di intervento
 const NOTE_PER_TIPO: Record<string, string[]> = {
-  'Riparazione perdita': [
-    'Perdita individuata su giunto. Riparata con manicotto in acciaio.',
-    'Fessura su tubo principale. Intervento con fascia di riparazione.',
-    'Perdita da valvola. Sostituita guarnizione.',
-    'Rottura per radici. Rimosso tratto danneggiato e saldatura.',
-    'Perdita minima su raccordo. Serraggio e sigillatura.',
-  ],
-  'Sostituzione tubazione': [
-    'Sostituiti 15 metri di tubazione obsoleta in ghisa con PEAD.',
-    'Tratto corroso. Nuova posa con tubo PE ø110.',
-    'Upgrade da DN80 a DN100 per aumentare portata.',
-    'Sostituzione completa allaccio condominiale.',
-  ],
-  'Allaccio nuova utenza': [
-    'Nuovo allaccio per abitazione unifamiliare.',
+  'Allaccio': [
+    'Nuovo allaccio per abitazione unifamiliare completato.',
     'Allaccio commerciale per ristorante. Contatore DN25.',
     'Derivazione per nuova palazzina 8 unità.',
     'Allaccio industriale con riduttore di pressione.',
+    'Allaccio domestico standard completato senza problemi.',
   ],
-  'Manutenzione programmata': [
+  'Manutenzione': [
     'Verifica e pulizia pozzetti ispezione.',
     'Controllo pressione e portata su tratta.',
     'Sostituzione preventiva valvole vetuste.',
-    'Ispezione con telecamera. Nessuna anomalia.',
+    'Manutenzione ordinaria completata.',
+    'Controllo periodico impianto. Tutto regolare.',
   ],
-  'Intervento emergenza': [
-    'Chiamata notturna. Rottura improvvisa su principale.',
-    'Allagamento cantina. Chiusura valvola e riparazione.',
-    'Geyser in strada. Intervento immediato con bypass.',
-    'Emergenza condominio. Ripristinata erogazione in 2 ore.',
+  'Ispezione': [
+    'Ispezione con telecamera. Nessuna anomalia rilevata.',
+    'Verifica stato tubazioni. Leggera incrostazione.',
+    'Ispezione preventiva post-segnalazione. OK.',
+    'Controllo visivo rete. Nessun problema.',
+    'Ispezione programmata trimestrale completata.',
   ],
-  'Posa nuova condotta': [
-    'Nuova condotta DN200 per lottizzazione.',
-    'Estensione rete per zona industriale.',
-    'Posa 120m di condotta principale con attraversamento.',
-    'Nuova dorsale con camerette di manovra.',
+  'Predisposizione allaccio': [
+    'Predisposizione per futuro allaccio abitazione.',
+    'Preparazione punto di derivazione per cantiere.',
+    'Installazione saracinesca per futuro allaccio.',
+    'Predisposizione completata, in attesa di richiesta allaccio.',
+    'Punto predisposto per nuova utenza commerciale.',
   ],
-  'Verifica contatore': [
-    'Contatore bloccato. Sostituito con nuovo digitale.',
-    'Verifica lettura anomala. Contatore OK, perdita interna.',
-    'Sostituzione contatore classe C per precisione.',
-    'Installazione contatore con telelettura.',
+  'Riparazione': [
+    'Perdita individuata su giunto. Riparata con manicotto in acciaio.',
+    'Fessura su tubo principale. Intervento con fascia di riparazione.',
+    'Perdita da valvola. Sostituita guarnizione.',
+    'Rottura per radici. Rimosso tratto danneggiato.',
+    'Riparazione urgente completata. Ripristinata erogazione.',
   ],
-  'Bonifica rete': [
-    'Lavaggio condotta con acqua ad alta pressione.',
-    'Disinfezione tratta dopo intervento.',
-    'Spurgo aria e sedimenti da rete secondaria.',
-    'Bonifica completa dopo contaminazione.',
+  'Sostituzione': [
+    'Sostituiti 15 metri di tubazione obsoleta con PEAD.',
+    'Tratto corroso. Nuova posa con tubo PE ø110.',
+    'Upgrade da DN80 a DN100 per aumentare portata.',
+    'Sostituzione completa allaccio condominiale.',
+    'Sostituzione contatore guasto con nuovo digitale.',
+  ],
+  'Altro': [
+    'Intervento completato con successo.',
+    'Sopralluogo tecnico per valutazione.',
+    'Assistenza per lavori stradali terzi.',
+    'Verifica segnalazione utente. Nessun problema riscontrato.',
+    'Supporto tecnico per cantiere edile.',
   ],
 };
 
