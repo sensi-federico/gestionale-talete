@@ -218,7 +218,7 @@ const AdminDashboard = () => {
         </div>
         <div className="heading-actions">
           <button type="button" className="button button--secondary" onClick={copyTable}>
-            Esporta CSV
+            Copia CSV
           </button>
         </div>
       </header>

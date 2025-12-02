@@ -208,4 +208,22 @@ router.post(
   }
 );
 
+// Elimina un rilevamento (solo admin)
+router.delete("/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+
+  const { error } = await supabaseAdmin
+    .from("rilevamenti")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    logger.error("Errore eliminazione rilevamento", { id, message: error.message });
+    return res.status(500).json({ message: "Errore durante l'eliminazione" });
+  }
+
+  logger.info("Rilevamento eliminato", { id, deletedBy: req.user?.id });
+  return res.status(204).send();
+});
+
 export default router;

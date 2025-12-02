@@ -76,6 +76,12 @@ router.get("/users", requireAuth(["admin"]), async (req: AuthenticatedRequest, r
     return res.status(500).json({ message: "Impossibile recuperare gli utenti" });
   }
 
+  // Recupera last_sign_in_at da auth.users
+  const { data: authData } = await supabaseAdmin.auth.admin.listUsers();
+  const authUsersMap = new Map(
+    authData?.users?.map((u) => [u.id, u.last_sign_in_at]) ?? []
+  );
+
   const users = (data ?? []).map((user) => ({
     id: user.id,
     email: user.email ?? "",
@@ -83,7 +89,7 @@ router.get("/users", requireAuth(["admin"]), async (req: AuthenticatedRequest, r
     role: (user.role ?? "operaio") as "operaio" | "admin" | "impresa",
     impresaId: user.impresa_id ?? null,
     createdAt: user.created_at ?? null,
-    updatedAt: user.updated_at ?? null
+    lastSignInAt: authUsersMap.get(user.id) ?? null
   }));
 
   logger.info("Lista utenti recuperata", { count: users.length, requesterId: req.user?.id });

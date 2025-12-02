@@ -31,15 +31,13 @@ const MATERIALI_TUBO = [
 
 // Opzioni mezzi disponibili
 const MEZZI_OPTIONS = [
-  { value: "furgone", label: "🚐 Furgone" },
+  { value: "motocarro", label: "🚛 Motocarro" },
+  { value: "fiorino", label: "🚐 Fiorino" },
+  { value: "daily", label: "🚐 Daily" },
   { value: "camion", label: "🚚 Camion" },
-  { value: "auto", label: "🚗 Auto" },
+  { value: "mini_escavatore", label: "🚧 Mini escavatore" },
   { value: "escavatore", label: "🚧 Escavatore" },
-  { value: "minipala", label: "🚧 Minipala" },
-  { value: "autocarro", label: "🚛 Autocarro" },
-  { value: "gru", label: "🏗️ Gru" },
-  { value: "compressore", label: "🛠️ Compressore" },
-  { value: "generatore", label: "⚡ Generatore" },
+  { value: "terna", label: "🚜 Terna" },
   { value: "altro", label: "📦 Altro" }
 ];
 
@@ -487,15 +485,17 @@ const NuovoRilevamentoForm = () => {
 
           <div className="form-row">
             <label className="form-field">
-              <span className="form-field__label">Altri interventi</span>
-              <textarea
+              <span className="form-field__label">Interventi precedenti</span>
+              <select
                 name="altriInterventi"
                 value={formState.altriInterventi}
                 onChange={handleChange}
-                rows={2}
                 className="form-field__input"
-                placeholder="Descrivi eventuali altri interventi effettuati..."
-              />
+              >
+                <option value="">Seleziona...</option>
+                <option value="SI">SI - Sono stati effettuati interventi precedenti</option>
+                <option value="NO">NO - Primo intervento</option>
+              </select>
             </label>
           </div>
 

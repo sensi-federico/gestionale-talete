@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import RilevamentoDetail from "../ui/RilevamentoDetail";
 import Pagination from "../ui/Pagination";
+import ConfirmModal from "../ui/ConfirmModal";
 
 interface Rilevamento {
   id: string;
@@ -52,6 +53,7 @@ const ITEMS_PER_PAGE = 10;
 
 const AdminRilevazioniPage = () => {
   const { tokens } = useAuthStore();
+  const queryClient = useQueryClient();
   const [selectedRilevamento, setSelectedRilevamento] = useState<Rilevamento | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filterOperaio, setFilterOperaio] = useState<string>("");
@@ -60,6 +62,8 @@ const AdminRilevazioniPage = () => {
   const [filterDateFrom, setFilterDateFrom] = useState<string>("");
   const [filterDateTo, setFilterDateTo] = useState<string>("");
   const [isExporting, setIsExporting] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const authorizedFetch = async <T,>(path: string) => {
     if (!tokens) throw new Error("Token mancante");
@@ -142,6 +146,44 @@ const AdminRilevazioniPage = () => {
   };
 
   const hasFilters = filterOperaio || filterComune || filterTipo || filterDateFrom || filterDateTo;
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!tokens) throw new Error("Token mancante");
+      const response = await fetch(`${API_BASE}/rilevamenti/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${tokens.accessToken}` }
+      });
+      if (!response.ok) throw new Error("Eliminazione fallita");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "rilevamenti"] });
+      setSelectedRilevamento(null);
+      setDeleteModalOpen(false);
+      setDeleteTargetId(null);
+    },
+    onError: (error) => {
+      console.error("Errore eliminazione:", error);
+      alert("Errore durante l'eliminazione");
+    }
+  });
+
+  const handleDeleteRequest = (id: string) => {
+    setDeleteTargetId(id);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteTargetId) {
+      deleteMutation.mutate(deleteTargetId);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setDeleteTargetId(null);
+  };
 
   // Export CSV
   const handleExportCSV = async () => {
@@ -311,8 +353,21 @@ const AdminRilevazioniPage = () => {
           rilevamento={selectedRilevamento}
           onClose={closeDetail}
           showOperaio={true}
+          onDelete={handleDeleteRequest}
         />
       )}
+
+      {/* Modal conferma eliminazione */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        title="Elimina intervento"
+        message="Sei sicuro di voler eliminare questo intervento? Questa azione non può essere annullata."
+        confirmText="Elimina"
+        cancelText="Annulla"
+        variant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </div>
   );
 };

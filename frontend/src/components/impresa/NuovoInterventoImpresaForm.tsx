@@ -2,20 +2,20 @@ import { ChangeEvent, FormEvent, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { useReferenceData } from "../../hooks/useOfflineCache";
+import { useGeolocation } from "../../hooks/useGeolocation";
+import MapPicker from "../map/MapPicker";
 import SubmitModal, { SubmitStatus } from "../ui/SubmitModal";
 import { api } from "../../services/api";
 
 // Opzioni mezzi disponibili
 const MEZZI_OPTIONS = [
-  { value: "furgone", label: "🚐 Furgone" },
-  { value: "camion", label: "🚛 Camion" },
-  { value: "auto", label: "🚗 Auto" },
-  { value: "escavatore", label: "🏗️ Escavatore" },
-  { value: "minipala", label: "🚜 Minipala" },
-  { value: "autocarro", label: "🚚 Autocarro" },
-  { value: "gru", label: "🏗️ Gru" },
-  { value: "compressore", label: "⚙️ Compressore" },
-  { value: "generatore", label: "🔌 Generatore" },
+  { value: "motocarro", label: "🚛 Motocarro" },
+  { value: "fiorino", label: "🚐 Fiorino" },
+  { value: "daily", label: "🚐 Daily" },
+  { value: "camion", label: "🚚 Camion" },
+  { value: "mini_escavatore", label: "🚧 Mini escavatore" },
+  { value: "escavatore", label: "🚧 Escavatore" },
+  { value: "terna", label: "🚜 Terna" },
   { value: "altro", label: "📦 Altro" }
 ];
 
@@ -41,7 +41,9 @@ type FormState = {
 const NuovoInterventoImpresaForm = () => {
   const navigate = useNavigate();
   const { tokens, user } = useAuthStore();
+  const geolocation = useGeolocation();
   const [{ date }, setDateTime] = useState(() => formatDateTime());
+  const [manualCoords, setManualCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [formState, setFormState] = useState<FormState>({
     comuneId: "",
     via: "",
@@ -139,9 +141,15 @@ const NuovoInterventoImpresaForm = () => {
       // L'impresaId viene preso dal token dell'utente sul backend
       formData.append("impresaId", user.impresaId ?? "");
       formData.append("numeroOperai", String(formState.numeroOperai));
-      // GPS placeholder per impresa (0,0)
-      formData.append("gpsLat", "0");
-      formData.append("gpsLon", "0");
+      // GPS - usa coordinate manuali o geolocalizzazione
+      const lat = manualCoords?.lat ?? geolocation.position?.latitude ?? 0;
+      const lon = manualCoords?.lon ?? geolocation.position?.longitude ?? 0;
+      formData.append("gpsLat", String(lat));
+      formData.append("gpsLon", String(lon));
+      if (manualCoords) {
+        formData.append("manualLat", String(manualCoords.lat));
+        formData.append("manualLon", String(manualCoords.lon));
+      }
       formData.append("rilevamentoDate", date);
       formData.append("rilevamentoTime", formState.oraInizio);
       // Salva mezzi e ora fine nelle note
@@ -262,6 +270,27 @@ const NuovoInterventoImpresaForm = () => {
               />
             </label>
           </div>
+        </section>
+
+        {/* SEZIONE: POSIZIONE */}
+        <section className="form-card">
+          <h2 className="form-card__title">📍 Posizione su mappa</h2>
+          <p className="form-card__description">
+            {geolocation.isLoading
+              ? "Rilevamento posizione..."
+              : geolocation.error
+              ? `Errore GPS: ${geolocation.error}. Puoi selezionare manualmente.`
+              : "Tocca la mappa per selezionare la posizione esatta dell'intervento."}
+          </p>
+          <MapPicker
+            value={manualCoords ?? (geolocation.position ? { lat: geolocation.position.latitude, lon: geolocation.position.longitude } : null)}
+            onChange={(coords: { lat: number; lon: number }) => setManualCoords(coords)}
+          />
+          {manualCoords && (
+            <p className="form-card__coords">
+              📍 Coordinate selezionate: {manualCoords.lat.toFixed(6)}, {manualCoords.lon.toFixed(6)}
+            </p>
+          )}
         </section>
 
         {/* SEZIONE 3: LAVORAZIONE */}
