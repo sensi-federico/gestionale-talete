@@ -178,8 +178,8 @@ const AdminRilevazioniPage = () => {
     <div className="page-container admin-rilevamenti">
       <header className="page-heading">
         <div>
-          <h1>Rilevamenti</h1>
-          <p>Visualizza e analizza tutti i rilevamenti registrati.</p>
+          <h1>Interventi</h1>
+          <p>Visualizza e analizza tutti gli interventi registrati.</p>
         </div>
       </header>
 
@@ -253,7 +253,7 @@ const AdminRilevazioniPage = () => {
       <div className="rilevamenti-stats">
         <div className="stat-pill">
           <span className="stat-pill__value">{rilevamenti.length}</span>
-          <span className="stat-pill__label">Rilevamenti</span>
+          <span className="stat-pill__label">Interventi</span>
         </div>
       </div>
 
@@ -263,7 +263,7 @@ const AdminRilevazioniPage = () => {
         
         {!rilevazioniQuery.isLoading && rilevamenti.length === 0 && (
           <div className="empty-state">
-            <p>Nessun rilevamento trovato</p>
+            <p>Nessun intervento trovato</p>
           </div>
         )}
 

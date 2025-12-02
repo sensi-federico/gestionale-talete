@@ -214,7 +214,7 @@ const AdminDashboard = () => {
       <header className="page-heading">
         <div>
           <h1>Panoramica amministratore</h1>
-          <p>Monitora lo stato dei rilevamenti e delle anagrafiche condivise.</p>
+          <p>Monitora lo stato degli interventi e delle anagrafiche condivise.</p>
         </div>
         <div className="heading-actions">
           <button type="button" className="button button--secondary" onClick={copyTable}>
@@ -227,7 +227,7 @@ const AdminDashboard = () => {
 
       <section className="stats-grid">
         <article className="card stat-card">
-          <span className="stat-label">Rilevamenti totali</span>
+          <span className="stat-label">Interventi totali</span>
           <span className="stat-value">{formatNumber(stats.total)}</span>
           <span className="stat-meta">Sincronizzati: {formatNumber(stats.synced)}</span>
         </article>
@@ -257,8 +257,8 @@ const AdminDashboard = () => {
       <section className="card card--table">
         <div className="table-header">
           <div>
-            <h2>Rilevamenti</h2>
-            <p>Panoramica delle segnalazioni e del relativo stato di sincronizzazione.</p>
+            <h2>Interventi</h2>
+            <p>Panoramica degli interventi e del relativo stato di sincronizzazione.</p>
           </div>
           <button type="button" className="button button--ghost" onClick={copyTable}>
             Copia tabella

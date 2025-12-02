@@ -3,19 +3,21 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
 import { useConfirmModal } from "../../hooks/useConfirmModal";
+import { useReferenceData } from "../../hooks/useOfflineCache";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
 import ConfirmModal from "../ui/ConfirmModal";
 import FormModal from "../ui/FormModal";
 import Pagination from "../ui/Pagination";
 
-type UserRole = "operaio" | "admin";
+type UserRole = "operaio" | "admin" | "impresa";
 
 interface AdminUser {
   id: string;
   email: string;
   fullName: string;
   role: UserRole;
+  impresaId?: string | null;
   createdAt: string | null;
   lastSignInAt: string | null;
 }
@@ -26,7 +28,8 @@ const emptyForm = {
   email: "",
   fullName: "",
   password: "",
-  role: "operaio" as UserRole
+  role: "operaio" as UserRole,
+  impresaId: ""
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -36,6 +39,8 @@ const AdminUsersPage = () => {
   const queryClient = useQueryClient();
   const { alerts, latestAlert, pushAlert } = useAdminAlerts();
   const confirmModal = useConfirmModal();
+  const referenceData = useReferenceData();
+  const imprese = referenceData.data?.imprese ?? [];
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -139,7 +144,8 @@ const AdminUsersPage = () => {
           email: form.email,
           fullName: form.fullName,
           role: form.role,
-          ...(form.password ? { password: form.password } : {})
+          ...(form.password ? { password: form.password } : {}),
+          ...(form.role === "impresa" && form.impresaId ? { impresaId: form.impresaId } : { impresaId: null })
         };
         await authorizedFetch(`/admin/users/${editingId}`, {
           method: "PUT",
@@ -174,7 +180,8 @@ const AdminUsersPage = () => {
       email: user.email,
       fullName: user.fullName,
       password: "",
-      role: user.role
+      role: user.role,
+      impresaId: user.impresaId || ""
     });
     setIsFormModalOpen(true);
   };
@@ -274,11 +281,13 @@ const AdminUsersPage = () => {
                   <td colSpan={5}>Nessun utente presente.</td>
                 </tr>
               )}
-              {paginatedUsers.map((user) => (
+              {paginatedUsers.map((user) => {
+                const roleLabel = user.role === "operaio" ? "Tecnico" : user.role === "impresa" ? "Impresa" : "Admin";
+                return (
                 <tr key={user.id}>
                   <td data-label="Nome">{user.fullName || "—"}</td>
                   <td data-label="Email">{user.email}</td>
-                  <td data-label="Ruolo">{user.role === "operaio" ? "Tecnico" : "Admin"}</td>
+                  <td data-label="Ruolo">{roleLabel}</td>
                   <td data-label="Ultimo accesso">{formatDateTime(user.lastSignInAt)}</td>
                   <td data-label="Azione">
                     <div className="table-actions">
@@ -297,7 +306,8 @@ const AdminUsersPage = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -357,13 +367,28 @@ const AdminUsersPage = () => {
             <select
               value={form.role}
               onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                setForm((prev) => ({ ...prev, role: event.target.value as UserRole }))
+                setForm((prev) => ({ ...prev, role: event.target.value as UserRole, impresaId: "" }))
               }
             >
               <option value="operaio">Tecnico</option>
+              <option value="impresa">Impresa</option>
               <option value="admin">Admin</option>
             </select>
           </div>
+          {form.role === "impresa" && (
+            <select
+              value={form.impresaId}
+              onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+                setForm((prev) => ({ ...prev, impresaId: event.target.value }))
+              }
+              required
+            >
+              <option value="">Seleziona impresa...</option>
+              {imprese.map((imp) => (
+                <option key={imp.id} value={imp.id}>{imp.name}</option>
+              ))}
+            </select>
+          )}
           <div className="heading-actions">
             <button type="submit" className="button button--primary" disabled={isSubmitting}>
               {isSubmitting ? "Salvataggio..." : (editingId ? "Aggiorna utente" : "Crea utente")}

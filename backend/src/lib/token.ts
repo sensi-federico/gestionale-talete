@@ -5,6 +5,7 @@ interface TokenPayload {
   sub: string;
   email: string;
   role: UserRole;
+  impresaId?: string | null;
 }
 
 const jwtSecret = process.env.JWT_SECRET;

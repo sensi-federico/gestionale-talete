@@ -29,7 +29,12 @@ const AppLayout = () => {
   };
 
   const displayName = user.fullName?.trim() ? user.fullName : user.email;
-  const readableRole = user.role === "admin" ? "Amministratore" : "Tecnico";
+  const roleLabels: Record<string, string> = {
+    admin: "Amministratore",
+    operaio: "Tecnico",
+    impresa: "Impresa"
+  };
+  const readableRole = roleLabels[user.role] ?? "Utente";
 
   // Costruisci il path del logo usando BASE_URL di Vite
   const logoPath = `${basePath}logo/logo_talete.png`;
@@ -41,7 +46,7 @@ const AppLayout = () => {
         <div className="app-header__top">
           <div className="app-header__brand">
             <img src={logoPath} alt="Talete Spa" className="app-brand-logo" />
-            <span className="app-subtitle">Gestionale Rilevamenti</span>
+            <span className="app-subtitle">Gestionale Interventi</span>
           </div>
           <button
             type="button"
@@ -74,6 +79,22 @@ const AppLayout = () => {
                 </NavLink>
               </>
             )}
+            {user.role === "impresa" && (
+              <>
+                <NavLink to="/" end className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
+                  Home
+                </NavLink>
+                <NavLink to="/nuovo-impresa" className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
+                  Nuovo
+                </NavLink>
+                <NavLink to="/miei-rilevamenti" className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
+                  I miei
+                </NavLink>
+                <NavLink to="/profilo" className={({ isActive }) => `top-nav-link top-nav-link--mobile-only${isActive ? " active" : ""}`}>
+                  Profilo
+                </NavLink>
+              </>
+            )}
             {user.role === "admin" && (
               <>
                 <NavLink
@@ -86,7 +107,7 @@ const AppLayout = () => {
                   to="/admin/rilevamenti"
                   className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
                 >
-                  Rilevamenti
+                  Interventi
                 </NavLink>
                 <NavLink
                   to="/admin/utenti"

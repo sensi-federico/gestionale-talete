@@ -13,8 +13,18 @@ export const createUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   fullName: z.string().min(2),
-  role: z.enum(["operaio", "admin"])
-});
+  role: z.enum(["operaio", "admin", "impresa"]),
+  impresaId: z.string().uuid().optional() // Obbligatorio se role=impresa
+}).refine(
+  (data) => {
+    // Se ruolo è impresa, impresaId deve essere presente
+    if (data.role === "impresa" && !data.impresaId) {
+      return false;
+    }
+    return true;
+  },
+  { message: "impresaId richiesto per utenti con ruolo impresa" }
+);
 
 export const updateProfileSchema = z.object({
   fullName: z.string().min(2).optional(),

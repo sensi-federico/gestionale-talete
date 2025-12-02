@@ -1,10 +1,11 @@
-export type UserRole = "operaio" | "admin";
+export type UserRole = "operaio" | "admin" | "impresa";
 
 export interface UserProfile {
   id: string;
   email: string;
   fullName: string;
   role: UserRole;
+  impresaId?: string; // Solo per ruolo impresa
 }
 
 export interface Comune {

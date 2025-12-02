@@ -5,6 +5,8 @@ import LoginForm from "./components/auth/LoginForm";
 import TecnicoDashboard from "./components/operaio/TecnicoDashboard";
 import NuovoRilevamentoPage from "./components/operaio/NuovoRilevamentoPage";
 import MieiRilevamentiPage from "./components/operaio/MieiRilevamentiPage";
+import ImpresaDashboard from "./components/impresa/ImpresaDashboard";
+import NuovoInterventoImpresaPage from "./components/impresa/NuovoInterventoImpresaPage";
 import ProfilePage from "./components/profile/ProfilePage";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminUsersPage from "./components/admin/AdminUsersPage";
@@ -21,6 +23,9 @@ const HomeRoute = () => {
   const role = useAuthStore((state) => state.user?.role);
   if (role === "admin") {
     return <Navigate to="/admin/panoramica" replace />;
+  }
+  if (role === "impresa") {
+    return <ImpresaDashboard />;
   }
   // Tecnico: mostra dashboard
   return <TecnicoDashboard />;
@@ -106,7 +111,7 @@ const App = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginForm />} />
-      <Route element={<ProtectedRoute allowedRoles={["operaio", "admin"]} />}>
+      <Route element={<ProtectedRoute allowedRoles={["operaio", "admin", "impresa"]} />}>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<HomeRoute />} />
           {/* Profilo - accessibile da tutti */}
@@ -114,6 +119,11 @@ const App = () => {
           {/* Rotte tecnico */}
           <Route element={<ProtectedRoute allowedRoles={["operaio"]} />}>
             <Route path="nuovo" element={<NuovoRilevamentoPage />} />
+            <Route path="miei-rilevamenti" element={<MieiRilevamentiPage />} />
+          </Route>
+          {/* Rotte impresa */}
+          <Route element={<ProtectedRoute allowedRoles={["impresa"]} />}>
+            <Route path="nuovo-impresa" element={<NuovoInterventoImpresaPage />} />
             <Route path="miei-rilevamenti" element={<MieiRilevamentiPage />} />
           </Route>
           {/* Rotte admin */}

@@ -1,0 +1,362 @@
+import { ChangeEvent, FormEvent, useMemo, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/authStore";
+import { useReferenceData } from "../../hooks/useOfflineCache";
+import SubmitModal, { SubmitStatus } from "../ui/SubmitModal";
+import { api } from "../../services/api";
+
+// Opzioni mezzi disponibili
+const MEZZI_OPTIONS = [
+  { value: "furgone", label: "Furgone" },
+  { value: "camion", label: "Camion" },
+  { value: "auto", label: "Auto" },
+  { value: "escavatore", label: "Escavatore" },
+  { value: "minipala", label: "Minipala" },
+  { value: "autocarro", label: "Autocarro" },
+  { value: "gru", label: "Gru" },
+  { value: "compressore", label: "Compressore" },
+  { value: "generatore", label: "Generatore" },
+  { value: "altro", label: "Altro" }
+];
+
+const formatDateTime = () => {
+  const now = new Date();
+  const date = now.toISOString().split("T")[0];
+  const time = now.toTimeString().split(" ")[0].slice(0, 5);
+  return { date, time };
+};
+
+type FormState = {
+  comuneId: string;
+  via: string;
+  numeroCivico: string;
+  tipoLavorazioneId: string;
+  numeroOperai: number;
+  mezzi: string[];
+  oraInizio: string;
+  oraFine: string;
+  notes: string;
+};
+
+const NuovoInterventoImpresaForm = () => {
+  const navigate = useNavigate();
+  const { tokens, user } = useAuthStore();
+  const [{ date }, setDateTime] = useState(() => formatDateTime());
+  const [formState, setFormState] = useState<FormState>({
+    comuneId: "",
+    via: "",
+    numeroCivico: "",
+    tipoLavorazioneId: "",
+    numeroOperai: 1,
+    mezzi: [],
+    oraInizio: "08:00",
+    oraFine: "17:00",
+    notes: ""
+  });
+  const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
+  const [submitMessage, setSubmitMessage] = useState<string>("");
+
+  const { data: referenceData, isLoading: isLoadingReference } = useReferenceData();
+
+  const canSubmit = useMemo(() => {
+    return (
+      Boolean(formState.comuneId) &&
+      Boolean(formState.tipoLavorazioneId) &&
+      Boolean(formState.via) &&
+      formState.mezzi.length > 0
+    );
+  }, [formState]);
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
+    if (name === "numeroOperai") {
+      setFormState((prev) => ({ ...prev, numeroOperai: Number(value) }));
+    } else {
+      setFormState((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setDateTime({ date: value, time: "" });
+  };
+
+  const handleMezziChange = (mezzo: string) => {
+    setFormState((prev) => {
+      const isSelected = prev.mezzi.includes(mezzo);
+      return {
+        ...prev,
+        mezzi: isSelected
+          ? prev.mezzi.filter((m) => m !== mezzo)
+          : [...prev.mezzi, mezzo]
+      };
+    });
+  };
+
+  const handleCloseModal = useCallback(() => {
+    setSubmitStatus("idle");
+    setSubmitMessage("");
+  }, []);
+
+  const handleNewIntervento = useCallback(() => {
+    setSubmitStatus("idle");
+    setFormState({
+      comuneId: "",
+      via: "",
+      numeroCivico: "",
+      tipoLavorazioneId: "",
+      numeroOperai: 1,
+      mezzi: [],
+      oraInizio: "08:00",
+      oraFine: "17:00",
+      notes: ""
+    });
+    setDateTime(formatDateTime());
+  }, []);
+
+  const handleViewInterventi = useCallback(() => {
+    setSubmitStatus("idle");
+    navigate("/miei-rilevamenti");
+  }, [navigate]);
+
+  const handleGoHome = useCallback(() => {
+    setSubmitStatus("idle");
+    navigate("/");
+  }, [navigate]);
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!canSubmit || !tokens || !user) return;
+
+    setSubmitStatus("loading");
+
+    try {
+      const formData = new FormData();
+      formData.append("comuneId", formState.comuneId);
+      formData.append("via", formState.via);
+      formData.append("numeroCivico", formState.numeroCivico);
+      formData.append("tipoLavorazioneId", formState.tipoLavorazioneId);
+      // L'impresaId viene preso dal token dell'utente sul backend
+      formData.append("impresaId", user.impresaId ?? "");
+      formData.append("numeroOperai", String(formState.numeroOperai));
+      // GPS placeholder per impresa (0,0)
+      formData.append("gpsLat", "0");
+      formData.append("gpsLon", "0");
+      formData.append("rilevamentoDate", date);
+      formData.append("rilevamentoTime", formState.oraInizio);
+      // Salva mezzi e ora fine nelle note
+      const extraInfo = `Mezzi: ${formState.mezzi.join(", ")}\nOra fine: ${formState.oraFine}`;
+      formData.append("notes", formState.notes ? `${extraInfo}\n\n${formState.notes}` : extraInfo);
+
+      await api.createRilevamento(formData, tokens.accessToken);
+      setSubmitStatus("success");
+      setSubmitMessage("L'intervento è stato registrato correttamente");
+    } catch (error) {
+      console.error("Errore invio intervento", error);
+      setSubmitStatus("error");
+      setSubmitMessage("Si è verificato un errore. Riprova.");
+    }
+  };
+
+  return (
+    <div className="nuovo-rilevamento">
+      <div className="rilevamento-page__header">
+        <h1>Nuovo Intervento Impresa</h1>
+      </div>
+
+      <SubmitModal
+        status={submitStatus}
+        message={submitMessage}
+        onClose={handleCloseModal}
+        onNewRilevamento={handleNewIntervento}
+        onViewRilevamenti={handleViewInterventi}
+        onGoHome={handleGoHome}
+      />
+
+      <form className="rilevamento-form" onSubmit={handleSubmit}>
+        {/* SEZIONE 1: DATA E ORARI */}
+        <section className="form-card">
+          <h2 className="form-card__title">📅 Data e Orari</h2>
+          
+          <div className="form-row">
+            <label className="form-field">
+              <span className="form-field__label">Data intervento *</span>
+              <input
+                type="date"
+                name="interventoDate"
+                value={date}
+                onChange={handleDateChange}
+                required
+              />
+            </label>
+          </div>
+          
+          <div className="form-row form-row--2cols">
+            <label className="form-field">
+              <span className="form-field__label">Ora inizio *</span>
+              <input
+                type="time"
+                name="oraInizio"
+                value={formState.oraInizio}
+                onChange={handleChange}
+                required
+              />
+            </label>
+            <label className="form-field">
+              <span className="form-field__label">Ora fine *</span>
+              <input
+                type="time"
+                name="oraFine"
+                value={formState.oraFine}
+                onChange={handleChange}
+                required
+              />
+            </label>
+          </div>
+        </section>
+
+        {/* SEZIONE 2: LUOGO */}
+        <section className="form-card">
+          <h2 className="form-card__title">📍 Luogo</h2>
+          
+          <div className="form-row">
+            <label className="form-field">
+              <span className="form-field__label">Comune *</span>
+              <select
+                name="comuneId"
+                value={formState.comuneId}
+                onChange={handleChange}
+                required
+                disabled={isLoadingReference}
+              >
+                <option value="">Seleziona comune...</option>
+                {referenceData?.comuni.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.province})
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          
+          <div className="form-row form-row--2cols">
+            <label className="form-field form-field--wide">
+              <span className="form-field__label">Via *</span>
+              <input
+                type="text"
+                name="via"
+                placeholder="Es. Via Roma"
+                value={formState.via}
+                onChange={handleChange}
+                required
+              />
+            </label>
+            <label className="form-field">
+              <span className="form-field__label">N. Civico</span>
+              <input
+                type="text"
+                name="numeroCivico"
+                placeholder="Es. 42"
+                value={formState.numeroCivico}
+                onChange={handleChange}
+              />
+            </label>
+          </div>
+        </section>
+
+        {/* SEZIONE 3: LAVORAZIONE */}
+        <section className="form-card">
+          <h2 className="form-card__title">🔧 Lavorazione</h2>
+          
+          <div className="form-row">
+            <label className="form-field">
+              <span className="form-field__label">Tipo lavorazione *</span>
+              <select
+                name="tipoLavorazioneId"
+                value={formState.tipoLavorazioneId}
+                onChange={handleChange}
+                required
+                disabled={isLoadingReference}
+              >
+                <option value="">Seleziona tipo...</option>
+                {referenceData?.tipiLavorazione.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          
+          <div className="form-row">
+            <label className="form-field">
+              <span className="form-field__label">Numero operai</span>
+              <input
+                type="number"
+                name="numeroOperai"
+                min={1}
+                max={50}
+                value={formState.numeroOperai}
+                onChange={handleChange}
+              />
+            </label>
+          </div>
+        </section>
+
+        {/* SEZIONE 4: MEZZI */}
+        <section className="form-card">
+          <h2 className="form-card__title">🚛 Mezzi a disposizione *</h2>
+          
+          <div className="mezzi-grid">
+            {MEZZI_OPTIONS.map((mezzo) => (
+              <label key={mezzo.value} className="mezzi-checkbox">
+                <input
+                  type="checkbox"
+                  checked={formState.mezzi.includes(mezzo.value)}
+                  onChange={() => handleMezziChange(mezzo.value)}
+                />
+                <span className="mezzi-checkbox__label">{mezzo.label}</span>
+              </label>
+            ))}
+          </div>
+          
+          {formState.mezzi.length > 0 && (
+            <div className="mezzi-selected">
+              <strong>Selezionati:</strong> {formState.mezzi.map(m => 
+                MEZZI_OPTIONS.find(o => o.value === m)?.label
+              ).join(", ")}
+            </div>
+          )}
+        </section>
+
+        {/* SEZIONE 5: NOTE */}
+        <section className="form-card">
+          <h2 className="form-card__title">📝 Note aggiuntive</h2>
+          
+          <div className="form-row">
+            <label className="form-field">
+              <textarea
+                name="notes"
+                placeholder="Eventuali note o osservazioni..."
+                value={formState.notes}
+                onChange={handleChange}
+                rows={3}
+              />
+            </label>
+          </div>
+        </section>
+
+        {/* SUBMIT */}
+        <button
+          type="submit"
+          className="submit-button"
+          disabled={!canSubmit || submitStatus === "loading"}
+        >
+          Registra intervento
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default NuovoInterventoImpresaForm;

@@ -1,55 +1,51 @@
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "../../store/authStore";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
-interface Stats {
-  totale: number;
-  oggi: number;
-  settimana: number;
-}
-
-const TecnicoDashboard = () => {
+const ImpresaDashboard = () => {
   const navigate = useNavigate();
-  const { tokens, user } = useAuthStore();
+  const { tokens } = useAuthStore();
+  const [stats, setStats] = useState<{ oggi: number; settimana: number; totale: number } | null>(null);
 
-  const { data: stats } = useQuery<Stats>({
-    queryKey: ["tecnico-stats"],
-    queryFn: async () => {
-      if (!tokens) throw new Error("Token mancante");
-      const response = await fetch(`${API_BASE}/rilevamenti`, {
-        headers: { Authorization: `Bearer ${tokens.accessToken}` }
-      });
-      if (!response.ok) throw new Error("Errore nel caricamento");
-      const data = await response.json();
-      const rilevamenti = data.rilevamenti || [];
-      
-      const oggi = new Date().toISOString().split("T")[0];
-      const settimanaFa = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-      
-      return {
-        totale: rilevamenti.length,
-        oggi: rilevamenti.filter((r: { rilevamento_date: string }) => r.rilevamento_date === oggi).length,
-        settimana: rilevamenti.filter((r: { rilevamento_date: string }) => r.rilevamento_date >= settimanaFa).length
-      };
-    },
-    enabled: Boolean(tokens)
-  });
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!tokens) return;
+      try {
+        const response = await fetch(`${API_BASE}/rilevamenti`, {
+          headers: { Authorization: `Bearer ${tokens.accessToken}` }
+        });
+        const data = await response.json();
+        const rilevamenti = data.rilevamenti || [];
 
-  const displayName = user?.fullName?.trim() || user?.email?.split("@")[0] || "Tecnico";
+        const oggi = new Date().toISOString().split("T")[0];
+        const settimanaFa = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+        setStats({
+          totale: rilevamenti.length,
+          oggi: rilevamenti.filter((r: { rilevamento_date: string }) => r.rilevamento_date === oggi).length,
+          settimana: rilevamenti.filter((r: { rilevamento_date: string }) => r.rilevamento_date >= settimanaFa).length
+        });
+      } catch (error) {
+        console.error("Errore caricamento stats", error);
+      }
+    };
+
+    fetchStats();
+  }, [tokens]);
 
   return (
     <div className="tecnico-dashboard">
-      <div className="tecnico-dashboard__welcome">
-        <h1>Ciao, {displayName}!</h1>
-        <p>Cosa vuoi fare oggi?</p>
+      <div className="tecnico-dashboard__header">
+        <h1>Dashboard Impresa</h1>
+        <p className="tecnico-dashboard__subtitle">Gestisci gli interventi della tua impresa</p>
       </div>
 
       <div className="tecnico-dashboard__actions">
         <button
           className="tecnico-action-card tecnico-action-card--primary"
-          onClick={() => navigate("/nuovo")}
+          onClick={() => navigate("/nuovo-impresa")}
         >
           <div className="tecnico-action-card__icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -77,7 +73,7 @@ const TecnicoDashboard = () => {
       </div>
 
       <div className="tecnico-dashboard__stats">
-        <h2>Le tue statistiche</h2>
+        <h2>Statistiche impresa</h2>
         <div className="tecnico-stats-grid">
           <div className="tecnico-stat-card">
             <span className="tecnico-stat-card__value">{stats?.oggi ?? "—"}</span>
@@ -97,4 +93,4 @@ const TecnicoDashboard = () => {
   );
 };
 
-export default TecnicoDashboard;
+export default ImpresaDashboard;

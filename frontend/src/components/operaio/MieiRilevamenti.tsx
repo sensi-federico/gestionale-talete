@@ -140,7 +140,7 @@ const MieiRilevamenti = () => {
     return (
       <div className="miei-rilevamenti">
         <div className="empty-state">
-          <p>Errore nel caricamento dei rilevamenti</p>
+          <p>Errore nel caricamento degli interventi</p>
         </div>
       </div>
     );
@@ -149,7 +149,7 @@ const MieiRilevamenti = () => {
   return (
     <div className="miei-rilevamenti">
       <div className="miei-rilevamenti__header">
-        <h2>I miei rilevamenti</h2>
+        <h2>I miei interventi</h2>
         <span className="miei-rilevamenti__count">{filteredRilevamenti.length} di {rilevamenti.length}</span>
       </div>
 
@@ -209,15 +209,15 @@ const MieiRilevamenti = () => {
         <div className="empty-state">
           {hasActiveFilters ? (
             <>
-              <p>Nessun rilevamento trovato con i filtri applicati.</p>
+              <p>Nessun intervento trovato con i filtri applicati.</p>
               <button type="button" className="button button--secondary" onClick={clearFilters}>
                 Rimuovi filtri
               </button>
             </>
           ) : (
             <>
-              <p>Non hai ancora registrato nessun rilevamento.</p>
-              <p className="empty-state__hint">Vai su "Nuovo" per creare il tuo primo rilevamento!</p>
+              <p>Non hai ancora registrato nessun intervento.</p>
+              <p className="empty-state__hint">Vai su "Nuovo" per creare il tuo primo intervento!</p>
             </>
           )}
         </div>

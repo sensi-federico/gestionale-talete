@@ -24,13 +24,22 @@ const impresaSchema = z.object({
 const updateUserSchema = z.object({
   email: z.string().email(),
   fullName: z.string().min(2),
-  role: z.enum(["operaio", "admin"]),
-  password: z.string().min(6).optional()
-});
+  role: z.enum(["operaio", "admin", "impresa"]),
+  password: z.string().min(6).optional(),
+  impresaId: z.string().uuid().optional()
+}).refine(
+  (data) => {
+    if (data.role === "impresa" && !data.impresaId) {
+      return false;
+    }
+    return true;
+  },
+  { message: "impresaId richiesto per utenti con ruolo impresa" }
+);
 
 router.get(
   "/reference",
-  requireAuth(["operaio", "admin"]),
+  requireAuth(["operaio", "admin", "impresa"]),
   async (_req: Request, res: Response) => {
     const [comuni, imprese, tipi] = await Promise.all([
       supabaseAdmin.from("comuni").select("id, name, province, region").order("name"),
@@ -59,7 +68,7 @@ router.get("/users", requireAuth(["admin"]), async (req: AuthenticatedRequest, r
   // Legge da public.users (sincronizzata con auth.users via trigger)
   const { data, error } = await supabaseAdmin
     .from("users")
-    .select("id, email, full_name, role, created_at, updated_at")
+    .select("id, email, full_name, role, impresa_id, created_at, updated_at")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -71,7 +80,8 @@ router.get("/users", requireAuth(["admin"]), async (req: AuthenticatedRequest, r
     id: user.id,
     email: user.email ?? "",
     fullName: user.full_name ?? "",
-    role: (user.role ?? "operaio") as "operaio" | "admin",
+    role: (user.role ?? "operaio") as "operaio" | "admin" | "impresa",
+    impresaId: user.impresa_id ?? null,
     createdAt: user.created_at ?? null,
     updatedAt: user.updated_at ?? null
   }));
@@ -92,7 +102,8 @@ router.put("/users/:id", requireAuth(["admin"]), async (req: AuthenticatedReques
     email: payload.email,
     user_metadata: {
       full_name: payload.fullName,
-      role: payload.role
+      role: payload.role,
+      impresa_id: payload.impresaId ?? null
     }
   };
 
@@ -117,6 +128,7 @@ router.put("/users/:id", requireAuth(["admin"]), async (req: AuthenticatedReques
       email: payload.email,
       full_name: payload.fullName,
       role: payload.role,
+      impresa_id: payload.impresaId ?? null,
       updated_at: new Date().toISOString()
     })
     .eq("id", req.params.id);
@@ -125,7 +137,8 @@ router.put("/users/:id", requireAuth(["admin"]), async (req: AuthenticatedReques
     id: data.user.id,
     email: payload.email,
     fullName: payload.fullName,
-    role: payload.role as "operaio" | "admin",
+    role: payload.role as "operaio" | "admin" | "impresa",
+    impresaId: payload.impresaId ?? null,
     createdAt: data.user.created_at ?? null,
     updatedAt: new Date().toISOString()
   };

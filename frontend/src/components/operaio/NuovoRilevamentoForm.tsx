@@ -1,9 +1,9 @@
-import { ChangeEvent, FormEvent, useMemo, useState, useRef, useCallback } from "react";
+import { ChangeEvent, FormEvent, useMemo, useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useOfflineQueue } from "../../hooks/useOfflineQueue";
 import { useGeolocation } from "../../hooks/useGeolocation";
+import { useReferenceData, useRefreshReferenceData } from "../../hooks/useOfflineCache";
 import MapPicker from "../map/MapPicker";
 import SubmitModal, { SubmitStatus } from "../ui/SubmitModal";
 import { api } from "../../services/api";
@@ -29,6 +29,20 @@ const MATERIALI_TUBO = [
   { value: "Altro", label: "Altro" }
 ];
 
+// Opzioni mezzi disponibili
+const MEZZI_OPTIONS = [
+  { value: "furgone", label: "Furgone" },
+  { value: "camion", label: "Camion" },
+  { value: "auto", label: "Auto" },
+  { value: "escavatore", label: "Escavatore" },
+  { value: "minipala", label: "Minipala" },
+  { value: "autocarro", label: "Autocarro" },
+  { value: "gru", label: "Gru" },
+  { value: "compressore", label: "Compressore" },
+  { value: "generatore", label: "Generatore" },
+  { value: "altro", label: "Altro" }
+];
+
 type FormState = {
   comuneId: string;
   via: string;
@@ -41,6 +55,7 @@ type FormState = {
   materialeTubo: string;
   diametro: string;
   altriInterventi: string;
+  mezzi: string[];
 };
 
 const NuovoRilevamentoForm = () => {
@@ -50,6 +65,7 @@ const NuovoRilevamentoForm = () => {
   const geolocation = useGeolocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [{ date, time }, setDateTime] = useState(() => formatDateTime());
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [formState, setFormState] = useState<FormState>({
     comuneId: "",
     via: "",
@@ -60,7 +76,8 @@ const NuovoRilevamentoForm = () => {
     notes: "",
     materialeTubo: "",
     diametro: "",
-    altriInterventi: ""
+    altriInterventi: "",
+    mezzi: []
   });
   const [manualCoords, setManualCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
@@ -68,14 +85,26 @@ const NuovoRilevamentoForm = () => {
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
   const [submitMessage, setSubmitMessage] = useState<string>("");
 
-  const { data: referenceData, isLoading: isLoadingReference } = useQuery({
-    queryKey: ["reference-data"],
-    queryFn: () => {
-      if (!tokens) throw new Error("Token mancante");
-      return api.fetchReferenceData(tokens.accessToken);
-    },
-    enabled: Boolean(tokens)
-  });
+  // Usa hook con cache offline per i dati di riferimento
+  const { data: referenceData, isLoading: isLoadingReference } = useReferenceData();
+  const refreshReferenceData = useRefreshReferenceData();
+
+  // Monitora stato connessione e aggiorna dati quando torna online
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      refreshReferenceData();
+    };
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [refreshReferenceData]);
 
   const canSubmit = useMemo(() => {
     return (
@@ -101,6 +130,18 @@ const NuovoRilevamentoForm = () => {
       ...prev,
       [name === "rilevamentoDate" ? "date" : "time"]: value
     }));
+  };
+
+  const handleMezziChange = (mezzo: string) => {
+    setFormState((prev) => {
+      const isSelected = prev.mezzi.includes(mezzo);
+      return {
+        ...prev,
+        mezzi: isSelected
+          ? prev.mezzi.filter((m) => m !== mezzo)
+          : [...prev.mezzi, mezzo]
+      };
+    });
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -139,7 +180,8 @@ const NuovoRilevamentoForm = () => {
       notes: "",
       materialeTubo: "",
       diametro: "",
-      altriInterventi: ""
+      altriInterventi: "",
+      mezzi: []
     });
     setManualCoords(null);
     removePhoto();
@@ -232,7 +274,20 @@ const NuovoRilevamentoForm = () => {
     formData.append("manualLon", manualCoords?.lon ? String(manualCoords.lon) : "");
     formData.append("rilevamentoDate", date);
     formData.append("rilevamentoTime", time);
-    if (formState.notes) formData.append("notes", formState.notes);
+    
+    // Costruisci le note includendo i mezzi selezionati
+    let notesContent = "";
+    if (formState.mezzi.length > 0) {
+      const mezziLabels = formState.mezzi.map(m => 
+        MEZZI_OPTIONS.find(o => o.value === m)?.label ?? m
+      ).join(", ");
+      notesContent += `Mezzi: ${mezziLabels}`;
+    }
+    if (formState.notes) {
+      notesContent += notesContent ? `\n\n${formState.notes}` : formState.notes;
+    }
+    if (notesContent) formData.append("notes", notesContent);
+    
     if (fotoFile) formData.append("foto", fotoFile);
     
     // Nuovi campi
@@ -265,14 +320,21 @@ const NuovoRilevamentoForm = () => {
   return (
     <div className="nuovo-rilevamento">
       <div className="rilevamento-page__header">
-        <h1>Nuovo Rilevamento</h1>
-        <div className="rilevamento-page__gps-status">
-          {geolocation.isLoading ? (
-            <span className="gps-badge gps-badge--loading">📡 Localizzazione...</span>
-          ) : geolocation.error ? (
-            <span className="gps-badge gps-badge--error">❌ GPS non disponibile</span>
-          ) : (
-            <span className="gps-badge gps-badge--ok">✓ GPS attivo</span>
+        <h1>Nuovo Intervento</h1>
+        <div className="rilevamento-page__status-badges">
+          <div className="rilevamento-page__gps-status">
+            {geolocation.isLoading ? (
+              <span className="gps-badge gps-badge--loading">📡 Localizzazione...</span>
+            ) : geolocation.error ? (
+              <span className="gps-badge gps-badge--error">❌ GPS non disponibile</span>
+            ) : (
+              <span className="gps-badge gps-badge--ok">✓ GPS attivo</span>
+            )}
+          </div>
+          {!isOnline && referenceData && (
+            <span className="gps-badge gps-badge--offline" title="Stai usando dati salvati localmente">
+              📴 Offline
+            </span>
           )}
         </div>
       </div>
@@ -461,6 +523,32 @@ const NuovoRilevamentoForm = () => {
           </div>
         </section>
 
+        {/* SEZIONE: MEZZI */}
+        <section className="form-card">
+          <h2 className="form-card__title">🚛 Mezzi a disposizione</h2>
+          
+          <div className="mezzi-grid">
+            {MEZZI_OPTIONS.map((mezzo) => (
+              <label key={mezzo.value} className="mezzi-checkbox">
+                <input
+                  type="checkbox"
+                  checked={formState.mezzi.includes(mezzo.value)}
+                  onChange={() => handleMezziChange(mezzo.value)}
+                />
+                <span className="mezzi-checkbox__label">{mezzo.label}</span>
+              </label>
+            ))}
+          </div>
+          
+          {formState.mezzi.length > 0 && (
+            <div className="mezzi-selected">
+              <strong>Selezionati:</strong> {formState.mezzi.map(m => 
+                MEZZI_OPTIONS.find(o => o.value === m)?.label
+              ).join(", ")}
+            </div>
+          )}
+        </section>
+
         {/* SEZIONE 3: FOTO */}
         <section className="form-card">
           <h2 className="form-card__title">📷 Documentazione</h2>
@@ -512,7 +600,7 @@ const NuovoRilevamentoForm = () => {
           className="submit-button"
           disabled={!canSubmit || submitStatus === "loading"}
         >
-          {navigator.onLine ? "Invia rilevamento" : "Salva offline"}
+          {navigator.onLine ? "Invia intervento" : "Salva offline"}
         </button>
       </form>
     </div>

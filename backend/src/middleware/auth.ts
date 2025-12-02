@@ -24,7 +24,8 @@ export const requireAuth = (roles?: UserRole[]) =>
         id: payload.sub,
         email: payload.email,
         fullName: "",
-        role: payload.role
+        role: payload.role,
+        impresaId: payload.impresaId ?? undefined
       };
 
       if (roles && !roles.includes(user.role)) {

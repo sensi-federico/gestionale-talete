@@ -30,14 +30,16 @@ router.post("/login", async (req: Request, res: Response) => {
 
   const metadata = data.user.user_metadata ?? {};
   const role = (metadata.role as UserProfile["role"]) ?? "operaio";
+  const impresaId = metadata.impresa_id ?? null;
   const user: UserProfile = {
     id: data.user.id,
     email: data.user.email ?? email,
     fullName: metadata.full_name ?? metadata.fullName ?? "",
-    role
+    role,
+    impresaId: impresaId ?? undefined
   };
 
-  const tokenPayload = { sub: user.id, email: user.email, role: user.role };
+  const tokenPayload = { sub: user.id, email: user.email, role: user.role, impresaId };
   const accessToken = signAccessToken(tokenPayload);
   const refreshToken = signRefreshToken(tokenPayload);
 
@@ -57,7 +59,8 @@ router.post("/refresh", async (req: Request, res: Response) => {
     const tokenPayload = {
       sub: payload.sub,
       email: payload.email,
-      role: payload.role
+      role: payload.role,
+      impresaId: payload.impresaId ?? null
     };
 
     const accessToken = signAccessToken(tokenPayload);
@@ -70,7 +73,8 @@ router.post("/refresh", async (req: Request, res: Response) => {
         id: payload.sub,
         email: payload.email,
         fullName: "",
-        role: payload.role
+        role: payload.role,
+        impresaId: payload.impresaId ?? undefined
       }
     };
 

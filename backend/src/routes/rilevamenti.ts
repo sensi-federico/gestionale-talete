@@ -76,12 +76,15 @@ router.get("/", requireAuth(), async (req: AuthenticatedRequest, res: Response) 
   const query = supabaseAdmin
     .from("rilevamenti")
     .select(
-      `id, operaio_id, comune:comuni(name), impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, materiale_tubo, diametro, altri_interventi, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at`
+      `id, operaio_id, comune:comuni(name), impresa_id, impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, materiale_tubo, diametro, altri_interventi, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at`
     )
     .order("created_at", { ascending: false });
 
+  // Filtra per ruolo: operaio vede solo i suoi, impresa vede solo quelli della sua impresa
   if (req.user?.role === "operaio") {
     query.eq("operaio_id", req.user.id);
+  } else if (req.user?.role === "impresa" && req.user?.impresaId) {
+    query.eq("impresa_id", req.user.impresaId);
   }
 
   const { data, error } = await query;
@@ -94,7 +97,8 @@ router.get("/", requireAuth(), async (req: AuthenticatedRequest, res: Response) 
   logger.info("Rilevamenti recuperati", {
     count: data?.length ?? 0,
     requesterId: req.user?.id,
-    scopedToUser: req.user?.role === "operaio"
+    scopedToUser: req.user?.role === "operaio",
+    scopedToImpresa: req.user?.role === "impresa"
   });
   return res.json({ rilevamenti: data });
 });
