@@ -6,6 +6,7 @@ import { useGeolocation } from "../../hooks/useGeolocation";
 import { useReferenceData, useRefreshReferenceData } from "../../hooks/useOfflineCache";
 import MapPicker from "../map/MapPicker";
 import SubmitModal, { SubmitStatus } from "../ui/SubmitModal";
+import LocationPermissionModal from "../ui/LocationPermissionModal";
 import { api } from "../../services/api";
 import { OfflineRilevamento } from "@shared/types";
 
@@ -60,7 +61,7 @@ const NuovoRilevamentoForm = () => {
   const navigate = useNavigate();
   const { tokens, user } = useAuthStore();
   const { addToQueue } = useOfflineQueue();
-  const geolocation = useGeolocation();
+  const geolocation = useGeolocation(true); // autoStart = true mostra il modal
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [{ date, time }, setDateTime] = useState(() => formatDateTime());
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -344,6 +345,12 @@ const NuovoRilevamentoForm = () => {
         onNewRilevamento={handleNewRilevamento}
         onViewRilevamenti={handleViewRilevamenti}
         onGoHome={handleGoHome}
+      />
+
+      <LocationPermissionModal
+        isOpen={geolocation.showPermissionModal}
+        onRequestPermission={geolocation.confirmPermission}
+        onSkip={geolocation.skipPermission}
       />
 
       <form className="rilevamento-form" onSubmit={handleSubmit}>

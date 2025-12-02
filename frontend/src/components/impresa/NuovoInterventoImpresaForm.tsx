@@ -5,6 +5,7 @@ import { useReferenceData } from "../../hooks/useOfflineCache";
 import { useGeolocation } from "../../hooks/useGeolocation";
 import MapPicker from "../map/MapPicker";
 import SubmitModal, { SubmitStatus } from "../ui/SubmitModal";
+import LocationPermissionModal from "../ui/LocationPermissionModal";
 import { api } from "../../services/api";
 
 // Opzioni mezzi disponibili
@@ -41,7 +42,7 @@ type FormState = {
 const NuovoInterventoImpresaForm = () => {
   const navigate = useNavigate();
   const { tokens, user } = useAuthStore();
-  const geolocation = useGeolocation();
+  const geolocation = useGeolocation(true);
   const [{ date }, setDateTime] = useState(() => formatDateTime());
   const [manualCoords, setManualCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [formState, setFormState] = useState<FormState>({
@@ -179,6 +180,12 @@ const NuovoInterventoImpresaForm = () => {
         onNewRilevamento={handleNewIntervento}
         onViewRilevamenti={handleViewInterventi}
         onGoHome={handleGoHome}
+      />
+
+      <LocationPermissionModal
+        isOpen={geolocation.showPermissionModal}
+        onRequestPermission={geolocation.confirmPermission}
+        onSkip={geolocation.skipPermission}
       />
 
       <form className="rilevamento-form" onSubmit={handleSubmit}>
