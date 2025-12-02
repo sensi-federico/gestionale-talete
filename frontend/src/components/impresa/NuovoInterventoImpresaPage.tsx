@@ -1,7 +1,11 @@
 import NuovoInterventoImpresaForm from "./NuovoInterventoImpresaForm";
 
 const NuovoInterventoImpresaPage = () => {
-  return <NuovoInterventoImpresaForm />;
+  return (
+    <div className="standalone-page">
+      <NuovoInterventoImpresaForm />
+    </div>
+  );
 };
 
 export default NuovoInterventoImpresaPage;

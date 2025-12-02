@@ -1,7 +1,11 @@
 import NuovoRilevamentoForm from "./NuovoRilevamentoForm";
 
 const NuovoRilevamentoPage = () => {
-  return <NuovoRilevamentoForm />;
+  return (
+    <div className="standalone-page">
+      <NuovoRilevamentoForm />
+    </div>
+  );
 };
 
 export default NuovoRilevamentoPage;

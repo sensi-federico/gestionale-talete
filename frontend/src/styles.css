@@ -43,6 +43,20 @@ body {
   overflow-y: auto;
 }
 
+/* Pagine standalone senza header/footer (es. form di creazione) */
+.standalone-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 1rem;
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  background: #f8fafc;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .app-shell {
   min-height: 100vh;
   height: 100vh;
