@@ -44,9 +44,9 @@ const insertRilevamento = async (
     operaio_id: operaioId,
     comune_id: payload.comuneId,
     via: payload.via,
-    numero_civico: payload.numeroCivico,
+    numero_civico: payload.numeroCivico || null,
     tipo_lavorazione_id: payload.tipoLavorazioneId,
-    impresa_id: payload.impresaId,
+    impresa_id: payload.impresaId || null,
     numero_operai: payload.numeroOperai,
     foto_url: fotoUrl ?? payload.fotoUrl ?? null,
     gps_lat: payload.gpsLat,
@@ -137,6 +137,8 @@ router.post(
 
     const parseResult = createRilevamentoSchema.safeParse({
       ...req.body,
+      impresaId: req.body.impresaId || undefined,
+      numeroCivico: req.body.numeroCivico || "",
       numeroOperai: Number(req.body.numeroOperai),
       gpsLat: Number(req.body.gpsLat),
       gpsLon: Number(req.body.gpsLon),
@@ -147,6 +149,7 @@ router.post(
     });
 
     if (!parseResult.success) {
+      logger.warn("Validazione fallita", { errors: parseResult.error.errors, body: req.body });
       return res.status(400).json({ message: "Dati non validi" });
     }
 

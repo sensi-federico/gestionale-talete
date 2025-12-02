@@ -3,9 +3,9 @@ import { z } from "zod";
 export const rilevamentoBaseSchema = z.object({
   comuneId: z.string().uuid(),
   via: z.string().min(1),
-  numeroCivico: z.string().min(1),
+  numeroCivico: z.string().optional().default(""),
   tipoLavorazioneId: z.string().uuid(),
-  impresaId: z.string().uuid(),
+  impresaId: z.string().uuid().optional(),
   numeroOperai: z.number().int().nonnegative(),
   gpsLat: z.number().min(-90).max(90),
   gpsLon: z.number().min(-180).max(180),
