@@ -111,6 +111,14 @@ const App = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginForm />} />
+      {/* Pagine di creazione SENZA header/footer */}
+      <Route element={<ProtectedRoute allowedRoles={["operaio"]} />}>
+        <Route path="/nuovo" element={<NuovoRilevamentoPage />} />
+      </Route>
+      <Route element={<ProtectedRoute allowedRoles={["impresa"]} />}>
+        <Route path="/nuovo-impresa" element={<NuovoInterventoImpresaPage />} />
+      </Route>
+      {/* Pagine CON header/footer */}
       <Route element={<ProtectedRoute allowedRoles={["operaio", "admin", "impresa"]} />}>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<HomeRoute />} />
@@ -118,12 +126,10 @@ const App = () => {
           <Route path="profilo" element={<ProfilePage />} />
           {/* Rotte tecnico */}
           <Route element={<ProtectedRoute allowedRoles={["operaio"]} />}>
-            <Route path="nuovo" element={<NuovoRilevamentoPage />} />
             <Route path="miei-rilevamenti" element={<MieiRilevamentiPage />} />
           </Route>
           {/* Rotte impresa */}
           <Route element={<ProtectedRoute allowedRoles={["impresa"]} />}>
-            <Route path="nuovo-impresa" element={<NuovoInterventoImpresaPage />} />
             <Route path="miei-rilevamenti" element={<MieiRilevamentiPage />} />
           </Route>
           {/* Rotte admin */}
