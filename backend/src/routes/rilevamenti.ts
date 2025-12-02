@@ -44,7 +44,7 @@ const insertRilevamento = async (
     operaio_id: operaioId,
     comune_id: payload.comuneId,
     via: payload.via,
-    numero_civico: payload.numeroCivico || null,
+    numero_civico: payload.numeroCivico || "",
     tipo_lavorazione_id: payload.tipoLavorazioneId,
     impresa_id: payload.impresaId || null,
     numero_operai: payload.numeroOperai,
