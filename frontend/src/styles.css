@@ -1545,7 +1545,7 @@ button {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 99998;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1704,7 +1704,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 99998;
   padding: 1rem;
   animation: fadeIn 0.2s ease-out;
 }
@@ -2756,7 +2756,7 @@ textarea.form-field__input {
 .rilevamento-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 99998;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3712,7 +3712,7 @@ textarea.form-field__input {
 .form-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 99998;
   background: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(4px);
   animation: modalOverlayIn 0.2s ease-out;
@@ -3721,7 +3721,7 @@ textarea.form-field__input {
 .form-modal {
   position: fixed;
   inset: 0;
-  z-index: 1001;
+  z-index: 99999;
   display: flex;
   flex-direction: column;
   background: #f8fafc;
