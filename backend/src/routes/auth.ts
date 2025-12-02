@@ -91,11 +91,16 @@ router.post("/refresh", async (req: Request, res: Response) => {
 router.post("/users", requireAuth(["admin"]), async (req: Request, res: Response) => {
   const parseResult = createUserSchema.safeParse(req.body);
   if (!parseResult.success) {
-    logger.warn("Creazione utente payload non valido", { path: req.originalUrl });
+    logger.warn("Creazione utente payload non valido", { 
+      path: req.originalUrl,
+      errors: parseResult.error.errors 
+    });
     return res.status(400).json({ message: "Dati non validi" });
   }
 
   const { email, password, fullName, role, impresaId } = parseResult.data;
+
+  logger.info("Tentativo creazione utente", { email, role, impresaId });
 
   const { data, error } = await supabaseAdmin.auth.admin.createUser({
     email,
@@ -110,7 +115,10 @@ router.post("/users", requireAuth(["admin"]), async (req: Request, res: Response
 
   if (error || !data.user) {
     logger.error("Errore creazione utente", {
-      message: error instanceof Error ? error.message : String(error)
+      message: error?.message,
+      code: error?.code,
+      status: error?.status,
+      details: JSON.stringify(error)
     });
     return res.status(500).json({ message: "Impossibile creare l'utente" });
   }
