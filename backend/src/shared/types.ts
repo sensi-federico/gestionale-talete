@@ -33,9 +33,9 @@ export interface TipoLavorazione {
 export interface RilevamentoBase {
   comuneId: string;
   via: string;
-  numeroCivico: string;
+  numeroCivico?: string;
   tipoLavorazioneId: string;
-  impresaId: string;
+  impresaId?: string;
   numeroOperai: number;
   fotoUrl?: string;
   gpsLat: number;
