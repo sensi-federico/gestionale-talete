@@ -149,8 +149,9 @@ router.post(
     });
 
     if (!parseResult.success) {
-      logger.warn("Validazione fallita", { errors: parseResult.error.errors, body: req.body });
-      return res.status(400).json({ message: "Dati non validi" });
+      const errorMsg = parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(", ");
+      logger.warn("Validazione fallita", { errors: errorMsg, body: req.body });
+      return res.status(400).json({ message: `Validazione fallita: ${errorMsg}` });
     }
 
     let fotoUrl: string | undefined;

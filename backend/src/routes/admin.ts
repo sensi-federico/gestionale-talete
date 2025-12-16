@@ -2,23 +2,28 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth.js";
 import { supabaseAdmin } from "../lib/supabaseClient.js";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import { logger } from "../lib/logger.js";
 
 const router = Router();
 
+// Helper per formattare errori di validazione
+const formatValidationError = (error: ZodError): string => {
+  return error.errors.map(e => e.message).join(", ");
+};
+
 const comuneSchema = z.object({
-  name: z.string().min(2),
-  province: z.string().min(2),
-  region: z.string().min(2)
+  name: z.string().min(2, "Nome deve avere almeno 2 caratteri"),
+  province: z.string().min(2, "Provincia deve avere almeno 2 caratteri"),
+  region: z.string().min(2, "Regione deve avere almeno 2 caratteri")
 });
 
 const impresaSchema = z.object({
-  name: z.string().min(2),
-  partitaIva: z.string().min(11).max(11),
-  phone: z.string().optional(),
-  email: z.string().email().optional(),
-  address: z.string().optional()
+  name: z.string().min(2, "Nome impresa deve avere almeno 2 caratteri"),
+  partitaIva: z.string().length(11, "Partita IVA deve essere di 11 caratteri").optional().or(z.literal("")),
+  phone: z.string().optional().transform((val) => val === "" ? undefined : val),
+  email: z.string().email("Email non valida").optional().or(z.literal("")),
+  address: z.string().optional().transform((val) => val === "" ? undefined : val)
 });
 
 const updateUserSchema = z.object({
@@ -99,8 +104,9 @@ router.get("/users", requireAuth(["admin"]), async (req: AuthenticatedRequest, r
 router.put("/users/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const parseResult = updateUserSchema.safeParse(req.body);
   if (!parseResult.success) {
-    logger.warn("Aggiornamento utente payload non valido", { userId: req.params.id });
-    return res.status(400).json({ message: "Dati non validi" });
+    const errorMsg = formatValidationError(parseResult.error);
+    logger.warn("Aggiornamento utente payload non valido", { userId: req.params.id, error: errorMsg });
+    return res.status(400).json({ message: errorMsg });
   }
 
   const payload = parseResult.data;
@@ -177,7 +183,9 @@ router.get("/comuni", requireAuth(["admin"]), async (_req: Request, res: Respons
 router.post("/comuni", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = comuneSchema.safeParse(req.body);
   if (!result.success) {
-    return res.status(400).json({ message: "Dati non validi" });
+    const errorMsg = formatValidationError(result.error);
+    logger.warn("Creazione comune - validazione fallita", { error: errorMsg });
+    return res.status(400).json({ message: errorMsg });
   }
 
   const { data, error } = await supabaseAdmin
@@ -202,7 +210,9 @@ router.post("/comuni", requireAuth(["admin"]), async (req: AuthenticatedRequest,
 router.put("/comuni/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = comuneSchema.safeParse(req.body);
   if (!result.success) {
-    return res.status(400).json({ message: "Dati non validi" });
+    const errorMsg = formatValidationError(result.error);
+    logger.warn("Aggiornamento comune - validazione fallita", { comuneId: req.params.id, error: errorMsg });
+    return res.status(400).json({ message: errorMsg });
   }
 
   const { data, error } = await supabaseAdmin
@@ -247,16 +257,18 @@ router.get("/imprese", requireAuth(["admin"]), async (_req: Request, res: Respon
 router.post("/imprese", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = impresaSchema.safeParse(req.body);
   if (!result.success) {
-    return res.status(400).json({ message: "Dati non validi" });
+    const errorMsg = formatValidationError(result.error);
+    logger.warn("Creazione impresa - validazione fallita", { error: errorMsg, body: req.body });
+    return res.status(400).json({ message: errorMsg });
   }
 
   const { data, error } = await supabaseAdmin
     .from("imprese")
     .insert({
       name: result.data.name,
-      partita_iva: result.data.partitaIva,
+      partita_iva: result.data.partitaIva || null,
       phone: result.data.phone ?? null,
-      email: result.data.email ?? null,
+      email: result.data.email === "" ? null : result.data.email ?? null,
       address: result.data.address ?? null
     })
     .select()
@@ -274,16 +286,18 @@ router.post("/imprese", requireAuth(["admin"]), async (req: AuthenticatedRequest
 router.put("/imprese/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = impresaSchema.safeParse(req.body);
   if (!result.success) {
-    return res.status(400).json({ message: "Dati non validi" });
+    const errorMsg = formatValidationError(result.error);
+    logger.warn("Aggiornamento impresa - validazione fallita", { impresaId: req.params.id, error: errorMsg });
+    return res.status(400).json({ message: errorMsg });
   }
 
   const { data, error } = await supabaseAdmin
     .from("imprese")
     .update({
       name: result.data.name,
-      partita_iva: result.data.partitaIva,
+      partita_iva: result.data.partitaIva || null,
       phone: result.data.phone ?? null,
-      email: result.data.email ?? null,
+      email: result.data.email === "" ? null : result.data.email ?? null,
       address: result.data.address ?? null
     })
     .eq("id", req.params.id)

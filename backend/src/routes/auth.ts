@@ -12,8 +12,9 @@ const router = Router();
 router.post("/login", async (req: Request, res: Response) => {
   const parseResult = loginSchema.safeParse(req.body);
   if (!parseResult.success) {
-    logger.warn("Login payload non valido", { path: req.originalUrl });
-    return res.status(400).json({ message: "Dati non validi" });
+    const errorMsg = parseResult.error.errors.map(e => e.message).join(", ");
+    logger.warn("Login payload non valido", { path: req.originalUrl, error: errorMsg });
+    return res.status(400).json({ message: errorMsg || "Dati non validi" });
   }
 
   const { email, password } = parseResult.data;
@@ -91,11 +92,12 @@ router.post("/refresh", async (req: Request, res: Response) => {
 router.post("/users", requireAuth(["admin"]), async (req: Request, res: Response) => {
   const parseResult = createUserSchema.safeParse(req.body);
   if (!parseResult.success) {
+    const errorMsg = parseResult.error.errors.map(e => e.message).join(", ");
     logger.warn("Creazione utente payload non valido", { 
       path: req.originalUrl,
-      errors: parseResult.error.errors 
+      errors: errorMsg 
     });
-    return res.status(400).json({ message: "Dati non validi" });
+    return res.status(400).json({ message: errorMsg || "Dati non validi" });
   }
 
   const { email, password, fullName, role, impresaId } = parseResult.data;
