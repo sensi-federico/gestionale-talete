@@ -21,7 +21,7 @@ import { api } from "./services/api";
 
 const HomeRoute = () => {
   const role = useAuthStore((state) => state.user?.role);
-  if (role === "admin") {
+  if (role === "admin" || role === "responsabile") {
     return <Navigate to="/admin/panoramica" replace />;
   }
   if (role === "impresa") {
@@ -114,7 +114,7 @@ const App = () => {
     <Routes>
       <Route path="/login" element={<LoginForm />} />
       {/* Pagine CON header/footer */}
-      <Route element={<ProtectedRoute allowedRoles={["operaio", "admin", "impresa"]} />}>
+      <Route element={<ProtectedRoute allowedRoles={["operaio", "admin", "impresa", "responsabile"]} />}>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<HomeRoute />} />
           {/* Profilo - accessibile da tutti */}

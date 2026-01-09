@@ -32,7 +32,8 @@ const AppLayout = () => {
   const roleLabels: Record<string, string> = {
     admin: "Amministratore",
     operaio: "Tecnico",
-    impresa: "Impresa"
+    impresa: "Impresa",
+    responsabile: "Responsabile"
   };
   const readableRole = roleLabels[user.role] ?? "Utente";
 
