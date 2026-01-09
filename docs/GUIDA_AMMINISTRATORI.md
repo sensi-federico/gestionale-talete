@@ -78,7 +78,7 @@ Dopo il login, la dashboard mostra:
 | **Admin** | Accesso completo: gestione utenti, comuni, imprese, visualizzazione tutti gli interventi |
 | **Tecnico** | Inserimento interventi dettagliati, visualizzazione solo propri interventi |
 | **Impresa** | Inserimento interventi semplificato, visualizzazione interventi della propria impresa |
-| **Responsabile** | Supervisione e consultazione interventi; permessi intermedi per supervisione e reportistica |
+| **Responsabile** | Supervisione e consultazione interventi; permessi intermedi per supervisione e reportistica. Può filtrare e scaricare report CSV, ma **non vede data, orario e posizione (GPS)** degli interventi nei report e nella vista. |
 
 ### 4.4 Modificare un utente
 1. Cliccare l'icona **✏️** nella riga dell'utente
