@@ -91,7 +91,7 @@ router.get("/users", requireAuth(["admin"]), async (req: AuthenticatedRequest, r
     id: user.id,
     email: user.email ?? "",
     fullName: user.full_name ?? "",
-    role: (user.role ?? "operaio") as "operaio" | "admin" | "impresa",
+    role: (user.role ?? "operaio") as "operaio" | "admin" | "impresa" | "responsabile",
     impresaId: user.impresa_id ?? null,
     createdAt: user.created_at ?? null,
     lastSignInAt: authUsersMap.get(user.id) ?? null
