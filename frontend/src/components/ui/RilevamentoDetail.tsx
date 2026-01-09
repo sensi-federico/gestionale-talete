@@ -197,12 +197,14 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete
                 </span>
               </div>
             )}
-            <div className="detail-item">
-              <span className="detail-item__label">Data inserimento</span>
-              <span className="detail-item__value">
-                {formatTimestamp(rilevamento.submit_timestamp || rilevamento.created_at)}
-              </span>
-            </div>
+            {showSensitive && (
+              <div className="detail-item">
+                <span className="detail-item__label">Data inserimento</span>
+                <span className="detail-item__value">
+                  {formatTimestamp(rilevamento.submit_timestamp || rilevamento.created_at)}
+                </span>
+              </div>
+            )}
             {showOperaio && rilevamento.submit_gps_lat && rilevamento.submit_gps_lon && (
               <div className="detail-item">
                 <span className="detail-item__label">GPS al momento invio</span>
@@ -227,7 +229,7 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete
           </svg>
           Torna indietro
         </button>
-        {onDelete && (
+        {onDelete && showSensitive && (
           <button 
             type="button"
             className="detail-page__delete-btn" 

@@ -368,8 +368,8 @@ const AdminRilevazioniPage = () => {
           rilevamento={selectedRilevamento}
           onClose={closeDetail}
           showOperaio={true}
-          onDelete={handleDeleteRequest}
-          showSensitive={useAuthStore.getState().user?.role !== "responsabile"}
+          onDelete={currentRole !== "responsabile" ? handleDeleteRequest : undefined}
+          showSensitive={currentRole !== "responsabile"}
         />
       )}
     </div>
