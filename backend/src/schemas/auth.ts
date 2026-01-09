@@ -13,7 +13,7 @@ export const createUserSchema = z.object({
   email: z.string().email("Email non valida"),
   password: z.string().min(8, "Password deve avere almeno 8 caratteri"),
   fullName: z.string().min(2, "Nome deve avere almeno 2 caratteri"),
-  role: z.enum(["operaio", "admin", "impresa"], { errorMap: () => ({ message: "Ruolo non valido" }) }),
+  role: z.enum(["operaio", "admin", "impresa", "responsabile"], { errorMap: () => ({ message: "Ruolo non valido" }) }),
   impresaId: z.string().uuid("ID impresa non valido").optional().or(z.literal("")).transform((val) => (val && val.trim() !== "" ? val : undefined))
 }).refine(
   (data) => {
