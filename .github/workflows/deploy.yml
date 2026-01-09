@@ -45,13 +45,21 @@ jobs:
 
       - name: Check build artifacts
         run: |
-          echo "Checking frontend/dist..."
+          echo "PWD: $(pwd)"
+          echo "Listing current directory:"
+          ls -la . || true
+          echo "Listing repo frontend directory (if exists):"
           ls -la frontend || true
-          if [ -d frontend/dist ]; then
+
+          # Support both possible contexts: job may run with working-directory: frontend or at repo root
+          if [ -d dist ]; then
+            echo "dist found in current dir — disabling Jekyll"
+            touch dist/.nojekyll
+          elif [ -d frontend/dist ]; then
             echo "frontend/dist found — disabling Jekyll"
             touch frontend/dist/.nojekyll
           else
-            echo "ERROR: frontend/dist does not exist. The build probably failed; see above listing for details."
+            echo "ERROR: build artifacts not found (dist or frontend/dist). Check build step logs for build errors.";
             exit 1
           fi
 
