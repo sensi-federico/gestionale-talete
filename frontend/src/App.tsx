@@ -131,15 +131,17 @@ const App = () => {
           <Route element={<ProtectedRoute allowedRoles={["operaio", "impresa"]} />}>
             <Route path="miei-rilevamenti" element={<MieiRilevamentiPage />} />
           </Route>
-          {/* Rotte admin */}
-          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          {/* Rotte admin - responsabili possono accedere alle pagine di monitoraggio, ma gestioni CRUD sono admin-only */}
+          <Route element={<ProtectedRoute allowedRoles={["admin", "responsabile"]} />}>
             <Route path="admin">
               <Route index element={<Navigate to="panoramica" replace />} />
               <Route path="panoramica" element={<AdminDashboard />} />
               <Route path="rilevamenti" element={<AdminRilevazioniPage />} />
-              <Route path="utenti" element={<AdminUsersPage />} />
-              <Route path="comuni" element={<AdminComuniPage />} />
-              <Route path="imprese" element={<AdminImpresePage />} />
+              <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+                <Route path="utenti" element={<AdminUsersPage />} />
+                <Route path="comuni" element={<AdminComuniPage />} />
+                <Route path="imprese" element={<AdminImpresePage />} />
+              </Route>
             </Route>
           </Route>
         </Route>

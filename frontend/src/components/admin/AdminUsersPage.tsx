@@ -10,7 +10,7 @@ import ConfirmModal from "../ui/ConfirmModal";
 import FormModal from "../ui/FormModal";
 import Pagination from "../ui/Pagination";
 
-type UserRole = "operaio" | "admin" | "impresa";
+type UserRole = "operaio" | "admin" | "impresa" | "responsabile";
 
 interface AdminUser {
   id: string;
@@ -282,7 +282,7 @@ const AdminUsersPage = () => {
                 </tr>
               )}
               {paginatedUsers.map((user) => {
-                const roleLabel = user.role === "operaio" ? "Tecnico" : user.role === "impresa" ? "Impresa" : "Admin";
+                const roleLabel = user.role === "operaio" ? "Tecnico" : user.role === "impresa" ? "Impresa" : user.role === "responsabile" ? "Responsabile" : "Admin";
                 return (
                 <tr key={user.id}>
                   <td data-label="Nome">{user.fullName || "—"}</td>
@@ -372,6 +372,7 @@ const AdminUsersPage = () => {
             >
               <option value="operaio">Tecnico</option>
               <option value="impresa">Impresa</option>
+              <option value="responsabile">Responsabile</option>
               <option value="admin">Admin</option>
             </select>
           </div>

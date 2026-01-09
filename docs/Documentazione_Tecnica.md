@@ -35,6 +35,7 @@ Il Gestionale Talete è un'applicazione web progressive (PWA) per la gestione de
 | **Admin** | Amministratori sistema | CRUD completo su tutte le entità |
 | **Tecnico (operaio)** | Tecnici sul campo | CRUD propri interventi |
 | **Impresa** | Imprese esterne | CRUD interventi della propria impresa |
+| **Responsabile** | Utente di controllo | Può visualizzare interventi (monitoraggio) ma non vede data/ora/posizione; può scaricare CSV limitato |
 
 ### 1.3 Funzionalità Principali
 

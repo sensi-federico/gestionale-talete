@@ -32,8 +32,10 @@ interface RilevamentoDetailProps {
   onClose: () => void;
   showOperaio?: boolean;
   onDelete?: (id: string) => void;
+  showSensitive?: boolean; // quando false nasconde data/ora/posizione
 }
-const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete }: RilevamentoDetailProps) => {
+
+const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete, showSensitive = true }: RilevamentoDetailProps) => {
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("it-IT", {
       weekday: "long",
@@ -161,8 +163,8 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete
           </section>
         )}
 
-        {/* Posizione GPS */}
-        {lat && lon && (
+        {/* Posizione GPS (nascosta per responsabile) */}
+        {showSensitive && lat && lon && (
           <section className="detail-section">
             <h3 className="detail-section__title">Posizione</h3>
             <div className="detail-coords">

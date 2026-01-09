@@ -17,6 +17,13 @@ Questa pagina spiega i passaggi necessari per abilitare il deploy automatico:
 
 ## Variabili d'ambiente/URL
 - Il workflow frontend imposta `VITE_API_BASE_URL` a `https://gestionaletalete-backend.fly.dev/api` (modifica se necessario).
+- Se desideri creare un account `responsabile` di default in fase di bootstrap, puoi impostare le variabili (sul server/VM o come secret CI):
+  - `DEFAULT_RESPONSABILE_EMAIL`  es. `responsabile@tuo-dominio.it`
+  - `DEFAULT_RESPONSABILE_PASSWORD`  es. `PasswordSicura123`
+  - `DEFAULT_RESPONSABILE_NAME` (opzionale)
+
+### Applicare le migration dal CI (consigliato)
+Aggiungi il secret `SUPABASE_DB_URL` (connection string completa con service role) nelle impostazioni del repository (Settings → Secrets → Actions). Ho aggiunto un workflow `Apply Supabase Migrations` (`.github/workflows/apply-migrations.yml`) che puoi eseguire manualmente (Actions → Apply Supabase Migrations → Run workflow) o che si esegue automaticamente quando `main` riceve un push. Il workflow usa `psql` per applicare in ordine tutti i file SQL presenti in `supabase/migrations/`.
 
 ## Controlli rapidi
 - Verifica che `frontend/dist` venga generato localmente con `cd frontend && npm ci && npm run build`.

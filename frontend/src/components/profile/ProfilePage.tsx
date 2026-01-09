@@ -99,7 +99,7 @@ const ProfilePage = () => {
     }
   };
 
-  const roleLabel = user?.role === "admin" ? "Amministratore" : "Tecnico";
+  const roleLabel = user?.role === "admin" ? "Amministratore" : user?.role === "impresa" ? "Impresa" : user?.role === "responsabile" ? "Responsabile" : "Tecnico";
 
   return (
     <div className="profile-page">

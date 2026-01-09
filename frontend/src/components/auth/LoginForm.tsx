@@ -27,7 +27,7 @@ const LoginForm = () => {
         refreshToken: response.refreshToken
       });
 
-      navigate(response.user.role === "admin" ? "/admin/panoramica" : "/");
+      navigate(response.user.role === "admin" || response.user.role === "responsabile" ? "/admin/panoramica" : "/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore inatteso");
     } finally {

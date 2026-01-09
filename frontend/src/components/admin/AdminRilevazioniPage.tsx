@@ -354,20 +354,9 @@ const AdminRilevazioniPage = () => {
           onClose={closeDetail}
           showOperaio={true}
           onDelete={handleDeleteRequest}
+          showSensitive={useAuthStore.getState().user?.role !== "responsabile"}
         />
       )}
-
-      {/* Modal conferma eliminazione */}
-      <ConfirmModal
-        isOpen={deleteModalOpen}
-        title="Elimina intervento"
-        message="Sei sicuro di voler eliminare questo intervento? Questa azione non può essere annullata."
-        confirmText="Elimina"
-        cancelText="Annulla"
-        variant="danger"
-        onConfirm={handleDeleteConfirm}
-        onCancel={handleDeleteCancel}
-      />
     </div>
   );
 };
