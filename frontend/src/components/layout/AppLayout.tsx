@@ -135,6 +135,29 @@ const AppLayout = () => {
                 </NavLink>
               </>
             )}
+
+            {user.role === "responsabile" && (
+              <>
+                <NavLink
+                  to="/admin/panoramica"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Dashboard
+                </NavLink>
+                <NavLink
+                  to="/admin/rilevamenti"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Interventi
+                </NavLink>
+                <NavLink
+                  to="/profilo"
+                  className={({ isActive }) => `top-nav-link top-nav-link--mobile-only${isActive ? " active" : ""}`}
+                >
+                  Profilo
+                </NavLink>
+              </>
+            )}
           </nav>
           <div className="app-header__user">
             <NavLink to="/profilo" className="app-header__profile-link" title="Il mio profilo">

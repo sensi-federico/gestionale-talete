@@ -327,6 +327,7 @@ router.get("/rilevamenti", requireAuth(["admin", "responsabile"]), async (req: A
   // Supporta filtri via query string
   const operaioId = req.query.operaioId as string | undefined;
   const comuneId = req.query.comuneId as string | undefined;
+  const impresaId = req.query.impresaId as string | undefined;
   const tipoLavorazioneId = req.query.tipoLavorazioneId as string | undefined;
   const dateFrom = req.query.dateFrom as string | undefined;
   const dateTo = req.query.dateTo as string | undefined;
@@ -357,6 +358,9 @@ router.get("/rilevamenti", requireAuth(["admin", "responsabile"]), async (req: A
   if (comuneId) {
     query = query.eq("comune_id", comuneId);
   }
+  if (impresaId) {
+    query = query.eq("impresa_id", impresaId);
+  }
   if (tipoLavorazioneId) {
     query = query.eq("tipo_lavorazione_id", tipoLavorazioneId);
   }
@@ -379,6 +383,7 @@ router.get("/rilevamenti", requireAuth(["admin", "responsabile"]), async (req: A
   logger.info("Lista rilevamenti recuperata", { 
     count: data.length, 
     filteredByOperaio: !!operaioId,
+    filteredByImpresa: !!impresaId,
     filteredByComune: !!comuneId,
     filteredByTipo: !!tipoLavorazioneId
   });
@@ -389,6 +394,7 @@ router.get("/rilevamenti", requireAuth(["admin", "responsabile"]), async (req: A
 router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const operaioId = req.query.operaioId as string | undefined;
   const comuneId = req.query.comuneId as string | undefined;
+  const impresaId = req.query.impresaId as string | undefined;
   const tipoLavorazioneId = req.query.tipoLavorazioneId as string | undefined;
   const dateFrom = req.query.dateFrom as string | undefined;
   const dateTo = req.query.dateTo as string | undefined;
@@ -415,6 +421,7 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
 
   if (operaioId) query = query.eq("operaio_id", operaioId);
   if (comuneId) query = query.eq("comune_id", comuneId);
+  if (impresaId) query = query.eq("impresa_id", impresaId);
   if (tipoLavorazioneId) query = query.eq("tipo_lavorazione_id", tipoLavorazioneId);
   if (dateFrom) query = query.gte("rilevamento_date", dateFrom);
   if (dateTo) query = query.lte("rilevamento_date", dateTo);

@@ -57,6 +57,7 @@ const AdminRilevazioniPage = () => {
   const [selectedRilevamento, setSelectedRilevamento] = useState<Rilevamento | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filterOperaio, setFilterOperaio] = useState<string>("");
+  const [filterImpresa, setFilterImpresa] = useState<string>("");
   const [filterComune, setFilterComune] = useState<string>("");
   const [filterTipo, setFilterTipo] = useState<string>("");
   const [filterDateFrom, setFilterDateFrom] = useState<string>("");
@@ -64,6 +65,7 @@ const AdminRilevazioniPage = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const currentRole = useAuthStore((s) => s.user?.role);
 
   const authorizedFetch = async <T,>(path: string) => {
     if (!tokens) throw new Error("Token mancante");
@@ -78,6 +80,7 @@ const AdminRilevazioniPage = () => {
   const buildQueryParams = () => {
     const params = new URLSearchParams();
     if (filterOperaio) params.append("operaioId", filterOperaio);
+    if (filterImpresa) params.append("impresaId", filterImpresa);
     if (filterComune) params.append("comuneId", filterComune);
     if (filterTipo) params.append("tipoLavorazioneId", filterTipo);
     if (filterDateFrom) params.append("dateFrom", filterDateFrom);
@@ -87,7 +90,7 @@ const AdminRilevazioniPage = () => {
 
   // Fetch rilevamenti
   const rilevazioniQuery = useQuery<{ rilevamenti: Rilevamento[] }>({
-    queryKey: ["admin", "rilevamenti", filterOperaio, filterComune, filterTipo, filterDateFrom, filterDateTo],
+    queryKey: ["admin", "rilevamenti", filterOperaio, filterImpresa, filterComune, filterTipo, filterDateFrom, filterDateTo],
     queryFn: () => {
       const params = buildQueryParams();
       const url = `/admin/rilevamenti${params ? `?${params}` : ""}`;
@@ -103,10 +106,10 @@ const AdminRilevazioniPage = () => {
     enabled: Boolean(tokens)
   });
 
-  // Fetch comuni e tipi lavorazione per filtri
-  const referenceQuery = useQuery<{ comuni: Comune[]; tipiLavorazione: TipoLavorazione[] }>({
+  // Fetch comuni, tipi lavorazione e imprese per filtri
+  const referenceQuery = useQuery<{ comuni: Comune[]; tipiLavorazione: TipoLavorazione[]; imprese: { id: string; name: string }[] }>({
     queryKey: ["admin", "reference"],
-    queryFn: () => authorizedFetch<{ comuni: Comune[]; tipiLavorazione: TipoLavorazione[] }>("/admin/reference"),
+    queryFn: () => authorizedFetch<{ comuni: Comune[]; tipiLavorazione: TipoLavorazione[]; imprese: { id: string; name: string }[] }>("/admin/reference"),
     enabled: Boolean(tokens)
   });
 
@@ -114,6 +117,7 @@ const AdminRilevazioniPage = () => {
   const users = usersQuery.data?.users ?? [];
   const comuni = referenceQuery.data?.comuni ?? [];
   const tipiLavorazione = referenceQuery.data?.tipiLavorazione ?? [];
+  const imprese = referenceQuery.data?.imprese ?? [];
 
   // Paginazione
   const totalPages = Math.ceil(rilevamenti.length / ITEMS_PER_PAGE);
@@ -145,7 +149,7 @@ const AdminRilevazioniPage = () => {
     setCurrentPage(1);
   };
 
-  const hasFilters = filterOperaio || filterComune || filterTipo || filterDateFrom || filterDateTo;
+  const hasFilters = filterOperaio || filterImpresa || filterComune || filterTipo || filterDateFrom || filterDateTo;
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -246,6 +250,15 @@ const AdminRilevazioniPage = () => {
           </select>
         </div>
         <div className="filter-group">
+          <label>Impresa</label>
+          <select value={filterImpresa} onChange={(e) => setFilterImpresa(e.target.value)}>
+            <option value="">Tutte</option>
+            {imprese.map((i) => (
+              <option key={i.id} value={i.id}>{i.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-group">
           <label>Tipo lavorazione</label>
           <select value={filterTipo} onChange={(e) => setFilterTipo(e.target.value)}>
             <option value="">Tutti</option>
@@ -316,9 +329,11 @@ const AdminRilevazioniPage = () => {
             onClick={() => setSelectedRilevamento(r)}
           >
             <div className="rilevamento-card__header">
-              <span className="rilevamento-card__date">
-                {formatDate(r.rilevamento_date)} • {formatTime(r.rilevamento_time)}
-              </span>
+              {currentRole !== "responsabile" ? (
+                <span className="rilevamento-card__date">
+                  {formatDate(r.rilevamento_date)} • {formatTime(r.rilevamento_time)}
+                </span>
+              ) : null}
               {r.foto_url && <span className="rilevamento-card__photo-badge">📷</span>}
             </div>
             <div className="rilevamento-card__location">
