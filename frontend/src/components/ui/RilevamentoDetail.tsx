@@ -36,7 +36,6 @@ interface RilevamentoDetailProps {
 }
 
 const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete, showSensitive = true }: RilevamentoDetailProps) => {
-const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete }: RilevamentoDetailProps) => {
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("it-IT", {
       weekday: "long",

@@ -150,6 +150,10 @@ router.put("/users/:id", requireAuth(["admin"]), async (req: AuthenticatedReques
     email: payload.email,
     fullName: payload.fullName,
     role: payload.role as "operaio" | "admin" | "impresa" | "responsabile",
+    impresaId: payload.impresaId ?? null,
+    createdAt: data.user.created_at ?? null,
+    updatedAt: new Date().toISOString()
+  };
 
   logger.info("Utente aggiornato", { userId: updatedUser.id, requesterId: req.user?.id });
   return res.json({ user: updatedUser });
@@ -341,9 +345,10 @@ router.get("/rilevamenti", requireAuth(["admin", "responsabile"]), async (req: A
       tipo:tipi_lavorazione(id, name),
       operaio:users(id, email, full_name)`;
 
+  const selectString = isResponsabile ? selectFieldsLimited : selectFieldsFull;
   let query = supabaseAdmin
     .from("rilevamenti")
-    .select(isResponsabile ? selectFieldsLimited : selectFieldsFull)
+    .select(selectString as unknown as string)
     .order("created_at", { ascending: false });
 
   if (operaioId) {
@@ -362,7 +367,9 @@ router.get("/rilevamenti", requireAuth(["admin", "responsabile"]), async (req: A
     query = query.lte("rilevamento_date", dateTo);
   }
 
-  const { data, error } = await query;
+  const raw = await query;
+  const data = (raw.data as any[]) ?? [];
+  const error = raw.error;
 
   if (error) {
     logger.error("Errore recupero rilevamenti", { message: error.message });
@@ -370,7 +377,7 @@ router.get("/rilevamenti", requireAuth(["admin", "responsabile"]), async (req: A
   }
 
   logger.info("Lista rilevamenti recuperata", { 
-    count: data?.length ?? 0, 
+    count: data.length, 
     filteredByOperaio: !!operaioId,
     filteredByComune: !!comuneId,
     filteredByTipo: !!tipoLavorazioneId
@@ -400,9 +407,10 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
       tipo:tipi_lavorazione(name),
       operaio:users(email, full_name)`;
 
+  const selectString = isResponsabile ? selectLimited : selectFull;
   let query = supabaseAdmin
     .from("rilevamenti")
-    .select(isResponsabile ? selectLimited : selectFull)
+    .select(selectString as unknown as string)
     .order("rilevamento_date", { ascending: false });
 
   if (operaioId) query = query.eq("operaio_id", operaioId);
@@ -411,7 +419,9 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
   if (dateFrom) query = query.gte("rilevamento_date", dateFrom);
   if (dateTo) query = query.lte("rilevamento_date", dateTo);
 
-  const { data, error } = await query;
+  const raw = await query;
+  const data = (raw.data as any[]) ?? [];
+  const error = raw.error;
 
   if (error) {
     logger.error("Errore export rilevamenti", { message: error.message });
