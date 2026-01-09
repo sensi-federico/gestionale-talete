@@ -146,7 +146,7 @@ router.post("/users", requireAuth(["admin"]), async (req: Request, res: Response
 });
 
 // GET /auth/profile - Ottieni profilo utente corrente
-router.get("/profile", requireAuth(["operaio", "admin"]), async (req: Request, res: Response) => {
+router.get("/profile", requireAuth(["operaio", "admin", "responsabile"]), async (req: Request, res: Response) => {
   const userId = res.locals.user.sub;
   
   const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
@@ -168,7 +168,7 @@ router.get("/profile", requireAuth(["operaio", "admin"]), async (req: Request, r
 });
 
 // PUT /auth/profile - Aggiorna profilo utente corrente
-router.put("/profile", requireAuth(["operaio", "admin"]), async (req: Request, res: Response) => {
+router.put("/profile", requireAuth(["operaio", "admin", "responsabile"]), async (req: Request, res: Response) => {
   const userId = res.locals.user.sub;
   const parseResult = updateProfileSchema.safeParse(req.body);
   

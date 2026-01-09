@@ -66,7 +66,7 @@ Dopo il login, la dashboard mostra:
 | Email | ✅ | Email valida, sarà il login |
 | Nome completo | ✅ | Nome e cognome |
 | Password | ✅ | Minimo 8 caratteri |
-| Ruolo | ✅ | Admin, Tecnico o Impresa |
+| Ruolo | ✅ | Admin, Tecnico, Impresa o Responsabile |
 | Impresa | Solo se ruolo=Impresa | Selezionare l'impresa di appartenenza |
 
 3. Cliccare **"Salva"**
@@ -78,6 +78,7 @@ Dopo il login, la dashboard mostra:
 | **Admin** | Accesso completo: gestione utenti, comuni, imprese, visualizzazione tutti gli interventi |
 | **Tecnico** | Inserimento interventi dettagliati, visualizzazione solo propri interventi |
 | **Impresa** | Inserimento interventi semplificato, visualizzazione interventi della propria impresa |
+| **Responsabile** | Supervisione e consultazione interventi; permessi intermedi per supervisione e reportistica |
 
 ### 4.4 Modificare un utente
 1. Cliccare l'icona **✏️** nella riga dell'utente
