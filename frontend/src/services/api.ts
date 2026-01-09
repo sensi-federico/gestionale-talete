@@ -5,8 +5,8 @@ export interface LoginResponse {
     id: string;
     email: string;
     fullName: string;
-    role: "operaio" | "admin";
-  };
+    role: "operaio" | "admin" | "impresa" | "responsabile";
+  }; 
 }
 
 import { OfflineRilevamento } from "@shared/types";
