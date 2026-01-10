@@ -18,6 +18,8 @@ import AppLayout from "./components/layout/AppLayout";
 import { useAuthStore } from "./store/authStore";
 import { useOfflineQueue } from "./hooks/useOfflineQueue";
 import { api } from "./services/api";
+import useSWUpdate from "./hooks/useSWUpdate";
+import UpdateAvailableModal from "./components/ui/UpdateAvailableModal";
 
 const HomeRoute = () => {
   const role = useAuthStore((state) => state.user?.role);
@@ -34,6 +36,7 @@ const HomeRoute = () => {
 const App = () => {
   const { user, tokens, restoreSession } = useAuthStore();
   const { syncQueue } = useOfflineQueue();
+  const { updateAvailable, setUpdateAvailable, applyUpdate } = useSWUpdate();
 
   useEffect(() => {
     restoreSession();
@@ -111,7 +114,9 @@ const App = () => {
   }, [tokens, syncQueue, processSync]);
 
   return (
-    <Routes>
+    <>
+      <UpdateAvailableModal open={updateAvailable} onClose={() => setUpdateAvailable(false)} onUpdate={applyUpdate} />
+      <Routes>
       <Route path="/login" element={<LoginForm />} />
       {/* Pagine CON header/footer */}
       <Route element={<ProtectedRoute allowedRoles={["operaio", "admin", "impresa", "responsabile"]} />}>
@@ -147,7 +152,8 @@ const App = () => {
         </Route>
       </Route>
       <Route path="*" element={<Navigate to={user ? "/" : "/login"} replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 };
 
