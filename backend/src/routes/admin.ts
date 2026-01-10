@@ -69,12 +69,20 @@ router.get(
   }
 );
 
-router.get("/users", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.get("/users", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   // Legge da public.users (sincronizzata con auth.users via trigger)
-  const { data, error } = await supabaseAdmin
+  // I responsabili possono recuperare solo gli utenti con ruolo "operaio" (tecnici)
+  const isResponsabile = req.user?.role === "responsabile";
+  let query = supabaseAdmin
     .from("users")
     .select("id, email, full_name, role, impresa_id, created_at, updated_at")
     .order("created_at", { ascending: false });
+
+  if (isResponsabile) {
+    query = query.eq("role", "operaio");
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     logger.error("Errore recupero utenti", { message: error.message });
