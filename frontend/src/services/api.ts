@@ -75,5 +75,17 @@ export const api = {
       headers: {
         Authorization: `Bearer ${accessToken}`
       }
+    }),
+  deleteRilevamento: (id: string, accessToken: string) =>
+    fetch(`${API_BASE}/rilevamenti/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    }).then(async (res) => {
+      if (!res.ok) {
+        const message = await res.text();
+        throw new Error(message || "Eliminazione fallita");
+      }
     })
 };

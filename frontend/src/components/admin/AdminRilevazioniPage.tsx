@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
+import { useAdminAlerts } from "../../hooks/useAdminAlerts";
 import RilevamentoDetail from "../ui/RilevamentoDetail";
 import Pagination from "../ui/Pagination";
 import ConfirmModal from "../ui/ConfirmModal";
@@ -54,6 +55,7 @@ const ITEMS_PER_PAGE = 10;
 const AdminRilevazioniPage = () => {
   const { tokens } = useAuthStore();
   const queryClient = useQueryClient();
+  const { pushAlert } = useAdminAlerts();
   const [selectedRilevamento, setSelectedRilevamento] = useState<Rilevamento | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filterOperaio, setFilterOperaio] = useState<string>("");
@@ -166,10 +168,19 @@ const AdminRilevazioniPage = () => {
       setSelectedRilevamento(null);
       setDeleteModalOpen(false);
       setDeleteTargetId(null);
+      pushAlert({ 
+        type: "success", 
+        title: "Intervento eliminato", 
+        description: "L'intervento è stato eliminato con successo" 
+      });
     },
     onError: (error) => {
       console.error("Errore eliminazione:", error);
-      alert("Errore durante l'eliminazione");
+      pushAlert({ 
+        type: "error", 
+        title: "Eliminazione fallita", 
+        description: error instanceof Error ? error.message : "Errore durante l'eliminazione" 
+      });
     }
   });
 
@@ -372,6 +383,18 @@ const AdminRilevazioniPage = () => {
           showSensitive={currentRole !== "responsabile"}
         />
       )}
+
+      {/* Modal di conferma eliminazione */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        title="Eliminare intervento?"
+        message="Questa azione è irreversibile. L'intervento verrà rimosso definitivamente dal database."
+        confirmText="Elimina"
+        cancelText="Annulla"
+        variant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </div>
   );
 };

@@ -220,6 +220,47 @@ router.post(
 router.delete("/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
 
+  // Recupera il rilevamento per ottenere l'URL della foto
+  const { data: rilevamento, error: fetchError } = await supabaseAdmin
+    .from("rilevamenti")
+    .select("foto_url")
+    .eq("id", id)
+    .single();
+
+  if (fetchError && fetchError.code !== "PGRST116") {
+    logger.error("Errore recupero rilevamento", { id, message: fetchError.message });
+    return res.status(500).json({ message: "Errore durante l'eliminazione" });
+  }
+
+  // Elimina la foto dallo storage se presente
+  if (rilevamento?.foto_url) {
+    try {
+      const url = new URL(rilevamento.foto_url);
+      const pathParts = url.pathname.split("/");
+      const bucketIndex = pathParts.findIndex((part) => part === bucket);
+      if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+        const filePath = pathParts.slice(bucketIndex + 1).join("/");
+        const { error: storageError } = await supabaseAdmin.storage
+          .from(bucket)
+          .remove([filePath]);
+        if (storageError) {
+          logger.warn("Errore eliminazione foto storage", { 
+            id, 
+            filePath, 
+            message: storageError.message 
+          });
+        }
+      }
+    } catch (err) {
+      logger.warn("Errore parsing URL foto", { 
+        id, 
+        fotoUrl: rilevamento.foto_url, 
+        message: err instanceof Error ? err.message : String(err) 
+      });
+    }
+  }
+
+  // Elimina il record dal database
   const { error } = await supabaseAdmin
     .from("rilevamenti")
     .delete()
