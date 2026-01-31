@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { OfflineRilevamento } from "@shared/types";
 import LoginForm from "./components/auth/LoginForm";
@@ -20,6 +20,7 @@ import { useOfflineQueue } from "./hooks/useOfflineQueue";
 import { api } from "./services/api";
 import useSWUpdate from "./hooks/useSWUpdate";
 import UpdateAvailableModal from "./components/ui/UpdateAvailableModal";
+import { offlineDB } from "./utils/offlineDB";
 
 const HomeRoute = () => {
   const role = useAuthStore((state) => state.user?.role);
@@ -36,11 +37,57 @@ const HomeRoute = () => {
 const App = () => {
   const { user, tokens, restoreSession } = useAuthStore();
   const { syncQueue } = useOfflineQueue();
-  const { updateAvailable, setUpdateAvailable, applyUpdate } = useSWUpdate();
+  const { updateAvailable, applyUpdate } = useSWUpdate();
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  // Monitora lo stato della connessione
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     restoreSession();
   }, [restoreSession]);
+
+  // Gestisce l'applicazione dell'aggiornamento con controllo dati offline
+  const handleUpdate = useCallback(async () => {
+    try {
+      setIsUpdating(true);
+
+      // Verifica se ci sono dati in coda offline
+      const pendingCount = await offlineDB.pendingRilevamenti.count();
+      
+      if (pendingCount > 0 && navigator.onLine) {
+        console.log(`[Update] Tentativo sync di ${pendingCount} rilevamenti in coda prima dell'aggiornamento`);
+        
+        // Tenta una sincronizzazione veloce prima dell'update
+        try {
+          await syncQueue(processSync);
+          console.log("[Update] Sincronizzazione completata");
+        } catch (error) {
+          console.warn("[Update] Sincronizzazione fallita, procedo comunque:", error);
+          // Procedi con l'update anche se la sync fallisce
+        }
+      }
+
+      // Applica l'aggiornamento
+      await applyUpdate();
+    } catch (error) {
+      console.error("[Update] Errore durante l'aggiornamento:", error);
+      // In caso di errore, forza comunque il reload
+      window.location.reload();
+    }
+  }, [applyUpdate, syncQueue]);
 
   const processSync = useCallback(
     async (record: OfflineRilevamento) => {
@@ -115,7 +162,12 @@ const App = () => {
 
   return (
     <>
-      <UpdateAvailableModal open={updateAvailable} onClose={() => setUpdateAvailable(false)} onUpdate={applyUpdate} />
+      <UpdateAvailableModal 
+        open={updateAvailable} 
+        isUpdating={isUpdating}
+        isOffline={isOffline}
+        onUpdate={handleUpdate} 
+      />
       <Routes>
       <Route path="/login" element={<LoginForm />} />
       {/* Pagine CON header/footer */}
