@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
 import RilevamentoDetail from "../ui/RilevamentoDetail";
 import Pagination from "../ui/Pagination";
 import ConfirmModal from "../ui/ConfirmModal";
+import JSZip from "jszip";
 
 interface Rilevamento {
   id: string;
@@ -244,6 +245,63 @@ const AdminRilevazioniPage = () => {
     }
   };
 
+  // Download foto come ZIP
+  const handleDownloadZip = useCallback(async (id: string, photos: { url: string; label: string }[]) => {
+    if (photos.length === 0) return;
+
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder(`intervento_${id}`);
+      
+      if (!folder) throw new Error("Errore creazione cartella zip");
+      
+      // Scarica le immagini in parallelo
+      const downloads = photos.map(async (photo, index) => {
+        try {
+          const response = await fetch(photo.url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          
+          const blob = await response.blob();
+          // Estrai estensione dall'URL o usa jpg di default
+          const urlParts = photo.url.split(".");
+          const ext = urlParts.length > 1 ? urlParts[urlParts.length - 1].split("?")[0] : "jpg";
+          const safeLabel = photo.label.replace(/[^a-zA-Z0-9]/g, "_");
+          const filename = `${String(index + 1).padStart(2, "0")}_${safeLabel}.${ext}`;
+          
+          folder.file(filename, blob);
+        } catch (err) {
+          console.warn(`Errore download foto ${photo.label}:`, err);
+        }
+      });
+
+      await Promise.all(downloads);
+      
+      // Genera e scarica lo ZIP
+      const content = await zip.generateAsync({ type: "blob" });
+      const downloadUrl = URL.createObjectURL(content);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = `foto_intervento_${id}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(downloadUrl);
+      
+      pushAlert({
+        type: "success",
+        title: "Download completato",
+        description: `${photos.length} foto scaricate correttamente`
+      });
+    } catch (error) {
+      console.error("Errore download zip:", error);
+      pushAlert({
+        type: "error",
+        title: "Download fallito",
+        description: "Errore durante la creazione del file ZIP"
+      });
+    }
+  }, [pushAlert]);
+
   return (
     <div className="page-container admin-rilevamenti">
       <header className="page-heading">
@@ -394,6 +452,7 @@ const AdminRilevazioniPage = () => {
           rilevamento={selectedRilevamento}
           onClose={closeDetail}
           onDelete={currentRole !== "responsabile" ? handleDeleteRequest : undefined}
+          onDownloadZip={handleDownloadZip}
         />
       )}
 
