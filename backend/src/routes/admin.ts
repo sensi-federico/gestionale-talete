@@ -234,7 +234,7 @@ router.delete("/users/:id", requireAuth(["admin"]), async (req: AuthenticatedReq
   return res.status(204).send();
 });
 
-router.get("/comuni", requireAuth(["admin"]), async (_req: Request, res: Response) => {
+router.get("/comuni", requireAuth(["admin", "responsabile"]), async (_req: Request, res: Response) => {
   const { data, error } = await supabaseAdmin.from("comuni").select("*").order("name");
   if (error) {
     logger.error("Errore recupero comuni", { message: error.message });
@@ -243,7 +243,7 @@ router.get("/comuni", requireAuth(["admin"]), async (_req: Request, res: Respons
   return res.json({ comuni: data });
 });
 
-router.post("/comuni", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.post("/comuni", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = comuneSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -270,7 +270,7 @@ router.post("/comuni", requireAuth(["admin"]), async (req: AuthenticatedRequest,
   return res.status(201).json({ comune: data });
 });
 
-router.put("/comuni/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.put("/comuni/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = comuneSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -298,7 +298,7 @@ router.put("/comuni/:id", requireAuth(["admin"]), async (req: AuthenticatedReque
   return res.json({ comune: data });
 });
 
-router.delete("/comuni/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/comuni/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const { error } = await supabaseAdmin.from("comuni").delete().eq("id", req.params.id);
   if (error) {
     logger.error("Errore eliminazione comune", { comuneId: req.params.id, message: error.message });
@@ -308,7 +308,7 @@ router.delete("/comuni/:id", requireAuth(["admin"]), async (req: AuthenticatedRe
   return res.status(204).send();
 });
 
-router.get("/imprese", requireAuth(["admin"]), async (_req: Request, res: Response) => {
+router.get("/imprese", requireAuth(["admin", "responsabile", "operaio"]), async (_req: Request, res: Response) => {
   const { data, error } = await supabaseAdmin.from("imprese").select("*").order("name");
   if (error) {
     logger.error("Errore recupero imprese", { message: error.message });
@@ -317,7 +317,7 @@ router.get("/imprese", requireAuth(["admin"]), async (_req: Request, res: Respon
   return res.json({ imprese: data });
 });
 
-router.post("/imprese", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.post("/imprese", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = impresaSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -346,7 +346,7 @@ router.post("/imprese", requireAuth(["admin"]), async (req: AuthenticatedRequest
   return res.status(201).json({ impresa: data });
 });
 
-router.put("/imprese/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.put("/imprese/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = impresaSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -376,7 +376,7 @@ router.put("/imprese/:id", requireAuth(["admin"]), async (req: AuthenticatedRequ
   return res.json({ impresa: data });
 });
 
-router.delete("/imprese/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/imprese/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const { error } = await supabaseAdmin.from("imprese").delete().eq("id", req.params.id);
   if (error) {
     logger.error("Errore eliminazione impresa", { impresaId: req.params.id, message: error.message });
@@ -390,7 +390,7 @@ router.delete("/imprese/:id", requireAuth(["admin"]), async (req: AuthenticatedR
 // CRUD MEZZI DI LAVORO
 // ============================================================
 
-router.get("/mezzi", requireAuth(["admin"]), async (_req: Request, res: Response) => {
+router.get("/mezzi", requireAuth(["admin", "responsabile"]), async (_req: Request, res: Response) => {
   const { data, error } = await supabaseAdmin
     .from("mezzi")
     .select("*")
@@ -414,7 +414,7 @@ router.get("/mezzi", requireAuth(["admin"]), async (_req: Request, res: Response
   return res.json({ mezzi });
 });
 
-router.post("/mezzi", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.post("/mezzi", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = mezzoSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -450,7 +450,7 @@ router.post("/mezzi", requireAuth(["admin"]), async (req: AuthenticatedRequest, 
   });
 });
 
-router.put("/mezzi/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.put("/mezzi/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = mezzoSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -487,7 +487,7 @@ router.put("/mezzi/:id", requireAuth(["admin"]), async (req: AuthenticatedReques
   });
 });
 
-router.delete("/mezzi/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/mezzi/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const { error } = await supabaseAdmin.from("mezzi").delete().eq("id", req.params.id);
   if (error) {
     logger.error("Errore eliminazione mezzo", { mezzoId: req.params.id, message: error.message });
@@ -501,7 +501,7 @@ router.delete("/mezzi/:id", requireAuth(["admin"]), async (req: AuthenticatedReq
 // CRUD ATTREZZATURE
 // ============================================================
 
-router.get("/attrezzature", requireAuth(["admin"]), async (_req: Request, res: Response) => {
+router.get("/attrezzature", requireAuth(["admin", "responsabile"]), async (_req: Request, res: Response) => {
   const { data, error } = await supabaseAdmin
     .from("attrezzature")
     .select("*")
@@ -525,7 +525,7 @@ router.get("/attrezzature", requireAuth(["admin"]), async (_req: Request, res: R
   return res.json({ attrezzature });
 });
 
-router.post("/attrezzature", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.post("/attrezzature", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = attrezzaturaSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -561,7 +561,7 @@ router.post("/attrezzature", requireAuth(["admin"]), async (req: AuthenticatedRe
   });
 });
 
-router.put("/attrezzature/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.put("/attrezzature/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = attrezzaturaSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -598,7 +598,7 @@ router.put("/attrezzature/:id", requireAuth(["admin"]), async (req: Authenticate
   });
 });
 
-router.delete("/attrezzature/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/attrezzature/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const { error } = await supabaseAdmin.from("attrezzature").delete().eq("id", req.params.id);
   if (error) {
     logger.error("Errore eliminazione attrezzatura", { attrezzaturaId: req.params.id, message: error.message });
@@ -612,7 +612,7 @@ router.delete("/attrezzature/:id", requireAuth(["admin"]), async (req: Authentic
 // CRUD TIPI LAVORAZIONE
 // ============================================================
 
-router.get("/tipi-lavorazione", requireAuth(["admin"]), async (_req: Request, res: Response) => {
+router.get("/tipi-lavorazione", requireAuth(["admin", "responsabile"]), async (_req: Request, res: Response) => {
   const { data, error } = await supabaseAdmin
     .from("tipi_lavorazione")
     .select("*")
@@ -626,7 +626,7 @@ router.get("/tipi-lavorazione", requireAuth(["admin"]), async (_req: Request, re
   return res.json({ tipiLavorazione: data });
 });
 
-router.post("/tipi-lavorazione", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.post("/tipi-lavorazione", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = tipoLavorazioneSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -652,7 +652,7 @@ router.post("/tipi-lavorazione", requireAuth(["admin"]), async (req: Authenticat
   return res.status(201).json({ tipoLavorazione: data });
 });
 
-router.put("/tipi-lavorazione/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.put("/tipi-lavorazione/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = tipoLavorazioneSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -679,7 +679,7 @@ router.put("/tipi-lavorazione/:id", requireAuth(["admin"]), async (req: Authenti
   return res.json({ tipoLavorazione: data });
 });
 
-router.delete("/tipi-lavorazione/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/tipi-lavorazione/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const { error } = await supabaseAdmin.from("tipi_lavorazione").delete().eq("id", req.params.id);
   if (error) {
     logger.error("Errore eliminazione tipo lavorazione", { tipoId: req.params.id, message: error.message });
@@ -693,7 +693,7 @@ router.delete("/tipi-lavorazione/:id", requireAuth(["admin"]), async (req: Authe
 // CRUD MATERIALI TUBO
 // ============================================================
 
-router.get("/materiali-tubo", requireAuth(["admin"]), async (_req: Request, res: Response) => {
+router.get("/materiali-tubo", requireAuth(["admin", "responsabile"]), async (_req: Request, res: Response) => {
   const { data, error } = await supabaseAdmin
     .from("materiali_tubo")
     .select("*")
@@ -716,7 +716,7 @@ router.get("/materiali-tubo", requireAuth(["admin"]), async (_req: Request, res:
   return res.json({ materialiTubo });
 });
 
-router.post("/materiali-tubo", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.post("/materiali-tubo", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = materialeTuboSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -750,7 +750,7 @@ router.post("/materiali-tubo", requireAuth(["admin"]), async (req: Authenticated
   });
 });
 
-router.put("/materiali-tubo/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.put("/materiali-tubo/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = materialeTuboSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -785,7 +785,7 @@ router.put("/materiali-tubo/:id", requireAuth(["admin"]), async (req: Authentica
   });
 });
 
-router.delete("/materiali-tubo/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/materiali-tubo/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const { error } = await supabaseAdmin.from("materiali_tubo").delete().eq("id", req.params.id);
   if (error) {
     logger.error("Errore eliminazione materiale tubo", { materialeId: req.params.id, message: error.message });

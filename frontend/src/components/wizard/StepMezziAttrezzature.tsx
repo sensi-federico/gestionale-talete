@@ -1,7 +1,8 @@
 // StepMezziAttrezzature.tsx
 // Step 4: Selezione mezzi e attrezzature con ore di utilizzo
+// Permette di aggiungere lo stesso mezzo/attrezzatura più volte
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { WizardFormState } from "./InterventoWizard";
 import { ReferenceData } from "../../hooks/useOfflineCache";
 import { MezzoUtilizzo, AttrezzaturaUtilizzo } from "@shared/types";
@@ -14,61 +15,63 @@ interface StepMezziAttrezzatureProps {
   isLoadingReference: boolean;
 }
 
+// Generate unique ID
+const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
 const StepMezziAttrezzature = ({
   formState,
   updateField,
   referenceData,
   isLoadingReference
 }: StepMezziAttrezzatureProps) => {
-  // Toggle mezzo selezionato
-  const toggleMezzo = useCallback((mezzoId: string, mezzoNome: string) => {
-    const existing = formState.mezziUtilizzo.find(m => m.mezzoId === mezzoId);
-    
-    if (existing) {
-      // Rimuovi
-      updateField("mezziUtilizzo", formState.mezziUtilizzo.filter(m => m.mezzoId !== mezzoId));
-    } else {
-      // Aggiungi con ore default
-      const newMezzo: MezzoUtilizzo = {
-        mezzoId,
-        mezzoNome,
-        oreUtilizzo: 8
-      };
-      updateField("mezziUtilizzo", [...formState.mezziUtilizzo, newMezzo]);
-    }
+  const [selectedMezzoToAdd, setSelectedMezzoToAdd] = useState<string>("");
+  const [selectedAttrezzaturaToAdd, setSelectedAttrezzaturaToAdd] = useState<string>("");
+
+  // Aggiungi un mezzo (può essere aggiunto più volte)
+  const addMezzo = useCallback((mezzoId: string, mezzoNome: string) => {
+    const newMezzo: MezzoUtilizzo = {
+      id: generateId(),
+      mezzoId,
+      mezzoNome,
+      oreUtilizzo: 8
+    };
+    updateField("mezziUtilizzo", [...formState.mezziUtilizzo, newMezzo]);
+    setSelectedMezzoToAdd("");
+  }, [formState.mezziUtilizzo, updateField]);
+
+  // Rimuovi un mezzo specifico
+  const removeMezzo = useCallback((entryId: string) => {
+    updateField("mezziUtilizzo", formState.mezziUtilizzo.filter(m => m.id !== entryId));
   }, [formState.mezziUtilizzo, updateField]);
 
   // Aggiorna ore mezzo
-  const updateMezzoOre = useCallback((mezzoId: string, ore: number) => {
+  const updateMezzoOre = useCallback((entryId: string, ore: number) => {
     updateField("mezziUtilizzo", formState.mezziUtilizzo.map(m =>
-      m.mezzoId === mezzoId ? { ...m, oreUtilizzo: ore } : m
+      m.id === entryId ? { ...m, oreUtilizzo: ore } : m
     ));
   }, [formState.mezziUtilizzo, updateField]);
 
-  // Toggle attrezzatura selezionata
-  const toggleAttrezzatura = useCallback((attrezzaturaId: string, attrezzaturaNome: string) => {
-    const existing = formState.attrezzatureUtilizzo.find(a => a.attrezzaturaId === attrezzaturaId);
-    
-    if (existing) {
-      // Rimuovi
-      updateField("attrezzatureUtilizzo", 
-        formState.attrezzatureUtilizzo.filter(a => a.attrezzaturaId !== attrezzaturaId)
-      );
-    } else {
-      // Aggiungi con ore default
-      const newAttrezzatura: AttrezzaturaUtilizzo = {
-        attrezzaturaId,
-        attrezzaturaNome,
-        oreUtilizzo: 8
-      };
-      updateField("attrezzatureUtilizzo", [...formState.attrezzatureUtilizzo, newAttrezzatura]);
-    }
+  // Aggiungi un'attrezzatura (può essere aggiunta più volte)
+  const addAttrezzatura = useCallback((attrezzaturaId: string, attrezzaturaNome: string) => {
+    const newAttrezzatura: AttrezzaturaUtilizzo = {
+      id: generateId(),
+      attrezzaturaId,
+      attrezzaturaNome,
+      oreUtilizzo: 8
+    };
+    updateField("attrezzatureUtilizzo", [...formState.attrezzatureUtilizzo, newAttrezzatura]);
+    setSelectedAttrezzaturaToAdd("");
+  }, [formState.attrezzatureUtilizzo, updateField]);
+
+  // Rimuovi un'attrezzatura specifica
+  const removeAttrezzatura = useCallback((entryId: string) => {
+    updateField("attrezzatureUtilizzo", formState.attrezzatureUtilizzo.filter(a => a.id !== entryId));
   }, [formState.attrezzatureUtilizzo, updateField]);
 
   // Aggiorna ore attrezzatura
-  const updateAttrezzaturaOre = useCallback((attrezzaturaId: string, ore: number) => {
+  const updateAttrezzaturaOre = useCallback((entryId: string, ore: number) => {
     updateField("attrezzatureUtilizzo", formState.attrezzatureUtilizzo.map(a =>
-      a.attrezzaturaId === attrezzaturaId ? { ...a, oreUtilizzo: ore } : a
+      a.id === entryId ? { ...a, oreUtilizzo: ore } : a
     ));
   }, [formState.attrezzatureUtilizzo, updateField]);
 
@@ -87,6 +90,16 @@ const StepMezziAttrezzature = ({
   // Calcola totali
   const totaleOreMezzi = formState.mezziUtilizzo.reduce((sum, m) => sum + m.oreUtilizzo, 0);
   const totaleOreAttrezzature = formState.attrezzatureUtilizzo.reduce((sum, a) => sum + a.oreUtilizzo, 0);
+
+  // Get mezzo info by id
+  const getMezzoInfo = useCallback((mezzoId: string) => {
+    return mezziAttivi.find(m => m.id === mezzoId);
+  }, [mezziAttivi]);
+
+  // Get attrezzatura info by id
+  const getAttrezzaturaInfo = useCallback((attrezzaturaId: string) => {
+    return attrezzatureAttive.find(a => a.id === attrezzaturaId);
+  }, [attrezzatureAttive]);
 
   if (isLoadingReference) {
     return (
@@ -109,46 +122,74 @@ const StepMezziAttrezzature = ({
             Nessun mezzo disponibile. Contatta l'amministratore.
           </div>
         ) : (
-          <div className="step-mezzi__grid">
-            {mezziAttivi.map(mezzo => {
-              const selected = formState.mezziUtilizzo.find(m => m.mezzoId === mezzo.id);
-              const isSelected = !!selected;
-              
-              return (
-                <div 
-                  key={mezzo.id} 
-                  className={`mezzo-card ${isSelected ? "mezzo-card--selected" : ""}`}
-                >
-                  <button
-                    type="button"
-                    className="mezzo-card__toggle"
-                    onClick={() => toggleMezzo(mezzo.id, mezzo.nome)}
-                  >
-                    <span className="mezzo-card__icon">{mezzo.icona || "🚗"}</span>
-                    <span className="mezzo-card__name">{mezzo.nome}</span>
-                    <span className={`mezzo-card__check ${isSelected ? "mezzo-card__check--visible" : ""}`}>
-                      ✓
-                    </span>
-                  </button>
-                  
-                  {isSelected && (
-                    <div className="mezzo-card__ore" onClick={(e) => e.stopPropagation()}>
-                      <label>Ore utilizzo:</label>
-                      <NumberInput
-                        value={selected.oreUtilizzo}
-                        onChange={(val) => updateMezzoOre(mezzo.id, Number(val) || 0)}
-                        min={0.5}
-                        max={24}
-                        step={0.5}
-                        unit="h"
-                        allowEmpty={false}
-                      />
+          <>
+            {/* Selettore per aggiungere nuovo mezzo */}
+            <div className="step-mezzi__add-section">
+              <select
+                value={selectedMezzoToAdd}
+                onChange={(e) => setSelectedMezzoToAdd(e.target.value)}
+                className="step-mezzi__select"
+              >
+                <option value="">Seleziona mezzo da aggiungere...</option>
+                {mezziAttivi.map(mezzo => (
+                  <option key={mezzo.id} value={mezzo.id}>
+                    {mezzo.icona || "🚗"} {mezzo.nome}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="button button--primary button--sm"
+                disabled={!selectedMezzoToAdd}
+                onClick={() => {
+                  const mezzo = mezziAttivi.find(m => m.id === selectedMezzoToAdd);
+                  if (mezzo) {
+                    addMezzo(mezzo.id, mezzo.nome);
+                  }
+                }}
+              >
+                + Aggiungi
+              </button>
+            </div>
+
+            {/* Lista mezzi selezionati */}
+            {formState.mezziUtilizzo.length > 0 && (
+              <div className="step-mezzi__list">
+                {formState.mezziUtilizzo.map((entry, index) => {
+                  const mezzoInfo = getMezzoInfo(entry.mezzoId);
+                  const entryKey = entry.id || `mezzo-${index}`;
+                  return (
+                    <div key={entryKey} className="mezzo-entry">
+                      <div className="mezzo-entry__header">
+                        <span className="mezzo-entry__icon">{mezzoInfo?.icona || "🚗"}</span>
+                        <span className="mezzo-entry__name">{entry.mezzoNome || mezzoInfo?.nome || "Mezzo"}</span>
+                        <button
+                          type="button"
+                          className="mezzo-entry__remove"
+                          onClick={() => entry.id && removeMezzo(entry.id)}
+                          title="Rimuovi"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="mezzo-entry__ore">
+                        <label>Ore utilizzo:</label>
+                        <NumberInput
+                          value={entry.oreUtilizzo}
+                          onChange={(val) => entry.id && updateMezzoOre(entry.id, Number(val) || 0)}
+                          min={0.5}
+                          max={24}
+                          step={0.5}
+                          unit="h"
+                          allowEmpty={false}
+                        />
+                      </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
         
         {formState.mezziUtilizzo.length > 0 && (
@@ -172,46 +213,74 @@ const StepMezziAttrezzature = ({
             Nessuna attrezzatura disponibile. Contatta l'amministratore.
           </div>
         ) : (
-          <div className="step-mezzi__grid">
-            {attrezzatureAttive.map(attrezzatura => {
-              const selected = formState.attrezzatureUtilizzo.find(a => a.attrezzaturaId === attrezzatura.id);
-              const isSelected = !!selected;
-              
-              return (
-                <div 
-                  key={attrezzatura.id} 
-                  className={`mezzo-card ${isSelected ? "mezzo-card--selected" : ""}`}
-                >
-                  <button
-                    type="button"
-                    className="mezzo-card__toggle"
-                    onClick={() => toggleAttrezzatura(attrezzatura.id, attrezzatura.nome)}
-                  >
-                    <span className="mezzo-card__icon">{attrezzatura.icona || "🛠️"}</span>
-                    <span className="mezzo-card__name">{attrezzatura.nome}</span>
-                    <span className={`mezzo-card__check ${isSelected ? "mezzo-card__check--visible" : ""}`}>
-                      ✓
-                    </span>
-                  </button>
-                  
-                  {isSelected && (
-                    <div className="mezzo-card__ore" onClick={(e) => e.stopPropagation()}>
-                      <label>Ore utilizzo:</label>
-                      <NumberInput
-                        value={selected.oreUtilizzo}
-                        onChange={(val) => updateAttrezzaturaOre(attrezzatura.id, Number(val) || 0)}
-                        min={0.5}
-                        max={24}
-                        step={0.5}
-                        unit="h"
-                        allowEmpty={false}
-                      />
+          <>
+            {/* Selettore per aggiungere nuova attrezzatura */}
+            <div className="step-mezzi__add-section">
+              <select
+                value={selectedAttrezzaturaToAdd}
+                onChange={(e) => setSelectedAttrezzaturaToAdd(e.target.value)}
+                className="step-mezzi__select"
+              >
+                <option value="">Seleziona attrezzatura da aggiungere...</option>
+                {attrezzatureAttive.map(attrezzatura => (
+                  <option key={attrezzatura.id} value={attrezzatura.id}>
+                    {attrezzatura.icona || "🛠️"} {attrezzatura.nome}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="button button--primary button--sm"
+                disabled={!selectedAttrezzaturaToAdd}
+                onClick={() => {
+                  const attrezzatura = attrezzatureAttive.find(a => a.id === selectedAttrezzaturaToAdd);
+                  if (attrezzatura) {
+                    addAttrezzatura(attrezzatura.id, attrezzatura.nome);
+                  }
+                }}
+              >
+                + Aggiungi
+              </button>
+            </div>
+
+            {/* Lista attrezzature selezionate */}
+            {formState.attrezzatureUtilizzo.length > 0 && (
+              <div className="step-mezzi__list">
+                {formState.attrezzatureUtilizzo.map((entry, index) => {
+                  const attrezzaturaInfo = getAttrezzaturaInfo(entry.attrezzaturaId);
+                  const entryKey = entry.id || `attr-${index}`;
+                  return (
+                    <div key={entryKey} className="mezzo-entry">
+                      <div className="mezzo-entry__header">
+                        <span className="mezzo-entry__icon">{attrezzaturaInfo?.icona || "🛠️"}</span>
+                        <span className="mezzo-entry__name">{entry.attrezzaturaNome || attrezzaturaInfo?.nome || "Attrezzatura"}</span>
+                        <button
+                          type="button"
+                          className="mezzo-entry__remove"
+                          onClick={() => entry.id && removeAttrezzatura(entry.id)}
+                          title="Rimuovi"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="mezzo-entry__ore">
+                        <label>Ore utilizzo:</label>
+                        <NumberInput
+                          value={entry.oreUtilizzo}
+                          onChange={(val) => entry.id && updateAttrezzaturaOre(entry.id, Number(val) || 0)}
+                          min={0.5}
+                          max={24}
+                          step={0.5}
+                          unit="h"
+                          allowEmpty={false}
+                        />
+                      </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
         
         {formState.attrezzatureUtilizzo.length > 0 && (
@@ -225,7 +294,7 @@ const StepMezziAttrezzature = ({
       <div className="info-box info-box--blue">
         <span className="info-box__icon">💡</span>
         <p>
-          Seleziona i mezzi e le attrezzature utilizzate, quindi indica le ore di utilizzo per ciascuno.
+          Seleziona mezzi e attrezzature dal menu, poi clicca "Aggiungi". Puoi aggiungere lo stesso elemento più volte con ore diverse.
         </p>
       </div>
     </div>

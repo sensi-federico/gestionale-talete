@@ -74,7 +74,18 @@ const TecnicoImpresePage = () => {
         headers: { Authorization: `Bearer ${tokens.accessToken}` }
       });
       if (!response.ok) throw new Error("Errore nel caricamento imprese");
-      return response.json();
+      const data = await response.json();
+      // API returns { imprese: [...] }, map to our interface
+      return (data.imprese || []).map((imp: any) => ({
+        id: imp.id,
+        ragione_sociale: imp.name,
+        partita_iva: imp.partita_iva || "",
+        email: imp.email || "",
+        telefono: imp.phone || "",
+        indirizzo: imp.address || "",
+        attiva: true,
+        created_at: imp.created_at || ""
+      }));
     },
     enabled: Boolean(tokens)
   });

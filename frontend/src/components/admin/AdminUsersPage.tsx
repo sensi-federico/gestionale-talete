@@ -373,7 +373,10 @@ const AdminUsersPage = () => {
               <option value="operaio">Tecnico</option>
               <option value="impresa">Impresa</option>
               <option value="responsabile">Responsabile</option>
-              <option value="admin">Admin</option>
+              {/* Responsabile non può creare admin */}
+              {currentUser?.role === "admin" && (
+                <option value="admin">Admin</option>
+              )}
             </select>
           </div>
           {form.role === "impresa" && (

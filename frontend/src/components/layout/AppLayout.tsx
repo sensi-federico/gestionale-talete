@@ -81,6 +81,9 @@ const AppLayout = () => {
                 <NavLink to="/miei-rilevamenti" className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
                   I miei
                 </NavLink>
+                <NavLink to="/imprese" className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}>
+                  Imprese
+                </NavLink>
                 <NavLink to="/profilo" className={({ isActive }) => `top-nav-link top-nav-link--mobile-only${isActive ? " active" : ""}`}>
                   Profilo
                 </NavLink>
@@ -180,6 +183,48 @@ const AppLayout = () => {
                   className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
                 >
                   Interventi
+                </NavLink>
+                <NavLink
+                  to="/admin/utenti"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Utenti
+                </NavLink>
+                <NavLink
+                  to="/admin/comuni"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Comuni
+                </NavLink>
+                <NavLink
+                  to="/admin/imprese"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Imprese
+                </NavLink>
+                <NavLink
+                  to="/admin/mezzi"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Mezzi
+                </NavLink>
+                <NavLink
+                  to="/admin/attrezzature"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Attrezzi
+                </NavLink>
+                <NavLink
+                  to="/admin/tipi-lavorazione"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Tipi Lav.
+                </NavLink>
+                <NavLink
+                  to="/admin/materiali-tubo"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Materiali
                 </NavLink>
                 <NavLink
                   to="/profilo"

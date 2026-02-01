@@ -62,6 +62,7 @@ export type TipoOperaio = "specializzato" | "qualificato" | "comune";
 
 // Entry per mezzi utilizzati con ore
 export interface MezzoUtilizzo {
+  id?: string; // Unique key for allowing duplicates
   mezzoId: string;
   mezzoNome?: string; // Per riepilogo frontend
   oreUtilizzo: number;
@@ -69,6 +70,7 @@ export interface MezzoUtilizzo {
 
 // Entry per attrezzature utilizzate con ore
 export interface AttrezzaturaUtilizzo {
+  id?: string; // Unique key for allowing duplicates
   attrezzaturaId: string;
   attrezzaturaNome?: string; // Per riepilogo frontend
   oreUtilizzo: number;
