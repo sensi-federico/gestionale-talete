@@ -8,8 +8,21 @@ import { requireAuth, AuthenticatedRequest } from "../middleware/auth.js";
 import { OfflineRilevamento, RilevamentoBase, MezzoUtilizzo, AttrezzaturaUtilizzo, OperaioEntry } from "../shared/types.js";
 import { logger } from "../lib/logger.js";
 
+interface PhotoUrls {
+  fotoPanoramica?: string;
+  fotoInizioLavori?: string;
+  fotoIntervento?: string;
+  fotoFineLavori?: string;
+}
+
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
+const uploadFields = upload.fields([
+  { name: 'fotoPanoramica', maxCount: 1 },
+  { name: 'fotoInizioLavori', maxCount: 1 },
+  { name: 'fotoIntervento', maxCount: 1 },
+  { name: 'fotoFineLavori', maxCount: 1 }
+]);
 const bucket = process.env.SUPABASE_STORAGE_BUCKET ?? "rilevamenti";
 
 const uploadPhoto = async (file: Express.Multer.File, userId: string) => {
@@ -38,7 +51,7 @@ const uploadPhoto = async (file: Express.Multer.File, userId: string) => {
 const insertRilevamento = async (
   payload: RilevamentoBase,
   operaioId: string,
-  fotoUrl?: string,
+  photoUrls?: PhotoUrls,
   mezziUtilizzo?: MezzoUtilizzo[],
   attrezzatureUtilizzo?: AttrezzaturaUtilizzo[],
   operai?: OperaioEntry[]
@@ -52,7 +65,13 @@ const insertRilevamento = async (
     tipo_lavorazione_id: payload.tipoLavorazioneId,
     impresa_id: payload.impresaId || null,
     numero_operai: payload.numeroOperai,
-    foto_url: fotoUrl ?? payload.fotoUrl ?? null,
+    // Vecchio campo foto_url per compatibilità (usa panoramica se disponibile)
+    foto_url: photoUrls?.fotoPanoramica ?? payload.fotoUrl ?? null,
+    // Nuovi 4 campi foto
+    foto_panoramica_url: photoUrls?.fotoPanoramica ?? null,
+    foto_inizio_lavori_url: photoUrls?.fotoInizioLavori ?? null,
+    foto_intervento_url: photoUrls?.fotoIntervento ?? null,
+    foto_fine_lavori_url: photoUrls?.fotoFineLavori ?? null,
     gps_lat: payload.gpsLat,
     gps_lon: payload.gpsLon,
     manual_lat: payload.manualLat ?? null,
@@ -148,9 +167,9 @@ const insertRilevamento = async (
 router.get("/", requireAuth(), async (req: AuthenticatedRequest, res: Response) => {
   const isResponsabile = req.user?.role === "responsabile";
 
-  const selectFull = `id, operaio_id, comune:comuni(name), impresa_id, impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, materiale_tubo, diametro, altri_interventi, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at`;
+  const selectFull = `id, operaio_id, comune:comuni(name), impresa_id, impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, foto_panoramica_url, foto_inizio_lavori_url, foto_intervento_url, foto_fine_lavori_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, materiale_tubo, diametro, altri_interventi, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at`;
 
-  const selectLimited = `id, operaio_id, comune:comuni(name), impresa_id, impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, notes, materiale_tubo, diametro, altri_interventi, sync_status, created_at`;
+  const selectLimited = `id, operaio_id, comune:comuni(name), impresa_id, impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, foto_panoramica_url, foto_inizio_lavori_url, foto_intervento_url, foto_fine_lavori_url, notes, materiale_tubo, diametro, altri_interventi, sync_status, created_at`;
 
   const query = supabaseAdmin
     .from("rilevamenti")
@@ -211,7 +230,7 @@ type RilevamentoRequestBody = {
 router.post(
   "/",
   requireAuth(["operaio", "admin", "impresa"]),
-  upload.single("foto"),
+  uploadFields,
   async (req: AuthenticatedRequest<RilevamentoRequestBody>, res: Response) => {
     if (!req.user) {
       return res.status(401).json({ message: "Utente non autenticato" });
@@ -256,17 +275,36 @@ router.post(
       logger.warn("Errore parsing dati strutturati", { error: parseError });
     }
 
-    let fotoUrl: string | undefined;
-
-    if (req.file) {
-      fotoUrl = await uploadPhoto(req.file, req.user.id);
+    // Upload delle 4 foto
+    const photoUrls: PhotoUrls = {};
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    
+    if (files) {
+      try {
+        if (files.fotoPanoramica?.[0]) {
+          photoUrls.fotoPanoramica = await uploadPhoto(files.fotoPanoramica[0], req.user.id);
+        }
+        if (files.fotoInizioLavori?.[0]) {
+          photoUrls.fotoInizioLavori = await uploadPhoto(files.fotoInizioLavori[0], req.user.id);
+        }
+        if (files.fotoIntervento?.[0]) {
+          photoUrls.fotoIntervento = await uploadPhoto(files.fotoIntervento[0], req.user.id);
+        }
+        if (files.fotoFineLavori?.[0]) {
+          photoUrls.fotoFineLavori = await uploadPhoto(files.fotoFineLavori[0], req.user.id);
+        }
+      } catch (uploadError) {
+        const errMsg = uploadError instanceof Error ? uploadError.message : String(uploadError);
+        logger.error("Errore upload foto", { message: errMsg });
+        return res.status(500).json({ message: `Errore upload foto: ${errMsg}` });
+      }
     }
 
     try {
       await insertRilevamento(
         parseResult.data, 
         req.user.id, 
-        fotoUrl,
+        photoUrls,
         mezziUtilizzo,
         attrezzatureUtilizzo,
         operai
@@ -276,15 +314,19 @@ router.post(
         comuneId: parseResult.data.comuneId,
         mezzi: mezziUtilizzo.length,
         attrezzature: attrezzatureUtilizzo.length,
-        operai: operai.length
+        operai: operai.length,
+        photos: Object.keys(photoUrls).length
       });
       return res.status(201).json({ message: "Rilevamento creato" });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Errore creazione rilevamento", {
-        message: error instanceof Error ? error.message : String(error),
-        userId: req.user.id
+        message: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: req.user.id,
+        body: req.body
       });
-      return res.status(500).json({ message: "Errore creazione rilevamento" });
+      return res.status(500).json({ message: `Errore creazione rilevamento: ${errorMessage}` });
     }
   }
 );
@@ -309,10 +351,15 @@ router.post(
           continue;
         }
 
+        // Costruisci photoUrls dalla vecchia struttura (compatibilità offline)
+        const photoUrls: PhotoUrls | undefined = record.fotoUrl 
+          ? { fotoPanoramica: record.fotoUrl }
+          : undefined;
+
         await insertRilevamento(
           parseResult.data, 
           req.user.id, 
-          record.fotoUrl,
+          photoUrls,
           record.mezziUtilizzo,
           record.attrezzatureUtilizzo,
           record.operai

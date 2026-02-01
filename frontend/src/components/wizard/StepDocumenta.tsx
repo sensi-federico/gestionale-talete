@@ -1,31 +1,143 @@
 // StepDocumenta.tsx
-// Step 5: Data, ora inizio/fine, foto, note
+// Step 5: Data, ora inizio/fine, 4 foto (panoramica, inizio, intervento, fine), note
 
 import { ChangeEvent, RefObject } from "react";
 import { WizardFormState } from "./InterventoWizard";
 
+type PhotoType = "fotoPanoramica" | "fotoInizioLavori" | "fotoIntervento" | "fotoFineLavori";
+
 interface StepDocumentaProps {
   formState: WizardFormState;
   updateField: <K extends keyof WizardFormState>(field: K, value: WizardFormState[K]) => void;
-  fileInputRef: RefObject<HTMLInputElement>;
-  handleFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  removePhoto: () => void;
+  fotoPanoramicaRef: RefObject<HTMLInputElement>;
+  fotoInizioLavoriRef: RefObject<HTMLInputElement>;
+  fotoInterventoRef: RefObject<HTMLInputElement>;
+  fotoFineLavoriRef: RefObject<HTMLInputElement>;
+  handleFileChange: (event: ChangeEvent<HTMLInputElement>, photoType: PhotoType) => void;
+  removePhoto: (photoType: PhotoType) => void;
 }
+
+// Configurazione dei 4 tipi di foto
+const PHOTO_TYPES = [
+  { 
+    type: "fotoPanoramica" as PhotoType, 
+    label: "Panoramica",
+    description: "Vista generale dell'area",
+    icon: "🌄"
+  },
+  { 
+    type: "fotoInizioLavori" as PhotoType, 
+    label: "Inizio Lavori",
+    description: "Stato del cantiere all'inizio",
+    icon: "🚧"
+  },
+  { 
+    type: "fotoIntervento" as PhotoType, 
+    label: "Intervento",
+    description: "Dettaglio del lavoro",
+    icon: "⚒️"
+  },
+  { 
+    type: "fotoFineLavori" as PhotoType, 
+    label: "Fine Lavori",
+    description: "Stato finale",
+    icon: "✅"
+  }
+];
 
 const StepDocumenta = ({
   formState,
   updateField,
-  fileInputRef,
+  fotoPanoramicaRef,
+  fotoInizioLavoriRef,
+  fotoInterventoRef,
+  fotoFineLavoriRef,
   handleFileChange,
   removePhoto
 }: StepDocumentaProps) => {
-  // Apri fotocamera/galleria
-  const openCamera = () => {
-    fileInputRef.current?.click();
+  // Mappa refs per tipo
+  const refMap: Record<PhotoType, RefObject<HTMLInputElement>> = {
+    fotoPanoramica: fotoPanoramicaRef,
+    fotoInizioLavori: fotoInizioLavoriRef,
+    fotoIntervento: fotoInterventoRef,
+    fotoFineLavori: fotoFineLavoriRef
+  };
+
+  // Ottieni preview per tipo
+  const getPreview = (type: PhotoType): string | null => {
+    return formState[`${type}Preview` as keyof WizardFormState] as string | null;
+  };
+
+  // Render singola area foto
+  const renderPhotoArea = (config: typeof PHOTO_TYPES[0]) => {
+    const { type, label, description, icon } = config;
+    const preview = getPreview(type);
+    const inputRef = refMap[type];
+
+    return (
+      <div key={type} className="photo-area">
+        {/* Hidden file input */}
+        <input
+          type="file"
+          ref={inputRef}
+          accept="image/*"
+          capture="environment"
+          style={{ display: "none" }}
+          onChange={(e) => handleFileChange(e, type)}
+        />
+
+        {preview ? (
+          <div className="photo-area__preview">
+            <img 
+              src={preview} 
+              alt={label} 
+              className="photo-area__image"
+            />
+            <div className="photo-area__overlay">
+              <span className="photo-area__overlay-label">{icon} {label}</span>
+            </div>
+            <div className="photo-area__actions">
+              <button
+                type="button"
+                className="photo-area__btn photo-area__btn--change"
+                onClick={() => inputRef.current?.click()}
+              >
+                📷
+              </button>
+              <button
+                type="button"
+                className="photo-area__btn photo-area__btn--remove"
+                onClick={() => removePhoto(type)}
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="photo-area__upload"
+            onClick={() => inputRef.current?.click()}
+          >
+            <span className="photo-area__upload-icon">{icon}</span>
+            <span className="photo-area__upload-label">{label}</span>
+            <span className="photo-area__upload-desc">{description}</span>
+          </button>
+        )}
+      </div>
+    );
   };
 
   return (
     <div className="step-documenta">
+      {/* Info box in alto */}
+      <div className="info-box info-box--blue">
+        <span className="info-box__icon">📸</span>
+        <p>
+          Documenta l'intervento con foto e note. Le foto sono opzionali ma raccomandate.
+        </p>
+      </div>
+
       {/* Data e Ora */}
       <div className="step-documenta__datetime">
         <div className="form-group">
@@ -66,45 +178,13 @@ const StepDocumenta = ({
         </div>
       </div>
 
-      {/* Sezione Foto */}
-      <div className="step-documenta__photo">
+      {/* Sezione 4 Foto */}
+      <div className="step-documenta__photos">
         <h3 className="step-documenta__section-title">📸 Documentazione Fotografica</h3>
         
-        {formState.fotoPreview ? (
-          <div className="photo-preview">
-            <img 
-              src={formState.fotoPreview} 
-              alt="Anteprima foto" 
-              className="photo-preview__image"
-            />
-            <div className="photo-preview__actions">
-              <button
-                type="button"
-                className="btn btn--secondary"
-                onClick={openCamera}
-              >
-                📷 Sostituisci
-              </button>
-              <button
-                type="button"
-                className="btn btn--danger"
-                onClick={removePhoto}
-              >
-                🗑️ Rimuovi
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            type="button"
-            className="photo-upload-btn"
-            onClick={openCamera}
-          >
-            <span className="photo-upload-btn__icon">📷</span>
-            <span className="photo-upload-btn__text">Scatta foto o seleziona dalla galleria</span>
-            <span className="photo-upload-btn__hint">Opzionale</span>
-          </button>
-        )}
+        <div className="photos-grid">
+          {PHOTO_TYPES.map(config => renderPhotoArea(config))}
+        </div>
       </div>
 
       {/* Note */}
@@ -118,14 +198,6 @@ const StepDocumenta = ({
           placeholder="Aggiungi eventuali note o osservazioni sull'intervento..."
           rows={4}
         />
-      </div>
-
-      {/* Info box */}
-      <div className="info-box info-box--green">
-        <span className="info-box__icon">📋</span>
-        <p>
-          La foto e le note sono opzionali ma aiutano a documentare meglio l'intervento.
-        </p>
       </div>
     </div>
   );

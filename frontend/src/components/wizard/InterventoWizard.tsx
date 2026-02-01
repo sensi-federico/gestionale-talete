@@ -8,6 +8,7 @@ import { useReferenceData, useRefreshReferenceData } from "../../hooks/useOfflin
 import { useGeolocation } from "../../hooks/useGeolocation";
 import { useOfflineQueue } from "../../hooks/useOfflineQueue";
 import { api } from "../../services/api";
+import { compressImageAsFile } from "../../utils/imageCompression";
 import SubmitModal, { SubmitStatus } from "../ui/SubmitModal";
 import LocationPermissionModal from "../ui/LocationPermissionModal";
 import StepLuogo from "./StepLuogo";
@@ -65,8 +66,15 @@ const getInitialFormState = () => {
     oraInizio: now.toTimeString().slice(0, 5),
     oraFine: "",
     notes: "",
-    fotoFile: null as File | null,
-    fotoPreview: null as string | null
+    // 4 tipi di foto
+    fotoPanoramicaFile: null as File | null,
+    fotoPanoramicaPreview: null as string | null,
+    fotoInizioLavoriFile: null as File | null,
+    fotoInizioLavoriPreview: null as string | null,
+    fotoInterventoFile: null as File | null,
+    fotoInterventoPreview: null as string | null,
+    fotoFineLavoriFile: null as File | null,
+    fotoFineLavoriPreview: null as string | null
   };
 };
 
@@ -83,7 +91,12 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
   const geolocation = useGeolocation(true);
   const { data: referenceData, isLoading: isLoadingReference } = useReferenceData();
   const refreshReferenceData = useRefreshReferenceData();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Refs per i 4 file input delle foto
+  const fotoPanoramicaRef = useRef<HTMLInputElement>(null);
+  const fotoInizioLavoriRef = useRef<HTMLInputElement>(null);
+  const fotoInterventoRef = useRef<HTMLInputElement>(null);
+  const fotoFineLavoriRef = useRef<HTMLInputElement>(null);
 
   // Stato wizard
   const [currentStep, setCurrentStep] = useState(1);
@@ -117,29 +130,54 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
     }));
   }, []);
 
-  // Gestione foto
-  const handleFileChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+  // Gestione foto con compressione
+  type PhotoType = "fotoPanoramica" | "fotoInizioLavori" | "fotoIntervento" | "fotoFineLavori";
+  
+  const handleFileChange = useCallback(async (event: ChangeEvent<HTMLInputElement>, photoType: PhotoType) => {
     const file = event.target.files?.[0] ?? null;
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormState(prev => ({
-          ...prev,
-          fotoFile: file,
-          fotoPreview: e.target?.result as string
-        }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Comprimi l'immagine
+        const compressedFile = await compressImageAsFile(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setFormState(prev => ({
+            ...prev,
+            [`${photoType}File`]: compressedFile,
+            [`${photoType}Preview`]: e.target?.result as string
+          }));
+        };
+        reader.readAsDataURL(compressedFile);
+      } catch (err) {
+        console.error("Errore compressione foto:", err);
+        // Fallback: usa il file originale
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setFormState(prev => ({
+            ...prev,
+            [`${photoType}File`]: file,
+            [`${photoType}Preview`]: e.target?.result as string
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
     }
   }, []);
 
-  const removePhoto = useCallback(() => {
+  const removePhoto = useCallback((photoType: PhotoType) => {
     setFormState(prev => ({
       ...prev,
-      fotoFile: null,
-      fotoPreview: null
+      [`${photoType}File`]: null,
+      [`${photoType}Preview`]: null
     }));
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    // Reset the file input
+    const refs: Record<PhotoType, React.RefObject<HTMLInputElement>> = {
+      fotoPanoramica: fotoPanoramicaRef,
+      fotoInizioLavori: fotoInizioLavoriRef,
+      fotoIntervento: fotoInterventoRef,
+      fotoFineLavori: fotoFineLavoriRef
+    };
+    if (refs[photoType].current) refs[photoType].current.value = "";
   }, []);
 
   // Validazione step
@@ -229,7 +267,11 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
   const resetForm = useCallback(() => {
     setFormState(getInitialFormState());
     setCurrentStep(1);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    // Reset all file inputs
+    if (fotoPanoramicaRef.current) fotoPanoramicaRef.current.value = "";
+    if (fotoInizioLavoriRef.current) fotoInizioLavoriRef.current.value = "";
+    if (fotoInterventoRef.current) fotoInterventoRef.current.value = "";
+    if (fotoFineLavoriRef.current) fotoFineLavoriRef.current.value = "";
   }, []);
 
   // Submit offline
@@ -266,10 +308,8 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
       operai: formState.operai
     };
 
-    if (formState.fotoFile) {
-      record.fileBlob = await formState.fotoFile.arrayBuffer()
-        .then(buffer => new Blob([buffer], { type: formState.fotoFile!.type }));
-    }
+    // TODO: Per ora l'offline non supporta le 4 foto
+    // Si potrebbe salvare come blobs separati
 
     await addToQueue(record);
     setSubmitStatus("offline");
@@ -318,7 +358,12 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
       if (formState.diametro) formData.append("diametro", formState.diametro);
       if (formState.altriInterventi) formData.append("altriInterventi", formState.altriInterventi);
       if (formState.oraFine) formData.append("oraFine", formState.oraFine);
-      if (formState.fotoFile) formData.append("foto", formState.fotoFile);
+      
+      // 4 tipi di foto
+      if (formState.fotoPanoramicaFile) formData.append("fotoPanoramica", formState.fotoPanoramicaFile);
+      if (formState.fotoInizioLavoriFile) formData.append("fotoInizioLavori", formState.fotoInizioLavoriFile);
+      if (formState.fotoInterventoFile) formData.append("fotoIntervento", formState.fotoInterventoFile);
+      if (formState.fotoFineLavoriFile) formData.append("fotoFineLavori", formState.fotoFineLavoriFile);
 
       // Dati strutturati come JSON
       formData.append("mezziUtilizzo", JSON.stringify(
@@ -465,7 +510,10 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
         return (
           <StepDocumenta
             {...commonProps}
-            fileInputRef={fileInputRef}
+            fotoPanoramicaRef={fotoPanoramicaRef}
+            fotoInizioLavoriRef={fotoInizioLavoriRef}
+            fotoInterventoRef={fotoInterventoRef}
+            fotoFineLavoriRef={fotoFineLavoriRef}
             handleFileChange={handleFileChange}
             removePhoto={removePhoto}
           />
@@ -556,16 +604,6 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
         onNewRilevamento={handleNewRilevamento}
         onViewRilevamenti={handleViewRilevamenti}
         onGoHome={handleGoHome}
-      />
-
-      {/* Input file nascosto per foto */}
-      <input
-        type="file"
-        accept="image/*"
-        capture="environment"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        style={{ display: "none" }}
       />
     </div>
   );

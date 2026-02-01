@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { useLogout } from "../../hooks/useLogout";
 import OfflineSyncBanner from "../offline/OfflineSyncBanner";
+import GuidaModal from "../ui/GuidaModal";
 
 const basePath = import.meta.env.BASE_URL || "/";
 
@@ -11,6 +12,10 @@ const AppLayout = () => {
   const logout = useLogout();
   const location = useLocation();
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isGuidaOpen, setIsGuidaOpen] = useState(false);
+
+  const openGuida = useCallback(() => setIsGuidaOpen(true), []);
+  const closeGuida = useCallback(() => setIsGuidaOpen(false), []);
 
   if (!user) {
     return null;
@@ -185,6 +190,14 @@ const AppLayout = () => {
             )}
           </nav>
           <div className="app-header__user">
+            <button 
+              type="button" 
+              className="app-header__guida-btn" 
+              onClick={openGuida}
+              title="Guida"
+            >
+              ❓
+            </button>
             <NavLink to="/profilo" className="app-header__profile-link" title="Il mio profilo">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -211,6 +224,9 @@ const AppLayout = () => {
           <span className="app-footer__version">v0.1.2</span>
         </div>
       </footer>
+      
+      {/* Guida Modal */}
+      <GuidaModal isOpen={isGuidaOpen} onClose={closeGuida} />
     </div>
   );
 };

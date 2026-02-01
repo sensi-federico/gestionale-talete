@@ -288,19 +288,46 @@ const StepRiepilogo = ({
             {formState.oraFine ? ` - ${formState.oraFine}` : ""}
           </span>
         </div>
-        <div className="riepilogo-field">
+        
+        {/* Griglia 4 foto */}
+        <div className="riepilogo-photos">
           <span className="riepilogo-field__label">Foto:</span>
-          <span className="riepilogo-field__value">
-            {formState.fotoPreview ? "✅ Allegata" : "❌ Non allegata"}
-          </span>
+          <div className="riepilogo-photos-grid">
+            <div className="riepilogo-photo-item">
+              {formState.fotoPanoramicaPreview ? (
+                <img src={formState.fotoPanoramicaPreview} alt="Panoramica" />
+              ) : (
+                <span className="riepilogo-photo-empty">🌄</span>
+              )}
+              <span className="riepilogo-photo-label">Panoramica</span>
+            </div>
+            <div className="riepilogo-photo-item">
+              {formState.fotoInizioLavoriPreview ? (
+                <img src={formState.fotoInizioLavoriPreview} alt="Inizio" />
+              ) : (
+                <span className="riepilogo-photo-empty">🚧</span>
+              )}
+              <span className="riepilogo-photo-label">Inizio</span>
+            </div>
+            <div className="riepilogo-photo-item">
+              {formState.fotoInterventoPreview ? (
+                <img src={formState.fotoInterventoPreview} alt="Intervento" />
+              ) : (
+                <span className="riepilogo-photo-empty">⚒️</span>
+              )}
+              <span className="riepilogo-photo-label">Intervento</span>
+            </div>
+            <div className="riepilogo-photo-item">
+              {formState.fotoFineLavoriPreview ? (
+                <img src={formState.fotoFineLavoriPreview} alt="Fine" />
+              ) : (
+                <span className="riepilogo-photo-empty">✅</span>
+              )}
+              <span className="riepilogo-photo-label">Fine</span>
+            </div>
+          </div>
         </div>
-        {formState.fotoPreview && (
-          <img 
-            src={formState.fotoPreview} 
-            alt="Foto intervento" 
-            className="riepilogo-photo-thumb"
-          />
-        )}
+
         {formState.notes && (
           <div className="riepilogo-field">
             <span className="riepilogo-field__label">Note:</span>
