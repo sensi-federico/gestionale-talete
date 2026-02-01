@@ -332,7 +332,6 @@ const AdminImpresePage = () => {
             itemsPerPage={ITEMS_PER_PAGE}
           />
         )}
-        )}
       </section>
 
       <section className="card card--log">
