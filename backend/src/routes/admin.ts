@@ -808,24 +808,16 @@ router.get("/rilevamenti", requireAuth(["admin", "responsabile"]), async (req: A
   const dateFrom = req.query.dateFrom as string | undefined;
   const dateTo = req.query.dateTo as string | undefined;
 
-  const isResponsabile = req.user?.role === "responsabile";
-
-  const selectFieldsFull = `id, operaio_id, via, numero_civico, numero_operai, foto_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, materiale_tubo, diametro, altri_interventi, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at, updated_at,
+  // Admin e responsabile vedono tutti i campi incluse foto e dati tubo
+  const selectFields = `id, operaio_id, via, numero_civico, numero_operai, foto_url, foto_panoramica_url, foto_inizio_lavori_url, foto_intervento_url, foto_fine_lavori_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, ora_fine, notes, materiale_tubo, diametro, altri_interventi, tubo_esistente_materiale, tubo_esistente_diametro, tubo_esistente_pn, tubo_esistente_profondita, tubo_nuovo_materiale, tubo_nuovo_diametro, tubo_nuovo_pn, tubo_nuovo_profondita, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at, updated_at,
       comune:comuni(id, name, province),
       impresa:imprese(id, name),
       tipo:tipi_lavorazione(id, name),
       operaio:users(id, email, full_name)`;
 
-  const selectFieldsLimited = `id, operaio_id, via, numero_civico, numero_operai, foto_url, notes, materiale_tubo, diametro, altri_interventi, sync_status, created_at, updated_at,
-      comune:comuni(id, name, province),
-      impresa:imprese(id, name),
-      tipo:tipi_lavorazione(id, name),
-      operaio:users(id, email, full_name)`;
-
-  const selectString = isResponsabile ? selectFieldsLimited : selectFieldsFull;
   let query = supabaseAdmin
     .from("rilevamenti")
-    .select(selectString as unknown as string)
+    .select(selectFields as unknown as string)
     .order("created_at", { ascending: false });
 
   if (operaioId) {
