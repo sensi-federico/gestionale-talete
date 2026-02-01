@@ -39,6 +39,12 @@ const OSM_STYLE: maplibregl.StyleSpecification = {
   layers: [{ id: "osm-tiles", type: "raster", source: "osm", minzoom: 0, maxzoom: 19 }]
 };
 
+interface GeoPosition {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+}
+
 interface StepLuogoProps {
   formState: WizardFormState;
   updateField: <K extends keyof WizardFormState>(field: K, value: WizardFormState[K]) => void;
@@ -46,10 +52,10 @@ interface StepLuogoProps {
   referenceData: ReferenceData | undefined;
   isLoadingReference: boolean;
   geolocation: {
-    position: GeolocationCoordinates | null;
+    position: GeoPosition | null;
     error: string | null;
     isLoading: boolean;
-    retryGeolocation: () => void;
+    startTracking: () => void;
   };
 }
 
@@ -99,7 +105,7 @@ const StepLuogo = ({
         const comuneName = data.address.city || data.address.town || data.address.village || data.address.municipality || "";
         if (comuneName && referenceData?.comuni) {
           const matchedComune = referenceData.comuni.find(
-            c => c.nome.toLowerCase() === comuneName.toLowerCase()
+            c => c.nome?.toLowerCase() === comuneName.toLowerCase()
           );
           if (matchedComune) {
             updateField("comuneId", matchedComune.id);

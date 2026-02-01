@@ -26,6 +26,7 @@ export interface TipoLavorazione {
 
 export interface Mezzo {
   id: string;
+  name: string;
   nome: string;
   icona?: string;
   attivo: boolean;
@@ -33,6 +34,7 @@ export interface Mezzo {
 
 export interface Attrezzatura {
   id: string;
+  name: string;
   nome: string;
   icona?: string;
   attivo: boolean;
@@ -40,6 +42,7 @@ export interface Attrezzatura {
 
 export interface MaterialeTubo {
   id: string;
+  name: string;
   nome: string;
   attivo: boolean;
 }
@@ -120,7 +123,43 @@ export const useReferenceData = () => {
       // Se online, carica dal server
       if (!tokens) throw new Error("Token mancante");
       
-      const data = await api.fetchReferenceData(tokens.accessToken);
+      const rawData = await api.fetchReferenceData(tokens.accessToken);
+      
+      // Trasforma i dati: mappa 'name' a 'nome' per i campi italiani
+      const data: ReferenceData = {
+        comuni: rawData.comuni.map(c => ({
+          ...c,
+          nome: c.name,
+        })),
+        imprese: rawData.imprese.map(i => ({
+          ...i,
+          ragione_sociale: i.name,
+        })),
+        tipiLavorazione: rawData.tipiLavorazione.map(t => ({
+          ...t,
+          nome: t.name,
+        })),
+        mezzi: (rawData.mezzi ?? []).map(m => ({
+          id: m.id,
+          name: m.name,
+          nome: m.name,
+          icona: m.icon,
+          attivo: m.isActive,
+        })),
+        attrezzature: (rawData.attrezzature ?? []).map(a => ({
+          id: a.id,
+          name: a.name,
+          nome: a.name,
+          icona: a.icon,
+          attivo: a.isActive,
+        })),
+        materialiTubo: (rawData.materialiTubo ?? []).map(m => ({
+          id: m.id,
+          name: m.name,
+          nome: m.name,
+          attivo: m.isActive,
+        })),
+      };
       
       // Salva in cache per uso offline
       saveToCache(data);

@@ -30,6 +30,25 @@ export interface TipoLavorazione {
   description?: string;
 }
 
+// Tipi per mezzi, attrezzature e operai
+export interface MezzoUtilizzo {
+  mezzoId: string;
+  mezzoNome?: string;
+  oreUtilizzo: number;
+}
+
+export interface AttrezzaturaUtilizzo {
+  attrezzaturaId: string;
+  attrezzaturaNome?: string;
+  oreUtilizzo: number;
+}
+
+export interface OperaioEntry {
+  tipoOperaio: 'specializzato' | 'qualificato' | 'comune';
+  numero: number;
+  oreLavoro: number;
+}
+
 export interface RilevamentoBase {
   comuneId: string;
   via: string;
@@ -44,6 +63,7 @@ export interface RilevamentoBase {
   manualLon?: number | null;
   rilevamentoDate: string;
   rilevamentoTime: string;
+  oraFine?: string;
   notes?: string;
   // Nuovi campi dettagli lavoro
   materialeTubo?: string;
@@ -68,4 +88,8 @@ export interface OfflineRilevamento extends RilevamentoBase {
   isSynced: boolean;
   localCreatedAt: string;
   fileBlob?: Blob;
+  // Nuovi campi per mezzi, attrezzature e operai
+  mezziUtilizzo?: MezzoUtilizzo[];
+  attrezzatureUtilizzo?: AttrezzaturaUtilizzo[];
+  operai?: OperaioEntry[];
 }
