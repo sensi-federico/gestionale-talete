@@ -4095,3 +4095,929 @@ textarea.form-field__input {
 .mezzi-selected strong {
   color: #1e3a8a;
 }
+
+/* ========================================
+   Wizard Intervento - Progress Bar & Steps
+   ======================================== */
+.intervento-wizard {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.wizard-progress {
+  margin-bottom: 1.5rem;
+}
+
+.wizard-progress__bar {
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.wizard-progress__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0066cc, #3399ff);
+  transition: width 0.3s ease;
+}
+
+.wizard-progress__steps {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.wizard-progress__step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+
+.wizard-progress__step:disabled {
+  cursor: not-allowed;
+}
+
+.wizard-progress__step--active {
+  opacity: 1;
+}
+
+.wizard-progress__step--completed {
+  opacity: 0.8;
+}
+
+.wizard-progress__icon {
+  font-size: 1.25rem;
+}
+
+.wizard-progress__label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.wizard-progress__step--active .wizard-progress__label {
+  color: #0066cc;
+  font-weight: 600;
+}
+
+/* Wizard Header */
+.wizard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.wizard-header__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.wizard-header__counter {
+  font-size: 0.85rem;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+}
+
+/* Wizard Content */
+.wizard-content {
+  min-height: 300px;
+  margin-bottom: 1.5rem;
+}
+
+/* Wizard Navigation */
+.wizard-nav {
+  display: flex;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.wizard-nav__btn {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.wizard-nav__btn--prev {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.wizard-nav__btn--prev:hover {
+  background: #e2e8f0;
+}
+
+.wizard-nav__btn--next {
+  background: linear-gradient(135deg, #0066cc 0%, #0088ff 100%);
+  color: white;
+}
+
+.wizard-nav__btn--next:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0055aa 0%, #0077dd 100%);
+  transform: translateY(-1px);
+}
+
+.wizard-nav__btn--next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wizard-nav__btn--submit {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: white;
+}
+
+.wizard-nav__btn--submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  transform: translateY(-1px);
+}
+
+.wizard-nav__btn--submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* ========================================
+   Step Luogo - Mappa Grande
+   ======================================== */
+.step-luogo__map-wrapper {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.step-luogo__map {
+  width: 100%;
+}
+
+.step-luogo__map-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.step-luogo__map-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.step-luogo__map-btn:hover {
+  background: #f8fafc;
+  transform: scale(1.05);
+}
+
+.step-luogo__map-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.step-luogo__map-btn svg {
+  width: 22px;
+  height: 22px;
+  color: #475569;
+}
+
+.step-luogo__coords {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: #475569;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.step-luogo__hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.step-luogo__geocoding {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #eff6ff;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #1e40af;
+  margin-bottom: 1rem;
+}
+
+.step-luogo__error {
+  padding: 0.75rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #dc2626;
+  margin-bottom: 1rem;
+}
+
+.step-luogo__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ========================================
+   Step Lavoro
+   ======================================== */
+.step-lavoro {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.input-with-unit {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.input-with-unit input {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+}
+
+.input-unit {
+  padding: 0.75rem 1rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-left: none;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* ========================================
+   Step Operai
+   ======================================== */
+.step-operai__header {
+  margin-bottom: 1rem;
+}
+
+.step-operai__title {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.step-operai__subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.step-operai__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.operaio-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.operaio-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.operaio-card__icon {
+  font-size: 1.5rem;
+}
+
+.operaio-card__remove {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fef2f2;
+  border: none;
+  border-radius: 8px;
+  color: #dc2626;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.operaio-card__remove:hover {
+  background: #fee2e2;
+}
+
+.operaio-card__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.operaio-card__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.operaio-card__subtotal {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #64748b;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.step-operai__add {
+  margin-top: 0.5rem;
+}
+
+.step-operai__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: #f8fafc;
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.step-operai__empty-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.step-operai__empty p {
+  margin: 0;
+  color: #64748b;
+}
+
+.step-operai__summary {
+  display: flex;
+  justify-content: space-around;
+  padding: 1rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+
+.step-operai__summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.step-operai__summary-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.step-operai__summary-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e40af;
+}
+
+/* ========================================
+   Step Mezzi e Attrezzature
+   ======================================== */
+.step-mezzi__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 3rem;
+  color: #64748b;
+}
+
+.step-mezzi__section {
+  margin-bottom: 1.5rem;
+}
+
+.step-mezzi__section-title {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.step-mezzi__empty {
+  padding: 1.5rem;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #92400e;
+}
+
+.step-mezzi__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.mezzo-card {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.15s ease;
+}
+
+.mezzo-card--selected {
+  border-color: #0066cc;
+  background: #eff6ff;
+}
+
+.mezzo-card__toggle {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1rem 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.mezzo-card__icon {
+  font-size: 1.75rem;
+}
+
+.mezzo-card__name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #334155;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.mezzo-card--selected .mezzo-card__name {
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.mezzo-card__check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0066cc;
+  color: white;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: bold;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.15s ease;
+}
+
+.mezzo-card__check--visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.mezzo-card__ore {
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mezzo-card__ore label {
+  font-size: 0.75rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.mezzo-card__ore input {
+  width: 60px;
+  padding: 0.4rem;
+  font-size: 0.85rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.step-mezzi__subtotal {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #f0fdf4;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #166534;
+  text-align: right;
+}
+
+.step-mezzi__divider {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 1.5rem 0;
+}
+
+/* ========================================
+   Step Documenta
+   ======================================== */
+.step-documenta {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.step-documenta__datetime {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.step-documenta__section-title {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.photo-upload-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.photo-upload-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.photo-upload-btn__icon {
+  font-size: 2.5rem;
+}
+
+.photo-upload-btn__text {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.photo-upload-btn__hint {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.photo-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.photo-preview__image {
+  width: 100%;
+  max-height: 250px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.photo-preview__actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.photo-preview__actions .btn {
+  flex: 1;
+}
+
+/* ========================================
+   Step Riepilogo
+   ======================================== */
+.step-riepilogo__header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.step-riepilogo__header h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.step-riepilogo__header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.riepilogo-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.riepilogo-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.riepilogo-section__title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.riepilogo-section__edit {
+  padding: 0.35rem 0.75rem;
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.riepilogo-section__edit:hover {
+  background: #f1f5f9;
+  color: #0066cc;
+  border-color: #0066cc;
+}
+
+.riepilogo-section__content {
+  padding: 1rem;
+}
+
+.riepilogo-minimap {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.riepilogo-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.riepilogo-field:last-child {
+  border-bottom: none;
+}
+
+.riepilogo-field__label {
+  font-size: 0.85rem;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.riepilogo-field__value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1e293b;
+  text-align: right;
+}
+
+.riepilogo-field__value--notes {
+  text-align: left;
+  white-space: pre-wrap;
+  font-weight: 400;
+  color: #475569;
+}
+
+.riepilogo-field--small {
+  font-size: 0.8rem;
+}
+
+.riepilogo-field--small .riepilogo-field__value {
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
+.riepilogo-field--total {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  margin: 0.5rem -1rem -1rem;
+  padding: 0.75rem 1rem;
+}
+
+.riepilogo-field--subtotal {
+  font-size: 0.8rem;
+  color: #059669;
+  justify-content: flex-end;
+}
+
+.riepilogo-subsection {
+  margin-bottom: 1rem;
+}
+
+.riepilogo-subsection:last-child {
+  margin-bottom: 0;
+}
+
+.riepilogo-subsection strong {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.riepilogo-empty {
+  padding: 1rem;
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.riepilogo-photo-thumb {
+  width: 100%;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.step-riepilogo__confirm {
+  margin-top: 1rem;
+}
+
+/* ========================================
+   Info Box
+   ======================================== */
+.info-box {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.info-box__icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.info-box p {
+  margin: 0;
+}
+
+.info-box--blue {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+.info-box--yellow {
+  background: #fefce8;
+  border: 1px solid #fde047;
+  color: #854d0e;
+}
+
+.info-box--green {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+/* ========================================
+   Spinner piccolo
+   ======================================== */
+.spinner-small {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #0066cc;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   Form utilities
+   ======================================== */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group--flex-1 {
+  flex: 1;
+}
+
+.form-group--flex-2 {
+  flex: 2;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+.btn--full-width {
+  width: 100%;
+}
+
+.btn--danger {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.btn--danger:hover {
+  background: #fee2e2;
+}
+

@@ -18,6 +18,7 @@ export const rilevamentoBaseSchema = z.object({
   materialeTubo: z.string().optional(),
   diametro: z.string().optional(),
   altriInterventi: z.string().optional(),
+  oraFine: z.string().optional(),
   // Campi nascosti per tracking
   submitTimestamp: z.string().optional(),
   submitGpsLat: z.number().min(-90).max(90).optional(),

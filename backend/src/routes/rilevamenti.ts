@@ -5,7 +5,7 @@ import multer from "multer";
 import { supabaseAdmin } from "../lib/supabaseClient.js";
 import { createRilevamentoSchema } from "../schemas/rilevamenti.js";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth.js";
-import { OfflineRilevamento, RilevamentoBase } from "../shared/types.js";
+import { OfflineRilevamento, RilevamentoBase, MezzoUtilizzo, AttrezzaturaUtilizzo, OperaioEntry } from "../shared/types.js";
 import { logger } from "../lib/logger.js";
 
 const router = Router();
@@ -38,9 +38,13 @@ const uploadPhoto = async (file: Express.Multer.File, userId: string) => {
 const insertRilevamento = async (
   payload: RilevamentoBase,
   operaioId: string,
-  fotoUrl?: string
+  fotoUrl?: string,
+  mezziUtilizzo?: MezzoUtilizzo[],
+  attrezzatureUtilizzo?: AttrezzaturaUtilizzo[],
+  operai?: OperaioEntry[]
 ) => {
-  const { error } = await supabaseAdmin.from("rilevamenti").insert({
+  // Inserisci rilevamento principale
+  const { data: rilevamento, error } = await supabaseAdmin.from("rilevamenti").insert({
     operaio_id: operaioId,
     comune_id: payload.comuneId,
     via: payload.via,
@@ -60,16 +64,85 @@ const insertRilevamento = async (
     materiale_tubo: payload.materialeTubo ?? null,
     diametro: payload.diametro ?? null,
     altri_interventi: payload.altriInterventi ?? null,
+    ora_fine: payload.oraFine ?? null,
     submit_timestamp: payload.submitTimestamp ?? new Date().toISOString(),
     submit_gps_lat: payload.submitGpsLat ?? null,
     submit_gps_lon: payload.submitGpsLon ?? null,
     sync_status: "synced"
-  });
+  }).select("id").single();
 
   if (error) {
     logger.error("Errore inserimento rilevamento", { message: error.message });
     throw new Error(error.message);
   }
+
+  const rilevamentoId = rilevamento.id;
+
+  // Inserisci relazioni mezzi
+  if (mezziUtilizzo && mezziUtilizzo.length > 0) {
+    const mezziRecords = mezziUtilizzo
+      .filter(m => m.oreUtilizzo > 0)
+      .map(m => ({
+        rilevamento_id: rilevamentoId,
+        mezzo_id: m.mezzoId,
+        ore_utilizzo: m.oreUtilizzo
+      }));
+
+    if (mezziRecords.length > 0) {
+      const { error: mezziError } = await supabaseAdmin
+        .from("rilevamenti_mezzi")
+        .insert(mezziRecords);
+      
+      if (mezziError) {
+        logger.warn("Errore inserimento mezzi", { message: mezziError.message });
+      }
+    }
+  }
+
+  // Inserisci relazioni attrezzature
+  if (attrezzatureUtilizzo && attrezzatureUtilizzo.length > 0) {
+    const attrezzatureRecords = attrezzatureUtilizzo
+      .filter(a => a.oreUtilizzo > 0)
+      .map(a => ({
+        rilevamento_id: rilevamentoId,
+        attrezzatura_id: a.attrezzaturaId,
+        ore_utilizzo: a.oreUtilizzo
+      }));
+
+    if (attrezzatureRecords.length > 0) {
+      const { error: attrError } = await supabaseAdmin
+        .from("rilevamenti_attrezzature")
+        .insert(attrezzatureRecords);
+      
+      if (attrError) {
+        logger.warn("Errore inserimento attrezzature", { message: attrError.message });
+      }
+    }
+  }
+
+  // Inserisci operai
+  if (operai && operai.length > 0) {
+    const operaiRecords = operai
+      .filter(o => o.numero > 0 && o.oreLavoro > 0)
+      .map(o => ({
+        rilevamento_id: rilevamentoId,
+        tipo_operaio: o.tipoOperaio,
+        numero: o.numero,
+        ore_lavoro: o.oreLavoro
+      }));
+
+    if (operaiRecords.length > 0) {
+      const { error: operaiError } = await supabaseAdmin
+        .from("rilevamenti_operai")
+        .insert(operaiRecords);
+      
+      if (operaiError) {
+        logger.warn("Errore inserimento operai", { message: operaiError.message });
+      }
+    }
+  }
+
+  return rilevamentoId;
 };
 
 router.get("/", requireAuth(), async (req: AuthenticatedRequest, res: Response) => {
@@ -125,9 +198,14 @@ type RilevamentoRequestBody = {
   materialeTubo?: string;
   diametro?: string;
   altriInterventi?: string;
+  oraFine?: string;
   submitTimestamp?: string;
   submitGpsLat?: string;
   submitGpsLon?: string;
+  // Campi strutturati (JSON strings)
+  mezziUtilizzo?: string;
+  attrezzatureUtilizzo?: string;
+  operai?: string;
 };
 
 router.post(
@@ -149,13 +227,33 @@ router.post(
       manualLat: req.body.manualLat ? Number(req.body.manualLat) : null,
       manualLon: req.body.manualLon ? Number(req.body.manualLon) : null,
       submitGpsLat: req.body.submitGpsLat ? Number(req.body.submitGpsLat) : undefined,
-      submitGpsLon: req.body.submitGpsLon ? Number(req.body.submitGpsLon) : undefined
+      submitGpsLon: req.body.submitGpsLon ? Number(req.body.submitGpsLon) : undefined,
+      oraFine: req.body.oraFine || undefined
     });
 
     if (!parseResult.success) {
       const errorMsg = parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(", ");
       logger.warn("Validazione fallita", { errors: errorMsg, body: req.body });
       return res.status(400).json({ message: `Validazione fallita: ${errorMsg}` });
+    }
+
+    // Parsing dati strutturati JSON
+    let mezziUtilizzo: MezzoUtilizzo[] = [];
+    let attrezzatureUtilizzo: AttrezzaturaUtilizzo[] = [];
+    let operai: OperaioEntry[] = [];
+
+    try {
+      if (req.body.mezziUtilizzo) {
+        mezziUtilizzo = JSON.parse(req.body.mezziUtilizzo);
+      }
+      if (req.body.attrezzatureUtilizzo) {
+        attrezzatureUtilizzo = JSON.parse(req.body.attrezzatureUtilizzo);
+      }
+      if (req.body.operai) {
+        operai = JSON.parse(req.body.operai);
+      }
+    } catch (parseError) {
+      logger.warn("Errore parsing dati strutturati", { error: parseError });
     }
 
     let fotoUrl: string | undefined;
@@ -165,8 +263,21 @@ router.post(
     }
 
     try {
-      await insertRilevamento(parseResult.data, req.user.id, fotoUrl);
-      logger.info("Rilevamento creato", { userId: req.user.id, comuneId: parseResult.data.comuneId });
+      await insertRilevamento(
+        parseResult.data, 
+        req.user.id, 
+        fotoUrl,
+        mezziUtilizzo,
+        attrezzatureUtilizzo,
+        operai
+      );
+      logger.info("Rilevamento creato", { 
+        userId: req.user.id, 
+        comuneId: parseResult.data.comuneId,
+        mezzi: mezziUtilizzo.length,
+        attrezzature: attrezzatureUtilizzo.length,
+        operai: operai.length
+      });
       return res.status(201).json({ message: "Rilevamento creato" });
     } catch (error) {
       logger.error("Errore creazione rilevamento", {
@@ -198,7 +309,14 @@ router.post(
           continue;
         }
 
-        await insertRilevamento(parseResult.data, req.user.id, record.fotoUrl);
+        await insertRilevamento(
+          parseResult.data, 
+          req.user.id, 
+          record.fotoUrl,
+          record.mezziUtilizzo,
+          record.attrezzatureUtilizzo,
+          record.operai
+        );
       }
 
       logger.info("Sync rilevamenti completata", {

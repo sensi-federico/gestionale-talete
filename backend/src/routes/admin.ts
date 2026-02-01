@@ -26,6 +26,35 @@ const impresaSchema = z.object({
   address: z.string().optional().transform((val) => val === "" ? undefined : val)
 });
 
+// Schema per mezzi di lavoro
+const mezzoSchema = z.object({
+  name: z.string().min(2, "Nome deve avere almeno 2 caratteri"),
+  description: z.string().optional().transform((val) => val === "" ? undefined : val),
+  icon: z.string().optional().transform((val) => val === "" ? undefined : val),
+  isActive: z.boolean().optional().default(true)
+});
+
+// Schema per attrezzature
+const attrezzaturaSchema = z.object({
+  name: z.string().min(2, "Nome deve avere almeno 2 caratteri"),
+  description: z.string().optional().transform((val) => val === "" ? undefined : val),
+  icon: z.string().optional().transform((val) => val === "" ? undefined : val),
+  isActive: z.boolean().optional().default(true)
+});
+
+// Schema per tipi lavorazione
+const tipoLavorazioneSchema = z.object({
+  name: z.string().min(2, "Nome deve avere almeno 2 caratteri"),
+  description: z.string().optional().transform((val) => val === "" ? undefined : val)
+});
+
+// Schema per materiali tubo
+const materialeTuboSchema = z.object({
+  name: z.string().min(2, "Nome deve avere almeno 2 caratteri"),
+  description: z.string().optional().transform((val) => val === "" ? undefined : val),
+  isActive: z.boolean().optional().default(true)
+});
+
 const updateUserSchema = z.object({
   email: z.string().email(),
   fullName: z.string().min(2),
@@ -46,17 +75,23 @@ router.get(
   "/reference",
   requireAuth(["operaio", "admin", "impresa", "responsabile"]),
   async (_req: Request, res: Response) => {
-    const [comuni, imprese, tipi] = await Promise.all([
+    const [comuni, imprese, tipi, mezzi, attrezzature, materialiTubo] = await Promise.all([
       supabaseAdmin.from("comuni").select("id, name, province, region").order("name"),
       supabaseAdmin.from("imprese").select("id, name, partita_iva, phone, email, address").order("name"),
-      supabaseAdmin.from("tipi_lavorazione").select("id, name, description").order("name")
+      supabaseAdmin.from("tipi_lavorazione").select("id, name, description").order("name"),
+      supabaseAdmin.from("mezzi").select("id, name, description, icon, is_active").eq("is_active", true).order("name"),
+      supabaseAdmin.from("attrezzature").select("id, name, description, icon, is_active").eq("is_active", true).order("name"),
+      supabaseAdmin.from("materiali_tubo").select("id, name, description, is_active").eq("is_active", true).order("name")
     ]);
 
-    if (comuni.error || imprese.error || tipi.error) {
+    if (comuni.error || imprese.error || tipi.error || mezzi.error || attrezzature.error || materialiTubo.error) {
       logger.error("Errore nel recupero reference dati", {
         comuniError: comuni.error?.message,
         impreseError: imprese.error?.message,
-        tipiError: tipi.error?.message
+        tipiError: tipi.error?.message,
+        mezziError: mezzi.error?.message,
+        attrezzatureError: attrezzature.error?.message,
+        materialiTuboError: materialiTubo.error?.message
       });
       return res.status(500).json({ message: "Errore nel recupero dei dati" });
     }
@@ -64,7 +99,27 @@ router.get(
     return res.json({
       comuni: comuni.data,
       imprese: imprese.data,
-      tipiLavorazione: tipi.data
+      tipiLavorazione: tipi.data,
+      mezzi: (mezzi.data ?? []).map((m: any) => ({
+        id: m.id,
+        name: m.name,
+        description: m.description,
+        icon: m.icon,
+        isActive: m.is_active
+      })),
+      attrezzature: (attrezzature.data ?? []).map((a: any) => ({
+        id: a.id,
+        name: a.name,
+        description: a.description,
+        icon: a.icon,
+        isActive: a.is_active
+      })),
+      materialiTubo: (materialiTubo.data ?? []).map((m: any) => ({
+        id: m.id,
+        name: m.name,
+        description: m.description,
+        isActive: m.is_active
+      }))
     });
   }
 );
@@ -330,6 +385,419 @@ router.delete("/imprese/:id", requireAuth(["admin"]), async (req: AuthenticatedR
   logger.info("Impresa eliminata", { impresaId: req.params.id, requesterId: req.user?.id });
   return res.status(204).send();
 });
+
+// ============================================================
+// CRUD MEZZI DI LAVORO
+// ============================================================
+
+router.get("/mezzi", requireAuth(["admin"]), async (_req: Request, res: Response) => {
+  const { data, error } = await supabaseAdmin
+    .from("mezzi")
+    .select("*")
+    .order("name");
+  
+  if (error) {
+    logger.error("Errore recupero mezzi", { message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+  
+  const mezzi = (data ?? []).map((m: any) => ({
+    id: m.id,
+    name: m.name,
+    description: m.description,
+    icon: m.icon,
+    isActive: m.is_active,
+    createdAt: m.created_at,
+    updatedAt: m.updated_at
+  }));
+  
+  return res.json({ mezzi });
+});
+
+router.post("/mezzi", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const result = mezzoSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMsg = formatValidationError(result.error);
+    logger.warn("Creazione mezzo - validazione fallita", { error: errorMsg });
+    return res.status(400).json({ message: errorMsg });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("mezzi")
+    .insert({
+      name: result.data.name,
+      description: result.data.description ?? null,
+      icon: result.data.icon ?? null,
+      is_active: result.data.isActive ?? true
+    })
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Errore creazione mezzo", { message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+
+  logger.info("Mezzo creato", { mezzoId: data?.id, requesterId: req.user?.id });
+  return res.status(201).json({ 
+    mezzo: {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      icon: data.icon,
+      isActive: data.is_active
+    }
+  });
+});
+
+router.put("/mezzi/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const result = mezzoSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMsg = formatValidationError(result.error);
+    logger.warn("Aggiornamento mezzo - validazione fallita", { mezzoId: req.params.id, error: errorMsg });
+    return res.status(400).json({ message: errorMsg });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("mezzi")
+    .update({
+      name: result.data.name,
+      description: result.data.description ?? null,
+      icon: result.data.icon ?? null,
+      is_active: result.data.isActive ?? true
+    })
+    .eq("id", req.params.id)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Errore aggiornamento mezzo", { mezzoId: req.params.id, message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+
+  logger.info("Mezzo aggiornato", { mezzoId: req.params.id, requesterId: req.user?.id });
+  return res.json({ 
+    mezzo: {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      icon: data.icon,
+      isActive: data.is_active
+    }
+  });
+});
+
+router.delete("/mezzi/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const { error } = await supabaseAdmin.from("mezzi").delete().eq("id", req.params.id);
+  if (error) {
+    logger.error("Errore eliminazione mezzo", { mezzoId: req.params.id, message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+  logger.info("Mezzo eliminato", { mezzoId: req.params.id, requesterId: req.user?.id });
+  return res.status(204).send();
+});
+
+// ============================================================
+// CRUD ATTREZZATURE
+// ============================================================
+
+router.get("/attrezzature", requireAuth(["admin"]), async (_req: Request, res: Response) => {
+  const { data, error } = await supabaseAdmin
+    .from("attrezzature")
+    .select("*")
+    .order("name");
+  
+  if (error) {
+    logger.error("Errore recupero attrezzature", { message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+  
+  const attrezzature = (data ?? []).map((a: any) => ({
+    id: a.id,
+    name: a.name,
+    description: a.description,
+    icon: a.icon,
+    isActive: a.is_active,
+    createdAt: a.created_at,
+    updatedAt: a.updated_at
+  }));
+  
+  return res.json({ attrezzature });
+});
+
+router.post("/attrezzature", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const result = attrezzaturaSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMsg = formatValidationError(result.error);
+    logger.warn("Creazione attrezzatura - validazione fallita", { error: errorMsg });
+    return res.status(400).json({ message: errorMsg });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("attrezzature")
+    .insert({
+      name: result.data.name,
+      description: result.data.description ?? null,
+      icon: result.data.icon ?? null,
+      is_active: result.data.isActive ?? true
+    })
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Errore creazione attrezzatura", { message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+
+  logger.info("Attrezzatura creata", { attrezzaturaId: data?.id, requesterId: req.user?.id });
+  return res.status(201).json({ 
+    attrezzatura: {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      icon: data.icon,
+      isActive: data.is_active
+    }
+  });
+});
+
+router.put("/attrezzature/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const result = attrezzaturaSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMsg = formatValidationError(result.error);
+    logger.warn("Aggiornamento attrezzatura - validazione fallita", { attrezzaturaId: req.params.id, error: errorMsg });
+    return res.status(400).json({ message: errorMsg });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("attrezzature")
+    .update({
+      name: result.data.name,
+      description: result.data.description ?? null,
+      icon: result.data.icon ?? null,
+      is_active: result.data.isActive ?? true
+    })
+    .eq("id", req.params.id)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Errore aggiornamento attrezzatura", { attrezzaturaId: req.params.id, message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+
+  logger.info("Attrezzatura aggiornata", { attrezzaturaId: req.params.id, requesterId: req.user?.id });
+  return res.json({ 
+    attrezzatura: {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      icon: data.icon,
+      isActive: data.is_active
+    }
+  });
+});
+
+router.delete("/attrezzature/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const { error } = await supabaseAdmin.from("attrezzature").delete().eq("id", req.params.id);
+  if (error) {
+    logger.error("Errore eliminazione attrezzatura", { attrezzaturaId: req.params.id, message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+  logger.info("Attrezzatura eliminata", { attrezzaturaId: req.params.id, requesterId: req.user?.id });
+  return res.status(204).send();
+});
+
+// ============================================================
+// CRUD TIPI LAVORAZIONE
+// ============================================================
+
+router.get("/tipi-lavorazione", requireAuth(["admin"]), async (_req: Request, res: Response) => {
+  const { data, error } = await supabaseAdmin
+    .from("tipi_lavorazione")
+    .select("*")
+    .order("name");
+  
+  if (error) {
+    logger.error("Errore recupero tipi lavorazione", { message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+  
+  return res.json({ tipiLavorazione: data });
+});
+
+router.post("/tipi-lavorazione", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const result = tipoLavorazioneSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMsg = formatValidationError(result.error);
+    logger.warn("Creazione tipo lavorazione - validazione fallita", { error: errorMsg });
+    return res.status(400).json({ message: errorMsg });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("tipi_lavorazione")
+    .insert({
+      name: result.data.name,
+      description: result.data.description ?? null
+    })
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Errore creazione tipo lavorazione", { message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+
+  logger.info("Tipo lavorazione creato", { tipoId: data?.id, requesterId: req.user?.id });
+  return res.status(201).json({ tipoLavorazione: data });
+});
+
+router.put("/tipi-lavorazione/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const result = tipoLavorazioneSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMsg = formatValidationError(result.error);
+    logger.warn("Aggiornamento tipo lavorazione - validazione fallita", { tipoId: req.params.id, error: errorMsg });
+    return res.status(400).json({ message: errorMsg });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("tipi_lavorazione")
+    .update({
+      name: result.data.name,
+      description: result.data.description ?? null
+    })
+    .eq("id", req.params.id)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Errore aggiornamento tipo lavorazione", { tipoId: req.params.id, message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+
+  logger.info("Tipo lavorazione aggiornato", { tipoId: req.params.id, requesterId: req.user?.id });
+  return res.json({ tipoLavorazione: data });
+});
+
+router.delete("/tipi-lavorazione/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const { error } = await supabaseAdmin.from("tipi_lavorazione").delete().eq("id", req.params.id);
+  if (error) {
+    logger.error("Errore eliminazione tipo lavorazione", { tipoId: req.params.id, message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+  logger.info("Tipo lavorazione eliminato", { tipoId: req.params.id, requesterId: req.user?.id });
+  return res.status(204).send();
+});
+
+// ============================================================
+// CRUD MATERIALI TUBO
+// ============================================================
+
+router.get("/materiali-tubo", requireAuth(["admin"]), async (_req: Request, res: Response) => {
+  const { data, error } = await supabaseAdmin
+    .from("materiali_tubo")
+    .select("*")
+    .order("name");
+  
+  if (error) {
+    logger.error("Errore recupero materiali tubo", { message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+  
+  const materialiTubo = (data ?? []).map((m: any) => ({
+    id: m.id,
+    name: m.name,
+    description: m.description,
+    isActive: m.is_active,
+    createdAt: m.created_at,
+    updatedAt: m.updated_at
+  }));
+  
+  return res.json({ materialiTubo });
+});
+
+router.post("/materiali-tubo", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const result = materialeTuboSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMsg = formatValidationError(result.error);
+    logger.warn("Creazione materiale tubo - validazione fallita", { error: errorMsg });
+    return res.status(400).json({ message: errorMsg });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("materiali_tubo")
+    .insert({
+      name: result.data.name,
+      description: result.data.description ?? null,
+      is_active: result.data.isActive ?? true
+    })
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Errore creazione materiale tubo", { message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+
+  logger.info("Materiale tubo creato", { materialeId: data?.id, requesterId: req.user?.id });
+  return res.status(201).json({ 
+    materialeTubo: {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      isActive: data.is_active
+    }
+  });
+});
+
+router.put("/materiali-tubo/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const result = materialeTuboSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMsg = formatValidationError(result.error);
+    logger.warn("Aggiornamento materiale tubo - validazione fallita", { materialeId: req.params.id, error: errorMsg });
+    return res.status(400).json({ message: errorMsg });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("materiali_tubo")
+    .update({
+      name: result.data.name,
+      description: result.data.description ?? null,
+      is_active: result.data.isActive ?? true
+    })
+    .eq("id", req.params.id)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Errore aggiornamento materiale tubo", { materialeId: req.params.id, message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+
+  logger.info("Materiale tubo aggiornato", { materialeId: req.params.id, requesterId: req.user?.id });
+  return res.json({ 
+    materialeTubo: {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      isActive: data.is_active
+    }
+  });
+});
+
+router.delete("/materiali-tubo/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+  const { error } = await supabaseAdmin.from("materiali_tubo").delete().eq("id", req.params.id);
+  if (error) {
+    logger.error("Errore eliminazione materiale tubo", { materialeId: req.params.id, message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+  logger.info("Materiale tubo eliminato", { materialeId: req.params.id, requesterId: req.user?.id });
+  return res.status(204).send();
+});
+
+// ============================================================
+// RILEVAMENTI (esistente)
+// ============================================================
 
 router.get("/rilevamenti", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   // Supporta filtri via query string

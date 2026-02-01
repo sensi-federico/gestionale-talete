@@ -13,6 +13,10 @@ import AdminUsersPage from "./components/admin/AdminUsersPage";
 import AdminComuniPage from "./components/admin/AdminComuniPage";
 import AdminImpresePage from "./components/admin/AdminImpresePage";
 import AdminRilevazioniPage from "./components/admin/AdminRilevazioniPage";
+import AdminMezziPage from "./components/admin/AdminMezziPage";
+import AdminAttrezzaturePage from "./components/admin/AdminAttrezzaturePage";
+import AdminTipiLavorazionePage from "./components/admin/AdminTipiLavorazionePage";
+import AdminMaterialiTuboPage from "./components/admin/AdminMaterialiTuboPage";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import AppLayout from "./components/layout/AppLayout";
 import { useAuthStore } from "./store/authStore";
@@ -198,6 +202,10 @@ const App = () => {
                 <Route path="utenti" element={<AdminUsersPage />} />
                 <Route path="comuni" element={<AdminComuniPage />} />
                 <Route path="imprese" element={<AdminImpresePage />} />
+                <Route path="mezzi" element={<AdminMezziPage />} />
+                <Route path="attrezzature" element={<AdminAttrezzaturePage />} />
+                <Route path="tipi-lavorazione" element={<AdminTipiLavorazionePage />} />
+                <Route path="materiali-tubo" element={<AdminMaterialiTuboPage />} />
               </Route>
             </Route>
           </Route>

@@ -1,9 +1,12 @@
-import NuovoInterventoImpresaForm from "./NuovoInterventoImpresaForm";
+// NuovoInterventoImpresaPage.tsx
+// Pagina per imprese per inserire un nuovo intervento
+
+import InterventoWizard from "../wizard/InterventoWizard";
 
 const NuovoInterventoImpresaPage = () => {
   return (
     <div className="standalone-page">
-      <NuovoInterventoImpresaForm />
+      <InterventoWizard isImpresa={true} />
     </div>
   );
 };

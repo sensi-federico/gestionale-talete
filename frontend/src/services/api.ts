@@ -68,9 +68,12 @@ export const api = {
     }),
   fetchReferenceData: (accessToken: string) =>
     request<{
-      comuni: Array<{ id: string; name: string; province: string; region: string }>;
-      imprese: Array<{ id: string; name: string }>;
-      tipiLavorazione: Array<{ id: string; name: string }>;
+      comuni: Array<{ id: string; name: string; nome?: string; province: string; region: string }>;
+      imprese: Array<{ id: string; name: string; ragione_sociale?: string }>;
+      tipiLavorazione: Array<{ id: string; name: string; nome?: string; descrizione?: string }>;
+      mezzi?: Array<{ id: string; nome: string; icona?: string; attivo: boolean }>;
+      attrezzature?: Array<{ id: string; nome: string; icona?: string; attivo: boolean }>;
+      materialiTubo?: Array<{ id: string; nome: string; attivo: boolean }>;
     }>(`${API_BASE}/admin/reference`, {
       headers: {
         Authorization: `Bearer ${accessToken}`

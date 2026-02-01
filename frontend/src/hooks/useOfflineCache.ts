@@ -2,10 +2,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../store/authStore";
 import { api } from "../services/api";
 
-// Tipi per i dati di riferimento
+// Tipi per i dati di riferimento (nomi dal backend)
 export interface Comune {
   id: string;
   name: string;
+  nome: string;
   province: string;
   region: string;
 }
@@ -13,17 +14,43 @@ export interface Comune {
 export interface Impresa {
   id: string;
   name: string;
+  ragione_sociale: string;
 }
 
 export interface TipoLavorazione {
   id: string;
   name: string;
+  nome: string;
+  descrizione?: string;
+}
+
+export interface Mezzo {
+  id: string;
+  nome: string;
+  icona?: string;
+  attivo: boolean;
+}
+
+export interface Attrezzatura {
+  id: string;
+  nome: string;
+  icona?: string;
+  attivo: boolean;
+}
+
+export interface MaterialeTubo {
+  id: string;
+  nome: string;
+  attivo: boolean;
 }
 
 export interface ReferenceData {
   comuni: Comune[];
   imprese: Impresa[];
   tipiLavorazione: TipoLavorazione[];
+  mezzi?: Mezzo[];
+  attrezzature?: Attrezzatura[];
+  materialiTubo?: MaterialeTubo[];
 }
 
 const CACHE_KEY = "talete_reference_data";

@@ -129,6 +129,30 @@ const AppLayout = () => {
                   Imprese
                 </NavLink>
                 <NavLink
+                  to="/admin/mezzi"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Mezzi
+                </NavLink>
+                <NavLink
+                  to="/admin/attrezzature"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Attrezzi
+                </NavLink>
+                <NavLink
+                  to="/admin/tipi-lavorazione"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Tipi Lav.
+                </NavLink>
+                <NavLink
+                  to="/admin/materiali-tubo"
+                  className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+                >
+                  Materiali
+                </NavLink>
+                <NavLink
                   to="/profilo"
                   className={({ isActive }) => `top-nav-link top-nav-link--mobile-only${isActive ? " active" : ""}`}
                 >
