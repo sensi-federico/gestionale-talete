@@ -42,17 +42,9 @@ const HomeRoute = () => {
 const App = () => {
   const { user, tokens, restoreSession } = useAuthStore();
   const { syncQueue } = useOfflineQueue();
-  const { updateAvailable, applyUpdate } = useSWUpdate();
+  const { showModal, applyUpdate, remindLater } = useSWUpdate();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-
-  // Mostra il modal quando è disponibile un aggiornamento
-  useEffect(() => {
-    if (updateAvailable) {
-      setShowUpdateModal(true);
-    }
-  }, [updateAvailable]);
 
   // Monitora lo stato della connessione
   useEffect(() => {
@@ -173,18 +165,14 @@ const App = () => {
     };
   }, [tokens, syncQueue, processSync]);
 
-  const handleDismissUpdate = useCallback(() => {
-    setShowUpdateModal(false);
-  }, []);
-
   return (
     <>
       <UpdateAvailableModal 
-        open={showUpdateModal} 
+        open={showModal} 
         isUpdating={isUpdating}
         isOffline={isOffline}
         onUpdate={handleUpdate}
-        onDismiss={handleDismissUpdate}
+        onDismiss={remindLater}
       />
       <Routes>
       <Route path="/login" element={<LoginForm />} />
