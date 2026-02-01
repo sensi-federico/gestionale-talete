@@ -799,7 +799,7 @@ router.delete("/materiali-tubo/:id", requireAuth(["admin"]), async (req: Authent
 // RILEVAMENTI (esistente)
 // ============================================================
 
-router.get("/rilevamenti", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.get("/rilevamenti", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   // Supporta filtri via query string
   const operaioId = req.query.operaioId as string | undefined;
   const comuneId = req.query.comuneId as string | undefined;
@@ -859,7 +859,7 @@ router.get("/rilevamenti", requireAuth(["admin"]), async (req: AuthenticatedRequ
 });
 
 // Export CSV rilevamenti
-router.get("/rilevamenti/export", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   const operaioId = req.query.operaioId as string | undefined;
   const comuneId = req.query.comuneId as string | undefined;
   const impresaId = req.query.impresaId as string | undefined;
