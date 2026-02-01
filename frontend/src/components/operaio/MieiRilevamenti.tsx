@@ -251,7 +251,9 @@ const MieiRilevamenti = () => {
                     {formatDate(r.rilevamento_date)} • {formatTime(r.rilevamento_time)}
                   </span>
                   <div className="rilevamento-card__badges">
-                    {r.foto_url && <span className="rilevamento-card__photo-badge">📷</span>}
+                    {(r.foto_url || r.foto_panoramica_url || r.foto_inizio_lavori_url || r.foto_intervento_url || r.foto_fine_lavori_url) && (
+                      <span className="rilevamento-card__photo-badge">📷</span>
+                    )}
                     {r.sync_status === "synced" ? (
                       <span className="sync-badge sync-badge--ok" title="Sincronizzato">✓</span>
                     ) : (
@@ -266,7 +268,9 @@ const MieiRilevamenti = () => {
                 <div className="rilevamento-card__meta">
                   <span className="meta-tag">{r.tipo?.name || "—"}</span>
                   <span className="meta-tag">{r.impresa?.name || "—"}</span>
-                  {r.materiale_tubo && <span className="meta-tag">{r.materiale_tubo}</span>}
+                  {(r.tubo_esistente_materiale || r.materiale_tubo) && (
+                    <span className="meta-tag">{r.tubo_esistente_materiale || r.materiale_tubo}</span>
+                  )}
                 </div>
               </div>
             ))}

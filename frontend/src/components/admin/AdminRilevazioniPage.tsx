@@ -353,12 +353,12 @@ const AdminRilevazioniPage = () => {
             onClick={() => setSelectedRilevamento(r)}
           >
             <div className="rilevamento-card__header">
-              {currentRole !== "responsabile" ? (
-                <span className="rilevamento-card__date">
-                  {formatDate(r.rilevamento_date)} • {formatTime(r.rilevamento_time)}
-                </span>
-              ) : null}
-              {r.foto_url && <span className="rilevamento-card__photo-badge">📷</span>}
+              <span className="rilevamento-card__date">
+                {formatDate(r.rilevamento_date)} • {formatTime(r.rilevamento_time)}
+              </span>
+              {(r.foto_url || r.foto_panoramica_url || r.foto_inizio_lavori_url || r.foto_intervento_url || r.foto_fine_lavori_url) && (
+                <span className="rilevamento-card__photo-badge">📷</span>
+              )}
             </div>
             <div className="rilevamento-card__location">
               <strong>{r.via} {r.numero_civico}</strong>
@@ -368,7 +368,9 @@ const AdminRilevazioniPage = () => {
               <span className="meta-tag">{r.tipo?.name || "—"}</span>
               <span className="meta-tag">{r.impresa?.name || "—"}</span>
               <span className="meta-tag">👷 {r.numero_operai}</span>
-              {r.materiale_tubo && <span className="meta-tag">{r.materiale_tubo}</span>}
+              {(r.tubo_esistente_materiale || r.materiale_tubo) && (
+                <span className="meta-tag">{r.tubo_esistente_materiale || r.materiale_tubo}</span>
+              )}
             </div>
             <div className="rilevamento-card__operaio">
               Registrato da: <strong>{r.operaio?.full_name || r.operaio?.email || "—"}</strong>
