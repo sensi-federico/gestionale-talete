@@ -1,0 +1,129 @@
+/**
+ * Base Styles - CSS Variables, Reset, Body
+ * Talete Gestionale - v1.0
+ */
+
+:root {
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: var(--color-background);
+  color: #1c1c1c;
+  
+  /* Primary Colors */
+  --color-primary: #0066cc;
+  --color-primary-dark: #004c99;
+  --color-primary-light: #3399ff;
+  --color-primary-softer: #cce5ff;
+  --color-accent: #0088ff;
+  
+  /* Neutrals */
+  --color-muted: #64748b;
+  --color-surface: #ffffff;
+  --color-surface-alt: rgba(255, 255, 255, 0.98);
+  --color-border: rgba(0, 60, 120, 0.12);
+  --color-background: #f8fafc;
+  
+  /* Status Colors */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #dc2626;
+  --color-info: #3b82f6;
+}
+
+/* CSS Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scroll behavior */
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  overflow-y: auto;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Animation Keyframes */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Loading States */
+.loading-placeholder,
+.empty-state {
+  padding: 3rem;
+  text-align: center;
+  color: #9ca3af;
+  background: white;
+  border-radius: 12px;
+}
+
+.empty-state__hint {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* Spinner small */
+.spinner-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}

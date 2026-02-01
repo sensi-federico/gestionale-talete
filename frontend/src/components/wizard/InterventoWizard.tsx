@@ -328,11 +328,13 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
       // Dati aggiuntivi per la sincronizzazione
       mezziUtilizzo: formState.mezziUtilizzo.filter(m => m.oreUtilizzo > 0),
       attrezzatureUtilizzo: formState.attrezzatureUtilizzo.filter(a => a.oreUtilizzo > 0),
-      operai: formState.operai
+      operai: formState.operai,
+      // 4 tipi di foto - salvate come Blob per sincronizzazione offline
+      fotoPanoramicaBlob: formState.fotoPanoramicaFile || undefined,
+      fotoInizioLavoriBlob: formState.fotoInizioLavoriFile || undefined,
+      fotoInterventoBlob: formState.fotoInterventoFile || undefined,
+      fotoFineLavoriBlob: formState.fotoFineLavoriFile || undefined,
     };
-
-    // TODO: Per ora l'offline non supporta le 4 foto
-    // Si potrebbe salvare come blobs separati
 
     await addToQueue(record);
     setSubmitStatus("offline");

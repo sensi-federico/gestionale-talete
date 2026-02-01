@@ -136,8 +136,42 @@ const App = () => {
       if (record.submitGpsLon) {
         formData.append("submitGpsLon", String(record.submitGpsLon));
       }
+      // Supporto legacy per singola foto
       if (record.fileBlob) {
         formData.append("foto", record.fileBlob, `${record.localId}.webp`);
+      }
+      // 4 tipi di foto - offline sync completo
+      if (record.fotoPanoramicaBlob) {
+        formData.append("fotoPanoramica", record.fotoPanoramicaBlob, `${record.localId}_panoramica.webp`);
+      }
+      if (record.fotoInizioLavoriBlob) {
+        formData.append("fotoInizioLavori", record.fotoInizioLavoriBlob, `${record.localId}_inizio.webp`);
+      }
+      if (record.fotoInterventoBlob) {
+        formData.append("fotoIntervento", record.fotoInterventoBlob, `${record.localId}_intervento.webp`);
+      }
+      if (record.fotoFineLavoriBlob) {
+        formData.append("fotoFineLavori", record.fotoFineLavoriBlob, `${record.localId}_fine.webp`);
+      }
+      // Dati strutturati
+      if (record.mezziUtilizzo?.length) {
+        formData.append("mezziUtilizzo", JSON.stringify(record.mezziUtilizzo));
+      }
+      if (record.attrezzatureUtilizzo?.length) {
+        formData.append("attrezzatureUtilizzo", JSON.stringify(record.attrezzatureUtilizzo));
+      }
+      if (record.operai?.length) {
+        formData.append("operai", JSON.stringify(record.operai));
+      }
+      // Dati tubo
+      if (record.tuboEsistente && Object.values(record.tuboEsistente).some(v => v)) {
+        formData.append("tuboEsistente", JSON.stringify(record.tuboEsistente));
+      }
+      if (record.tuboNuovo && Object.values(record.tuboNuovo).some(v => v)) {
+        formData.append("tuboNuovo", JSON.stringify(record.tuboNuovo));
+      }
+      if (record.oraFine) {
+        formData.append("oraFine", record.oraFine);
       }
       await api.createRilevamento(formData, tokens.accessToken);
     },

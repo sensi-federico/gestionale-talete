@@ -99,7 +99,12 @@ export interface OfflineRilevamento extends RilevamentoBase {
   localId: string;
   isSynced: boolean;
   localCreatedAt: string;
-  fileBlob?: Blob;
+  fileBlob?: Blob; // @deprecated - use specific photo blobs below
+  // 4 tipi di foto per supporto offline completo
+  fotoPanoramicaBlob?: Blob;
+  fotoInizioLavoriBlob?: Blob;
+  fotoInterventoBlob?: Blob;
+  fotoFineLavoriBlob?: Blob;
   // Nuovi campi per mezzi, attrezzature e operai
   mezziUtilizzo?: MezzoUtilizzo[];
   attrezzatureUtilizzo?: AttrezzaturaUtilizzo[];

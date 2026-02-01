@@ -1,0 +1,32 @@
+/**
+ * Talete Gestionale - CSS Entry Point
+ * 
+ * This file imports the main stylesheet and CSS modules.
+ * 
+ * Current state: styles.css contains all styles.
+ * Modular files in /styles/ directory contain organized,
+ * documented CSS that can be used as reference.
+ * 
+ * Future: Gradually migrate from styles.css to modular imports.
+ */
+
+/* Main stylesheet (contains all current styles) */
+@import './styles.css';
+
+/* 
+ * Modular CSS files (for reference and gradual migration):
+ * - /styles/base.css      - Variables, reset, animations
+ * - /styles/layout.css    - App shell, header, footer, navigation
+ * - /styles/forms.css     - Inputs, buttons, form elements
+ * - /styles/components.css - Cards, badges, tables, status
+ * - /styles/modals.css    - All modal dialogs
+ * - /styles/wizard.css    - Intervention wizard steps
+ * - /styles/admin.css     - Admin dashboard and management
+ * - /styles/detail.css    - Rilevamento detail page (RDP)
+ * - /styles/map.css       - Map picker and geolocation
+ * - /styles/carousel.css  - Photo carousel
+ * - /styles/dashboard.css - Tecnico dashboard
+ * - /styles/profile.css   - User profile page
+ * - /styles/auth.css      - Login and authentication
+ * - /styles/impresa.css   - Impresa pages
+ */
