@@ -453,7 +453,7 @@ const AdminRilevazioniPage = () => {
           onClose={closeDetail}
           onDelete={currentRole !== "responsabile" ? handleDeleteRequest : undefined}
           onDownloadZip={handleDownloadZip}
-          isAdmin={true}
+          isAdmin={currentRole === "admin"}
         />
       )}
 
