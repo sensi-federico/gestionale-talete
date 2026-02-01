@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+// Schema per i dati del tubo (esistente o nuovo)
+const tuboSchema = z.object({
+  materiale: z.string().optional(),
+  diametro: z.string().optional(),
+  pn: z.string().optional(),
+  profondita: z.string().optional()
+}).optional();
+
 export const rilevamentoBaseSchema = z.object({
   comuneId: z.string().uuid("Comune non valido"),
   via: z.string().min(1, "Via è obbligatoria"),
@@ -14,9 +22,13 @@ export const rilevamentoBaseSchema = z.object({
   rilevamentoDate: z.string().min(1, "Data rilevamento obbligatoria"),
   rilevamentoTime: z.string().min(1, "Ora rilevamento obbligatoria"),
   notes: z.string().optional(),
-  // Nuovi campi dettagli lavoro
+  // Vecchi campi (deprecati, mantenuti per compatibilità)
   materialeTubo: z.string().optional(),
   diametro: z.string().optional(),
+  // Nuovi campi tubo esistente e nuovo
+  tuboEsistente: tuboSchema,
+  tuboNuovo: tuboSchema,
+  // Altri campi
   altriInterventi: z.string().optional(),
   oraFine: z.string().optional(),
   // Campi nascosti per tracking

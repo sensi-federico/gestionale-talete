@@ -49,6 +49,14 @@ export interface OperaioEntry {
   oreLavoro: number;
 }
 
+// Dati del tubo (esistente o nuovo)
+export interface TuboData {
+  materiale?: string;
+  diametro?: string;
+  pn?: string;
+  profondita?: string;
+}
+
 export interface RilevamentoBase {
   comuneId: string;
   via: string;
@@ -65,9 +73,13 @@ export interface RilevamentoBase {
   rilevamentoTime: string;
   oraFine?: string;
   notes?: string;
-  // Nuovi campi dettagli lavoro
+  // Vecchi campi tubo (deprecati, per compatibilità)
   materialeTubo?: string;
   diametro?: string;
+  // Nuovi campi tubo espansi
+  tuboEsistente?: TuboData;
+  tuboNuovo?: TuboData;
+  // Altri dettagli lavoro
   altriInterventi?: string;
   // Campi nascosti per tracking
   submitTimestamp?: string;

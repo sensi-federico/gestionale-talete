@@ -66,7 +66,7 @@ const insertRilevamento = async (
     impresa_id: payload.impresaId || null,
     numero_operai: payload.numeroOperai,
     // Vecchio campo foto_url per compatibilità (usa panoramica se disponibile)
-    foto_url: photoUrls?.fotoPanoramica ?? payload.fotoUrl ?? null,
+    foto_url: photoUrls?.fotoPanoramica ?? null,
     // Nuovi 4 campi foto
     foto_panoramica_url: photoUrls?.fotoPanoramica ?? null,
     foto_inizio_lavori_url: photoUrls?.fotoInizioLavori ?? null,
@@ -79,9 +79,20 @@ const insertRilevamento = async (
     rilevamento_date: payload.rilevamentoDate,
     rilevamento_time: payload.rilevamentoTime,
     notes: payload.notes ?? null,
-    // Nuovi campi
-    materiale_tubo: payload.materialeTubo ?? null,
-    diametro: payload.diametro ?? null,
+    // Vecchi campi tubo (deprecati, per compatibilità)
+    materiale_tubo: payload.materialeTubo ?? payload.tuboEsistente?.materiale ?? null,
+    diametro: payload.diametro ?? payload.tuboEsistente?.diametro ?? null,
+    // Nuovi campi tubo esistente
+    tubo_esistente_materiale: payload.tuboEsistente?.materiale ?? null,
+    tubo_esistente_diametro: payload.tuboEsistente?.diametro ?? null,
+    tubo_esistente_pn: payload.tuboEsistente?.pn ?? null,
+    tubo_esistente_profondita: payload.tuboEsistente?.profondita ?? null,
+    // Nuovi campi tubo nuovo
+    tubo_nuovo_materiale: payload.tuboNuovo?.materiale ?? null,
+    tubo_nuovo_diametro: payload.tuboNuovo?.diametro ?? null,
+    tubo_nuovo_pn: payload.tuboNuovo?.pn ?? null,
+    tubo_nuovo_profondita: payload.tuboNuovo?.profondita ?? null,
+    // Altri campi
     altri_interventi: payload.altriInterventi ?? null,
     ora_fine: payload.oraFine ?? null,
     submit_timestamp: payload.submitTimestamp ?? new Date().toISOString(),
@@ -213,9 +224,13 @@ type RilevamentoRequestBody = {
   rilevamentoDate: string;
   rilevamentoTime: string;
   notes?: string;
-  // Nuovi campi
+  // Vecchi campi tubo (deprecati)
   materialeTubo?: string;
   diametro?: string;
+  // Nuovi campi tubo (JSON strings)
+  tuboEsistente?: string;
+  tuboNuovo?: string;
+  // Altri campi
   altriInterventi?: string;
   oraFine?: string;
   submitTimestamp?: string;
@@ -247,7 +262,10 @@ router.post(
       manualLon: req.body.manualLon ? Number(req.body.manualLon) : null,
       submitGpsLat: req.body.submitGpsLat ? Number(req.body.submitGpsLat) : undefined,
       submitGpsLon: req.body.submitGpsLon ? Number(req.body.submitGpsLon) : undefined,
-      oraFine: req.body.oraFine || undefined
+      oraFine: req.body.oraFine || undefined,
+      // Parse tubo objects from JSON strings
+      tuboEsistente: req.body.tuboEsistente ? JSON.parse(req.body.tuboEsistente) : undefined,
+      tuboNuovo: req.body.tuboNuovo ? JSON.parse(req.body.tuboNuovo) : undefined
     });
 
     if (!parseResult.success) {

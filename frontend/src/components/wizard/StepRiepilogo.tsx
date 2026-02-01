@@ -62,46 +62,83 @@ const StepRiepilogo = ({
   const totaleOreMezzi = formState.mezziUtilizzo.reduce((sum, m) => sum + m.oreUtilizzo, 0);
   const totaleOreAttrezzature = formState.attrezzatureUtilizzo.reduce((sum, a) => sum + a.oreUtilizzo, 0);
 
-  // Inizializza mini-mappa
+  // Inizializza mini-mappa con gestione WebGL context loss
   useEffect(() => {
     if (!mapContainerRef.current) return;
     if (!formState.manualLat || !formState.manualLon) return;
     
     // Cleanup previous map if exists
     if (mapRef.current) {
-      mapRef.current.remove();
+      try {
+        mapRef.current.remove();
+      } catch {
+        // Ignore errors during cleanup
+      }
       mapRef.current = null;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const map = new maplibregl.Map({
-      container: mapContainerRef.current,
-      style: SATELLITE_STYLE,
-      center: [formState.manualLon, formState.manualLat],
-      zoom: 16,
-      interactive: false // Mini-mappa non interattiva
-    } as any);
+    // Debounce map initialization to avoid rapid re-creation
+    const initTimer = setTimeout(() => {
+      if (!mapContainerRef.current) return;
 
-    // Aggiungi marker
-    const el = document.createElement("div");
-    el.className = "map-marker-pin";
-    el.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#dc2626"/>
-        <circle cx="12" cy="9" r="2.5" fill="white"/>
-      </svg>
-    `;
-    
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    new maplibregl.Marker({ element: el, anchor: "bottom" } as any)
-      .setLngLat([formState.manualLon, formState.manualLat])
-      .addTo(map);
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const map = new maplibregl.Map({
+          container: mapContainerRef.current,
+          style: SATELLITE_STYLE,
+          center: [formState.manualLon!, formState.manualLat!],
+          zoom: 16,
+          interactive: false, // Mini-mappa non interattiva
+          preserveDrawingBuffer: true, // Helps with context preservation
+          trackResize: false, // Disable auto-resize to reduce context issues
+        } as any);
 
-    mapRef.current = map;
+        // Handle WebGL context loss
+        const canvas = mapContainerRef.current.querySelector('canvas');
+        const handleContextLost = (e: Event) => {
+          e.preventDefault();
+          console.warn('WebGL context lost in mini-map, will restore on next render');
+        };
+        const handleContextRestored = () => {
+          console.log('WebGL context restored in mini-map');
+        };
+
+        if (canvas) {
+          canvas.addEventListener('webglcontextlost', handleContextLost);
+          canvas.addEventListener('webglcontextrestored', handleContextRestored);
+        }
+
+        // Aggiungi marker
+        const el = document.createElement("div");
+        el.className = "map-marker-pin";
+        el.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#dc2626"/>
+            <circle cx="12" cy="9" r="2.5" fill="white"/>
+          </svg>
+        `;
+        
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        new maplibregl.Marker({ element: el, anchor: "bottom" } as any)
+          .setLngLat([formState.manualLon!, formState.manualLat!])
+          .addTo(map);
+
+        mapRef.current = map;
+      } catch (err) {
+        console.error('Failed to initialize mini-map:', err);
+      }
+    }, 100); // Small delay to ensure DOM is ready
 
     return () => {
-      map.remove();
-      mapRef.current = null;
+      clearTimeout(initTimer);
+      if (mapRef.current) {
+        try {
+          mapRef.current.remove();
+        } catch {
+          // Ignore errors during cleanup
+        }
+        mapRef.current = null;
+      }
     };
   }, [formState.manualLat, formState.manualLon]);
 
@@ -182,18 +219,69 @@ const StepRiepilogo = ({
           <span className="riepilogo-field__label">Impresa:</span>
           <span className="riepilogo-field__value">{impresaNome}</span>
         </div>
-        {formState.materialeTubo && (
-          <div className="riepilogo-field">
-            <span className="riepilogo-field__label">Materiale Tubo:</span>
-            <span className="riepilogo-field__value">{formState.materialeTubo}</span>
+        
+        {/* Tubo Esistente */}
+        {(formState.tuboEsistenteMateriale || formState.tuboEsistenteDiametro || formState.tuboEsistentePn || formState.tuboEsistenteProfondita) && (
+          <div className="riepilogo-tubo-section">
+            <div className="riepilogo-tubo-section__title">🔧 Tubo Esistente</div>
+            {formState.tuboEsistenteMateriale && (
+              <div className="riepilogo-field riepilogo-field--indent">
+                <span className="riepilogo-field__label">Materiale:</span>
+                <span className="riepilogo-field__value">{formState.tuboEsistenteMateriale}</span>
+              </div>
+            )}
+            {formState.tuboEsistenteDiametro && (
+              <div className="riepilogo-field riepilogo-field--indent">
+                <span className="riepilogo-field__label">Diametro:</span>
+                <span className="riepilogo-field__value">{formState.tuboEsistenteDiametro} mm</span>
+              </div>
+            )}
+            {formState.tuboEsistentePn && (
+              <div className="riepilogo-field riepilogo-field--indent">
+                <span className="riepilogo-field__label">PN:</span>
+                <span className="riepilogo-field__value">{formState.tuboEsistentePn}</span>
+              </div>
+            )}
+            {formState.tuboEsistenteProfondita && (
+              <div className="riepilogo-field riepilogo-field--indent">
+                <span className="riepilogo-field__label">Profondità:</span>
+                <span className="riepilogo-field__value">{formState.tuboEsistenteProfondita} cm</span>
+              </div>
+            )}
           </div>
         )}
-        {formState.diametro && (
-          <div className="riepilogo-field">
-            <span className="riepilogo-field__label">Diametro:</span>
-            <span className="riepilogo-field__value">{formState.diametro} mm</span>
+
+        {/* Tubo Nuovo */}
+        {(formState.tuboNuovoMateriale || formState.tuboNuovoDiametro || formState.tuboNuovoPn || formState.tuboNuovoProfondita) && (
+          <div className="riepilogo-tubo-section riepilogo-tubo-section--nuovo">
+            <div className="riepilogo-tubo-section__title">✨ Tubo Nuovo</div>
+            {formState.tuboNuovoMateriale && (
+              <div className="riepilogo-field riepilogo-field--indent">
+                <span className="riepilogo-field__label">Materiale:</span>
+                <span className="riepilogo-field__value">{formState.tuboNuovoMateriale}</span>
+              </div>
+            )}
+            {formState.tuboNuovoDiametro && (
+              <div className="riepilogo-field riepilogo-field--indent">
+                <span className="riepilogo-field__label">Diametro:</span>
+                <span className="riepilogo-field__value">{formState.tuboNuovoDiametro} mm</span>
+              </div>
+            )}
+            {formState.tuboNuovoPn && (
+              <div className="riepilogo-field riepilogo-field--indent">
+                <span className="riepilogo-field__label">PN:</span>
+                <span className="riepilogo-field__value">{formState.tuboNuovoPn}</span>
+              </div>
+            )}
+            {formState.tuboNuovoProfondita && (
+              <div className="riepilogo-field riepilogo-field--indent">
+                <span className="riepilogo-field__label">Profondità:</span>
+                <span className="riepilogo-field__value">{formState.tuboNuovoProfondita} cm</span>
+              </div>
+            )}
           </div>
         )}
+
         {formState.altriInterventi && (
           <div className="riepilogo-field">
             <span className="riepilogo-field__label">Altri Interventi:</span>

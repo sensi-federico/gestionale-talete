@@ -50,8 +50,17 @@ const getInitialFormState = () => {
     // Step 2 - Lavoro
     tipoLavorazioneId: "",
     impresaId: "",
-    materialeTubo: "",
-    diametro: "",
+    // Tubo esistente
+    tuboEsistenteMateriale: "",
+    tuboEsistenteDiametro: "",
+    tuboEsistentePn: "",
+    tuboEsistenteProfondita: "",
+    // Tubo nuovo
+    tuboNuovoMateriale: "",
+    tuboNuovoDiametro: "",
+    tuboNuovoPn: "",
+    tuboNuovoProfondita: "",
+    // Altri
     altriInterventi: "",
     
     // Step 3 - Operai
@@ -278,6 +287,20 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
   const submitOffline = useCallback(async () => {
     if (!user) throw new Error("Utente non autenticato");
 
+    // Build tubo objects (as TuboData, not JSON strings)
+    const tuboEsistente = {
+      materiale: formState.tuboEsistenteMateriale || undefined,
+      diametro: formState.tuboEsistenteDiametro || undefined,
+      pn: formState.tuboEsistentePn || undefined,
+      profondita: formState.tuboEsistenteProfondita || undefined,
+    };
+    const tuboNuovo = {
+      materiale: formState.tuboNuovoMateriale || undefined,
+      diametro: formState.tuboNuovoDiametro || undefined,
+      pn: formState.tuboNuovoPn || undefined,
+      profondita: formState.tuboNuovoProfondita || undefined,
+    };
+
     const record: OfflineRilevamento = {
       comuneId: formState.comuneId,
       via: formState.via,
@@ -292,8 +315,8 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
       rilevamentoDate: formState.rilevamentoDate,
       rilevamentoTime: formState.oraInizio,
       notes: formState.notes,
-      materialeTubo: formState.materialeTubo || undefined,
-      diametro: formState.diametro || undefined,
+      tuboEsistente,
+      tuboNuovo,
       altriInterventi: formState.altriInterventi || undefined,
       oraFine: formState.oraFine || undefined,
       submitTimestamp: new Date().toISOString(),
@@ -354,10 +377,30 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
       formData.append("rilevamentoTime", formState.oraInizio);
       
       if (formState.notes) formData.append("notes", formState.notes);
-      if (formState.materialeTubo) formData.append("materialeTubo", formState.materialeTubo);
-      if (formState.diametro) formData.append("diametro", formState.diametro);
       if (formState.altriInterventi) formData.append("altriInterventi", formState.altriInterventi);
       if (formState.oraFine) formData.append("oraFine", formState.oraFine);
+      
+      // Tubo esistente (JSON)
+      const tuboEsistente = {
+        materiale: formState.tuboEsistenteMateriale || undefined,
+        diametro: formState.tuboEsistenteDiametro || undefined,
+        pn: formState.tuboEsistentePn || undefined,
+        profondita: formState.tuboEsistenteProfondita || undefined
+      };
+      if (Object.values(tuboEsistente).some(v => v)) {
+        formData.append("tuboEsistente", JSON.stringify(tuboEsistente));
+      }
+      
+      // Tubo nuovo (JSON)
+      const tuboNuovo = {
+        materiale: formState.tuboNuovoMateriale || undefined,
+        diametro: formState.tuboNuovoDiametro || undefined,
+        pn: formState.tuboNuovoPn || undefined,
+        profondita: formState.tuboNuovoProfondita || undefined
+      };
+      if (Object.values(tuboNuovo).some(v => v)) {
+        formData.append("tuboNuovo", JSON.stringify(tuboNuovo));
+      }
       
       // 4 tipi di foto
       if (formState.fotoPanoramicaFile) formData.append("fotoPanoramica", formState.fotoPanoramicaFile);

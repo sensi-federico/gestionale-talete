@@ -81,6 +81,14 @@ export interface OperaioEntry {
   oreLavoro: number;
 }
 
+// Dati del tubo (esistente o nuovo)
+export interface TuboData {
+  materiale?: string;
+  diametro?: string;
+  pn?: string;
+  profondita?: string;
+}
+
 // ============================================================
 // RILEVAMENTO BASE E DERIVATI
 // ============================================================
@@ -100,10 +108,14 @@ export interface RilevamentoBase {
   rilevamentoDate: string;
   rilevamentoTime: string;
   notes?: string;
-  // Dettagli lavoro
-  materialeTuboId?: string; // FK verso materiali_tubo
-  materialeTubo?: string; // Legacy: testo libero per compatibilità
+  // Vecchi campi tubo (deprecati, per compatibilità)
+  materialeTuboId?: string;
+  materialeTubo?: string;
   diametro?: string;
+  // Nuovi campi tubo espansi
+  tuboEsistente?: TuboData;
+  tuboNuovo?: TuboData;
+  // Altri dettagli lavoro
   altriInterventi?: string;
   // Nuovi campi relazionali
   mezziUtilizzo?: MezzoUtilizzo[];

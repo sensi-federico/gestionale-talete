@@ -1,8 +1,9 @@
 // StepLavoro.tsx
-// Step 2: Selezione tipo lavorazione, impresa (se tecnico), materiale tubo, ecc.
+// Step 2: Selezione tipo lavorazione, impresa (se tecnico), dati tubo esistente e nuovo
 
 import { WizardFormState } from "./InterventoWizard";
 import { ReferenceData } from "../../hooks/useOfflineCache";
+import NumberInput from "../ui/NumberInput";
 
 interface StepLavoroProps {
   formState: WizardFormState;
@@ -21,6 +22,14 @@ const StepLavoro = ({
 }: StepLavoroProps) => {
   return (
     <div className="step-lavoro">
+      {/* Info box in alto */}
+      <div className="info-box info-box--blue">
+        <span className="info-box__icon">💡</span>
+        <p>
+          Seleziona il tipo di lavorazione e compila i dati tecnici dei tubi coinvolti.
+        </p>
+      </div>
+
       {/* Tipo Lavorazione */}
       <div className="form-group">
         <label htmlFor="tipoLavorazioneId">Tipo Lavorazione *</label>
@@ -68,38 +77,113 @@ const StepLavoro = ({
         </div>
       )}
 
-      {/* Materiale Tubo - da database */}
-      <div className="form-group">
-        <label htmlFor="materialeTubo">Materiale Tubo</label>
-        <select
-          id="materialeTubo"
-          name="materialeTubo"
-          value={formState.materialeTubo}
-          onChange={(e) => updateField("materialeTubo", e.target.value)}
-          disabled={isLoadingReference}
-        >
-          <option value="">Seleziona materiale...</option>
-          {referenceData?.materialiTubo?.map((m) => (
-            <option key={m.id} value={m.nome}>
-              {m.nome}
-            </option>
-          ))}
-        </select>
+      {/* Sezione Tubo Esistente */}
+      <div className="tubo-section">
+        <h4 className="tubo-section__title">🔧 Tubo Esistente</h4>
+        <div className="tubo-section__grid">
+          <div className="form-group">
+            <label htmlFor="tuboEsistenteMateriale">Materiale</label>
+            <select
+              id="tuboEsistenteMateriale"
+              value={formState.tuboEsistenteMateriale}
+              onChange={(e) => updateField("tuboEsistenteMateriale", e.target.value)}
+              disabled={isLoadingReference}
+            >
+              <option value="">Seleziona...</option>
+              {referenceData?.materialiTubo?.map((m) => (
+                <option key={m.id} value={m.nome}>{m.nome}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor="tuboEsistenteDiametro">Diametro</label>
+            <NumberInput
+              id="tuboEsistenteDiametro"
+              value={formState.tuboEsistenteDiametro}
+              onChange={(val) => updateField("tuboEsistenteDiametro", String(val))}
+              min={0}
+              step={10}
+              unit="mm"
+              placeholder="Es: 100"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="tuboEsistentePn">PN</label>
+            <input
+              type="text"
+              id="tuboEsistentePn"
+              value={formState.tuboEsistentePn}
+              onChange={(e) => updateField("tuboEsistentePn", e.target.value)}
+              placeholder="Es: PN10"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="tuboEsistenteProfondita">Profondità</label>
+            <NumberInput
+              id="tuboEsistenteProfondita"
+              value={formState.tuboEsistenteProfondita}
+              onChange={(val) => updateField("tuboEsistenteProfondita", String(val))}
+              min={0}
+              step={10}
+              unit="cm"
+              placeholder="Es: 120"
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Diametro */}
-      <div className="form-group">
-        <label htmlFor="diametro">Diametro Tubo</label>
-        <div className="input-with-unit">
-          <input
-            type="text"
-            id="diametro"
-            name="diametro"
-            value={formState.diametro}
-            onChange={(e) => updateField("diametro", e.target.value)}
-            placeholder="Es: 100"
-          />
-          <span className="input-unit">mm</span>
+      {/* Sezione Tubo Nuovo */}
+      <div className="tubo-section tubo-section--nuovo">
+        <h4 className="tubo-section__title">✨ Tubo Nuovo</h4>
+        <div className="tubo-section__grid">
+          <div className="form-group">
+            <label htmlFor="tuboNuovoMateriale">Materiale</label>
+            <select
+              id="tuboNuovoMateriale"
+              value={formState.tuboNuovoMateriale}
+              onChange={(e) => updateField("tuboNuovoMateriale", e.target.value)}
+              disabled={isLoadingReference}
+            >
+              <option value="">Seleziona...</option>
+              {referenceData?.materialiTubo?.map((m) => (
+                <option key={m.id} value={m.nome}>{m.nome}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor="tuboNuovoDiametro">Diametro</label>
+            <NumberInput
+              id="tuboNuovoDiametro"
+              value={formState.tuboNuovoDiametro}
+              onChange={(val) => updateField("tuboNuovoDiametro", String(val))}
+              min={0}
+              step={10}
+              unit="mm"
+              placeholder="Es: 100"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="tuboNuovoPn">PN</label>
+            <input
+              type="text"
+              id="tuboNuovoPn"
+              value={formState.tuboNuovoPn}
+              onChange={(e) => updateField("tuboNuovoPn", e.target.value)}
+              placeholder="Es: PN16"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="tuboNuovoProfondita">Profondità</label>
+            <NumberInput
+              id="tuboNuovoProfondita"
+              value={formState.tuboNuovoProfondita}
+              onChange={(val) => updateField("tuboNuovoProfondita", String(val))}
+              min={0}
+              step={10}
+              unit="cm"
+              placeholder="Es: 120"
+            />
+          </div>
         </div>
       </div>
 
@@ -114,15 +198,6 @@ const StepLavoro = ({
           placeholder="Descrivi eventuali altri interventi effettuati..."
           rows={3}
         />
-      </div>
-
-      {/* Info box */}
-      <div className="info-box info-box--blue">
-        <span className="info-box__icon">💡</span>
-        <p>
-          Seleziona il tipo di lavorazione principale. Se hai effettuato altri interventi,
-          descrivili nel campo "Altri Interventi".
-        </p>
       </div>
     </div>
   );
