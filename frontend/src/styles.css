@@ -2501,8 +2501,12 @@ textarea.form-field__input {
 }
 
 .map-picker__btn--locate {
-  background: var(--color-primary);
-  border-color: var(--color-primary-dark);
+  background: #dc2626;
+  border-color: #b91c1c;
+}
+
+.map-picker__btn--locate:hover {
+  background: #b91c1c;
 }
 
 .map-picker__btn--locate svg {
@@ -2778,17 +2782,17 @@ textarea.form-field__input {
 .rilevamenti-list {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
 .rilevamento-card {
   background: white;
-  border-radius: 14px;
-  padding: 1rem 1.25rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid #eee;
   position: relative;
   overflow: hidden;
 }
@@ -2801,93 +2805,121 @@ textarea.form-field__input {
   bottom: 0;
   width: 4px;
   background: var(--color-primary);
-  opacity: 0;
-  transition: opacity 0.2s;
+  opacity: 1;
 }
 
 .rilevamento-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  border-color: rgba(0, 102, 204, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 102, 204, 0.25);
   transform: translateY(-2px);
-}
-
-.rilevamento-card:hover::before {
-  opacity: 1;
 }
 
 .rilevamento-card__header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 0.6rem;
+  gap: 0.5rem;
 }
 
 .rilevamento-card__date {
-  font-size: 0.78rem;
-  color: #888;
-  font-weight: 500;
+  font-size: 0.72rem;
+  color: #666;
+  font-weight: 600;
+  background: #f5f5f5;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
 }
 
 .rilevamento-card__photo-badge {
-  font-size: 1rem;
-  background: #f0f7ff;
-  padding: 0.2rem 0.4rem;
+  font-size: 0.9rem;
+  background: #e0f2fe;
+  padding: 0.2rem 0.5rem;
   border-radius: 6px;
 }
 
 .rilevamento-card__location {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
-  margin-bottom: 0.7rem;
+  gap: 0.15rem;
+  margin-bottom: 0.75rem;
+  padding-left: 0.5rem;
 }
 
 .rilevamento-card__location strong {
-  font-size: 1.05rem;
-  color: #1d1d1f;
-  font-weight: 600;
+  font-size: 1.1rem;
+  color: #1a1a1a;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .rilevamento-card__location span {
   font-size: 0.85rem;
-  color: #6b7280;
+  color: #666;
 }
 
 .rilevamento-card__meta {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.35rem;
   flex-wrap: wrap;
   margin-bottom: 0.6rem;
+  padding-left: 0.5rem;
 }
 
 .meta-tag {
   display: inline-flex;
   align-items: center;
-  padding: 0.3rem 0.65rem;
-  background: #f3f4f6;
-  border-radius: 8px;
-  font-size: 0.72rem;
-  color: #555;
+  padding: 0.3rem 0.6rem;
+  background: #f0f0f5;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  color: #444;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
 }
 
 .meta-tag:first-child {
-  background: rgba(0, 102, 204, 0.1);
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(0, 102, 204, 0.1));
   color: var(--color-primary);
 }
 
 .rilevamento-card__operaio {
-  font-size: 0.78rem;
-  color: #aaa;
-  padding-top: 0.4rem;
-  border-top: 1px solid #f5f5f5;
+  font-size: 0.75rem;
+  color: #888;
+  padding: 0.5rem 0.5rem 0;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.rilevamento-card__operaio::before {
+  content: "👤";
+  font-size: 0.8rem;
 }
 
 .rilevamento-card__operaio strong {
-  color: #666;
+  color: #555;
   font-weight: 600;
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 480px) {
+  .rilevamento-card {
+    padding: 0.85rem;
+  }
+  
+  .rilevamento-card__location strong {
+    font-size: 1rem;
+  }
+  
+  .rilevamento-card__meta {
+    gap: 0.25rem;
+  }
+  
+  .meta-tag {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.65rem;
+  }
 }
 
 /* ===== RILEVAMENTO DETAIL PAGE - FULLSCREEN ===== */
@@ -3650,15 +3682,26 @@ code.detail-card__meta-value {
 /* Desktop improvements */
 @media (min-width: 768px) {
   .rdp__hero {
+    max-width: 700px;
+    margin: 0 auto;
     padding: 2.5rem 2rem;
+    border-radius: 0 0 16px 16px;
   }
   
   .rdp__address {
     font-size: 2rem;
   }
   
+  .rdp__photos {
+    max-width: 700px;
+    margin: 0 auto;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-top: 1rem;
+  }
+  
   .rdp__cards {
-    max-width: 640px;
+    max-width: 700px;
     margin: 0 auto;
     padding: 1.5rem;
   }
@@ -5430,9 +5473,16 @@ code.detail-card__meta-value {
 }
 
 .operaio-card__row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
+}
+
+@media (min-width: 480px) {
+  .operaio-card__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .operaio-card__subtotal {
@@ -5444,7 +5494,25 @@ code.detail-card__meta-value {
 }
 
 .step-operai__add {
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 1rem 1.5rem !important;
+  font-size: 1rem !important;
+  font-weight: 600;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s ease;
+}
+
+.step-operai__add:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.step-operai__add:active {
+  transform: translateY(0);
 }
 
 .step-operai__empty {
@@ -6274,6 +6342,43 @@ code.detail-card__meta-value {
 
 .btn--full-width {
   width: 100%;
+}
+
+/* Search on map button - prominent styling */
+.btn--search-map {
+  width: 100%;
+  padding: 1rem 1.5rem !important;
+  font-size: 1rem !important;
+  font-weight: 600;
+  background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 14px rgba(0, 102, 204, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.btn--search-map:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 102, 204, 0.45);
+}
+
+.btn--search-map:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn--search-map:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn--search-map .spinner-small {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: white;
 }
 
 .btn--danger {

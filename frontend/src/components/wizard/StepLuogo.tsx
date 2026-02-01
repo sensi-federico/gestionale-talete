@@ -415,7 +415,7 @@ const StepLuogo = ({
         {/* Bottone cerca su mappa (geocoding diretto) */}
         <button
           type="button"
-          className="btn btn--secondary btn--full-width"
+          className="btn--search-map"
           onClick={forwardGeocode}
           disabled={!formState.via || !formState.comuneId || isGeocoding}
         >

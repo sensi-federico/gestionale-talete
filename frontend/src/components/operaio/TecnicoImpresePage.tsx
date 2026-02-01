@@ -1,12 +1,14 @@
 // TecnicoImpresePage.tsx
 // Page for technicians to view all imprese and their interventions
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import RilevamentoDetail from "../ui/RilevamentoDetail";
+import Pagination from "../ui/Pagination";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const ITEMS_PER_PAGE = 10;
 
 interface Impresa {
   id: string;
@@ -64,6 +66,7 @@ const TecnicoImpresePage = () => {
   const [selectedImpresa, setSelectedImpresa] = useState<Impresa | null>(null);
   const [selectedRilevamento, setSelectedRilevamento] = useState<Rilevamento | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch imprese
   const { data: imprese, isLoading: isLoadingImprese } = useQuery<Impresa[]>({
@@ -109,6 +112,19 @@ const TecnicoImpresePage = () => {
     impresa.ragione_sociale.toLowerCase().includes(searchTerm.toLowerCase()) ||
     impresa.partita_iva?.includes(searchTerm)
   ) || [];
+
+  // Pagination
+  const totalPages = Math.ceil(filteredImprese.length / ITEMS_PER_PAGE);
+  const paginatedImprese = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredImprese.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredImprese, currentPage]);
+
+  // Reset page when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("it-IT", {
@@ -250,7 +266,7 @@ const TecnicoImpresePage = () => {
             type="text"
             placeholder="Cerca impresa..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
           />
           {searchTerm && (
             <button
@@ -269,30 +285,41 @@ const TecnicoImpresePage = () => {
         <div className="tecnico-imprese-page__loading">
           <span className="spinner" /> Caricamento imprese...
         </div>
-      ) : filteredImprese.length > 0 ? (
-        <div className="imprese-list">
-          {filteredImprese.map(impresa => (
-            <button
-              key={impresa.id}
-              type="button"
-              className={`impresa-card ${!impresa.attiva ? "impresa-card--inactive" : ""}`}
-              onClick={() => setSelectedImpresa(impresa)}
-            >
-              <div className="impresa-card__icon">
-                🏢
-              </div>
-              <div className="impresa-card__content">
-                <span className="impresa-card__name">{impresa.ragione_sociale}</span>
-                {impresa.partita_iva && (
-                  <span className="impresa-card__piva">P.IVA: {impresa.partita_iva}</span>
-                )}
-              </div>
-              <svg className="impresa-card__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          ))}
-        </div>
+      ) : paginatedImprese.length > 0 ? (
+        <>
+          <div className="imprese-list">
+            {paginatedImprese.map(impresa => (
+              <button
+                key={impresa.id}
+                type="button"
+                className={`impresa-card ${!impresa.attiva ? "impresa-card--inactive" : ""}`}
+                onClick={() => setSelectedImpresa(impresa)}
+              >
+                <div className="impresa-card__icon">
+                  🏢
+                </div>
+                <div className="impresa-card__content">
+                  <span className="impresa-card__name">{impresa.ragione_sociale}</span>
+                  {impresa.partita_iva && (
+                    <span className="impresa-card__piva">P.IVA: {impresa.partita_iva}</span>
+                  )}
+                </div>
+                <svg className="impresa-card__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filteredImprese.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+            />
+          )}
+        </>
       ) : (
         <div className="tecnico-imprese-page__empty">
           <span className="tecnico-imprese-page__empty-icon">🏢</span>
