@@ -46,9 +46,10 @@ interface RilevamentoDetailProps {
   onClose: () => void;
   onDelete?: (id: string) => void;
   onDownloadZip?: (id: string, photos: { url: string; label: string }[]) => void;
+  isAdmin?: boolean;
 }
 
-const RilevamentoDetail = ({ rilevamento, onClose, onDelete, onDownloadZip }: RilevamentoDetailProps) => {
+const RilevamentoDetail = ({ rilevamento, onClose, onDelete, onDownloadZip, isAdmin = false }: RilevamentoDetailProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const formatDate = (dateStr: string) => {
@@ -300,7 +301,7 @@ const RilevamentoDetail = ({ rilevamento, onClose, onDelete, onDownloadZip }: Ri
             </div>
           )}
 
-          {/* Meta */}
+          {/* Meta - Info Registrazione */}
           <div className="rdp-card rdp-card--muted">
             <h3 className="rdp-card__title">ℹ️ Info Registrazione</h3>
             <div className="rdp-card__grid">
@@ -310,10 +311,20 @@ const RilevamentoDetail = ({ rilevamento, onClose, onDelete, onDownloadZip }: Ri
                   <span className="rdp-card__value">{rilevamento.operaio.full_name || rilevamento.operaio.email || "—"}</span>
                 </div>
               )}
-              <div className="rdp-card__field">
-                <span className="rdp-card__label">Data inserimento</span>
-                <span className="rdp-card__value">{formatTimestamp(rilevamento.submit_timestamp || rilevamento.created_at)}</span>
-              </div>
+              {isAdmin && (
+                <div className="rdp-card__field">
+                  <span className="rdp-card__label">Data inserimento</span>
+                  <span className="rdp-card__value">{formatTimestamp(rilevamento.submit_timestamp || rilevamento.created_at)}</span>
+                </div>
+              )}
+              {isAdmin && rilevamento.submit_gps_lat && rilevamento.submit_gps_lon && (
+                <div className="rdp-card__field">
+                  <span className="rdp-card__label">GPS invio</span>
+                  <code className="rdp-card__value" style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                    {rilevamento.submit_gps_lat.toFixed(6)}, {rilevamento.submit_gps_lon.toFixed(6)}
+                  </code>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -2864,6 +2864,13 @@ textarea.form-field__input {
   flex-wrap: wrap;
   margin-bottom: 0.6rem;
   padding-left: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.rilevamento-card__meta::-webkit-scrollbar {
+  display: none;
 }
 
 .meta-tag {
@@ -2917,14 +2924,19 @@ textarea.form-field__input {
   }
   
   .rilevamento-card__meta {
+    flex-wrap: nowrap;
     gap: 0.3rem;
     padding-left: 0;
+    padding-bottom: 0.25rem;
+    margin-right: -0.85rem;
+    padding-right: 0.85rem;
   }
   
   .meta-tag {
     padding: 0.25rem 0.45rem;
     font-size: 0.68rem;
     white-space: nowrap;
+    flex-shrink: 0;
   }
   
   .rilevamento-card__operaio {
