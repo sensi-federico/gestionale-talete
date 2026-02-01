@@ -147,9 +147,21 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete
   };
 
   return (
-    <div className="detail-page">
+    <div className="detail-page" onClick={handleBackClick}>
+      {/* Close button for desktop */}
+      <button 
+        type="button" 
+        className="detail-page__close-btn"
+        onClick={handleBackClick}
+        aria-label="Chiudi"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
       {/* Contenuto scrollabile */}
-      <div className="detail-page__content">
+      <div className="detail-page__content" onClick={(e) => e.stopPropagation()}>
         {/* Photo Carousel */}
         {photos.length > 0 && (
           <PhotoCarousel photos={photos} className="detail-page__carousel" />

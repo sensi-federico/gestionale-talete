@@ -14,6 +14,18 @@ const FormModal = ({ isOpen, title, description, onClose, children }: FormModalP
   return (
     <div className="form-modal-overlay" onClick={onClose}>
       <div className="form-modal" onClick={(e) => e.stopPropagation()}>
+        {/* Close button for desktop */}
+        <button 
+          type="button" 
+          className="form-modal__close"
+          onClick={onClose}
+          aria-label="Chiudi"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        
         <div className="form-modal__content">
           <div className="form-modal__heading">
             <h1>{title}</h1>
