@@ -124,7 +124,7 @@ router.get(
   }
 );
 
-router.get("/users", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
+router.get("/users", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
   // Legge da public.users (sincronizzata con auth.users via trigger)
   // I responsabili possono recuperare solo gli utenti con ruolo "operaio" (tecnici)
   const isResponsabile = req.user?.role === "responsabile";
