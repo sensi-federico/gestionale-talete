@@ -202,57 +202,57 @@ const AdminTipiLavorazionePage = () => {
 
       <AdminStatusBanner alert={latestAlert} />
 
-      <section className="card card--table">
+      <section className="card">
         <div className="table-header">
           <div>
             <h2>Tipi lavorazione disponibili</h2>
             <p>Elenco delle tipologie di intervento selezionabili nei rilevamenti.</p>
           </div>
         </div>
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Descrizione</th>
-                <th>Azione</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tipiQuery.isLoading && (
-                <tr>
-                  <td colSpan={3}>Caricamento...</td>
-                </tr>
-              )}
-              {!tipiQuery.isLoading && tipi.length === 0 && (
-                <tr>
-                  <td colSpan={3}>Nessun tipo lavorazione presente.</td>
-                </tr>
-              )}
-              {paginatedTipi.map((tipo) => (
-                <tr key={tipo.id}>
-                  <td data-label="Nome">{tipo.name}</td>
-                  <td data-label="Descrizione">{tipo.description || "-"}</td>
-                  <td data-label="Azione">
-                    <div className="table-actions">
-                      <button type="button" className="button button--ghost" onClick={() => handleEdit(tipo)}>
-                        Modifica
-                      </button>
-                      <button
-                        type="button"
-                        className="button button--danger"
-                        onClick={() => handleDelete(tipo.id)}
-                        disabled={deletingId === tipo.id}
-                      >
-                        {deletingId === tipo.id ? "Elimino..." : "Elimina"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        
+        {tipiQuery.isLoading && (
+          <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
+            Caricamento...
+          </div>
+        )}
+        
+        {!tipiQuery.isLoading && tipi.length === 0 && (
+          <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
+            Nessun tipo lavorazione presente. Clicca "Aggiungi tipo" per crearne uno.
+          </div>
+        )}
+        
+        {!tipiQuery.isLoading && tipi.length > 0 && (
+          <div className="admin-cards-grid">
+            {paginatedTipi.map((tipo) => (
+              <div key={tipo.id} className="admin-card-item">
+                <div className="admin-card-item__header">
+                  <span className="admin-card-item__icon">🔧</span>
+                  <div className="admin-card-item__info">
+                    <h4 className="admin-card-item__name">{tipo.name}</h4>
+                    {tipo.description && (
+                      <p className="admin-card-item__desc">{tipo.description}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="admin-card-item__actions">
+                  <button type="button" className="btn" onClick={() => handleEdit(tipo)}>
+                    ✏️ Modifica
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--danger"
+                    onClick={() => handleDelete(tipo.id)}
+                    disabled={deletingId === tipo.id}
+                  >
+                    {deletingId === tipo.id ? "..." : "🗑️"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
         {totalPages > 1 && (
           <Pagination
             currentPage={currentPage}

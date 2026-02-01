@@ -4104,6 +4104,71 @@ textarea.form-field__input {
   margin: 0 auto;
 }
 
+/* Wizard Form Inputs - Stilizzazione migliorata */
+.intervento-wizard input[type="text"],
+.intervento-wizard input[type="number"],
+.intervento-wizard input[type="date"],
+.intervento-wizard input[type="time"],
+.intervento-wizard select,
+.intervento-wizard textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1e293b;
+  transition: all 0.15s ease;
+  min-height: 48px;
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+}
+
+.intervento-wizard select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.25rem;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+.intervento-wizard input:focus,
+.intervento-wizard select:focus,
+.intervento-wizard textarea:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+}
+
+.intervento-wizard input:disabled,
+.intervento-wizard select:disabled,
+.intervento-wizard textarea:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.intervento-wizard .form-group {
+  margin-bottom: 1.25rem;
+}
+
+.intervento-wizard .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.intervento-wizard .form-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
 .wizard-progress {
   margin-bottom: 1.5rem;
 }
@@ -4137,25 +4202,58 @@ textarea.form-field__input {
   padding: 0.5rem 0.25rem;
   background: none;
   border: none;
-  cursor: pointer;
-  opacity: 0.5;
+  cursor: not-allowed;
+  opacity: 0.35;
   transition: all 0.2s ease;
 }
 
-.wizard-progress__step:disabled {
-  cursor: not-allowed;
+.wizard-progress__step--clickable {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.wizard-progress__step--clickable:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.wizard-progress__step--clickable:hover .wizard-progress__label {
+  color: #0066cc;
 }
 
 .wizard-progress__step--active {
   opacity: 1;
+  cursor: default;
 }
 
 .wizard-progress__step--completed {
-  opacity: 0.8;
+  opacity: 0.85;
+}
+
+.wizard-progress__step--completed .wizard-progress__icon {
+  position: relative;
+}
+
+.wizard-progress__step--completed .wizard-progress__icon::after {
+  content: "✓";
+  position: absolute;
+  bottom: -2px;
+  right: -6px;
+  font-size: 0.6rem;
+  background: #10b981;
+  color: white;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .wizard-progress__icon {
   font-size: 1.25rem;
+  position: relative;
 }
 
 .wizard-progress__label {
@@ -4164,6 +4262,7 @@ textarea.form-field__input {
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.02em;
+  transition: color 0.15s ease;
 }
 
 .wizard-progress__step--active .wizard-progress__label {
@@ -5019,5 +5118,148 @@ textarea.form-field__input {
 
 .btn--danger:hover {
   background: #fee2e2;
+}
+
+/* ========================================
+   Admin Cards Grid - Per pagine CRUD
+   ======================================== */
+.admin-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+}
+
+@media (max-width: 480px) {
+  .admin-cards-grid {
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+}
+
+.admin-card-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: all 0.15s ease;
+}
+
+.admin-card-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+.admin-card-item--disabled {
+  opacity: 0.6;
+  background: #f8fafc;
+}
+
+.admin-card-item__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-card-item__icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.admin-card-item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-card-item__name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-card-item__desc {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.admin-card-item__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.admin-card-item__status--active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin-card-item__status--inactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.admin-card-item__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.admin-card-item__actions .btn {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  border-radius: 8px;
+}
+
+.admin-card-item__actions .btn--icon {
+  flex: 0;
+  width: 36px;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .admin-card-item {
+    padding: 0.75rem;
+  }
+  
+  .admin-card-item__icon {
+    font-size: 1.5rem;
+  }
+  
+  .admin-card-item__name {
+    font-size: 0.85rem;
+  }
+  
+  .admin-card-item__desc {
+    font-size: 0.75rem;
+    -webkit-line-clamp: 1;
+  }
+  
+  .admin-card-item__actions .btn {
+    font-size: 0.75rem;
+    padding: 0.4rem;
+  }
 }
 

@@ -238,73 +238,72 @@ const AdminMezziPage = () => {
 
       <AdminStatusBanner alert={latestAlert} />
 
-      <section className="card card--table">
+      <section className="card">
         <div className="table-header">
           <div>
             <h2>Mezzi disponibili</h2>
             <p>Elenco dei mezzi di lavoro utilizzabili nei rilevamenti.</p>
           </div>
         </div>
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Icona</th>
-                <th>Nome</th>
-                <th>Descrizione</th>
-                <th>Stato</th>
-                <th>Azione</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mezziQuery.isLoading && (
-                <tr>
-                  <td colSpan={5}>Caricamento...</td>
-                </tr>
-              )}
-              {!mezziQuery.isLoading && mezzi.length === 0 && (
-                <tr>
-                  <td colSpan={5}>Nessun mezzo presente.</td>
-                </tr>
-              )}
-              {paginatedMezzi.map((mezzo) => (
-                <tr key={mezzo.id} className={!mezzo.isActive ? "row--disabled" : ""}>
-                  <td data-label="Icona" style={{ fontSize: "1.5rem" }}>{mezzo.icon || "🚗"}</td>
-                  <td data-label="Nome">{mezzo.name}</td>
-                  <td data-label="Descrizione">{mezzo.description || "-"}</td>
-                  <td data-label="Stato">
-                    <span className={`badge ${mezzo.isActive ? "badge--success" : "badge--secondary"}`}>
-                      {mezzo.isActive ? "Attivo" : "Disattivo"}
-                    </span>
-                  </td>
-                  <td data-label="Azione">
-                    <div className="table-actions">
-                      <button 
-                        type="button" 
-                        className="button button--ghost button--small" 
-                        onClick={() => handleToggleActive(mezzo)}
-                        title={mezzo.isActive ? "Disattiva" : "Attiva"}
-                      >
-                        {mezzo.isActive ? "🔴" : "🟢"}
-                      </button>
-                      <button type="button" className="button button--ghost" onClick={() => handleEdit(mezzo)}>
-                        Modifica
-                      </button>
-                      <button
-                        type="button"
-                        className="button button--danger"
-                        onClick={() => handleDelete(mezzo.id)}
-                        disabled={deletingId === mezzo.id}
-                      >
-                        {deletingId === mezzo.id ? "Elimino..." : "Elimina"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        
+        {mezziQuery.isLoading && (
+          <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
+            Caricamento...
+          </div>
+        )}
+        
+        {!mezziQuery.isLoading && mezzi.length === 0 && (
+          <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
+            Nessun mezzo presente. Clicca "Aggiungi mezzo" per crearne uno.
+          </div>
+        )}
+        
+        {!mezziQuery.isLoading && mezzi.length > 0 && (
+          <div className="admin-cards-grid">
+            {paginatedMezzi.map((mezzo) => (
+              <div 
+                key={mezzo.id} 
+                className={`admin-card-item ${!mezzo.isActive ? "admin-card-item--disabled" : ""}`}
+              >
+                <div className="admin-card-item__header">
+                  <span className="admin-card-item__icon">{mezzo.icon || "🚗"}</span>
+                  <div className="admin-card-item__info">
+                    <h4 className="admin-card-item__name">{mezzo.name}</h4>
+                    {mezzo.description && (
+                      <p className="admin-card-item__desc">{mezzo.description}</p>
+                    )}
+                  </div>
+                </div>
+                <span className={`admin-card-item__status ${mezzo.isActive ? "admin-card-item__status--active" : "admin-card-item__status--inactive"}`}>
+                  {mezzo.isActive ? "✓ Attivo" : "Disattivo"}
+                </span>
+                <div className="admin-card-item__actions">
+                  <button 
+                    type="button" 
+                    className="btn btn--icon" 
+                    onClick={() => handleToggleActive(mezzo)}
+                    title={mezzo.isActive ? "Disattiva" : "Attiva"}
+                    style={{ background: mezzo.isActive ? "#fef2f2" : "#f0fdf4" }}
+                  >
+                    {mezzo.isActive ? "🔴" : "🟢"}
+                  </button>
+                  <button type="button" className="btn" onClick={() => handleEdit(mezzo)}>
+                    ✏️ Modifica
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--danger"
+                    onClick={() => handleDelete(mezzo.id)}
+                    disabled={deletingId === mezzo.id}
+                  >
+                    {deletingId === mezzo.id ? "..." : "🗑️"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
         {totalPages > 1 && (
           <Pagination
             currentPage={currentPage}

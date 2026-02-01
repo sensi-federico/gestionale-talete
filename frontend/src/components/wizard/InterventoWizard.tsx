@@ -168,6 +168,41 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
     }
   }, [currentStep, formState, isImpresa]);
 
+  // Validazione per step specifico (usato per navigazione)
+  const isStepValidFor = useCallback((stepNumber: number): boolean => {
+    switch (stepNumber) {
+      case 1:
+        return Boolean(formState.comuneId && formState.via);
+      case 2:
+        return isImpresa 
+          ? Boolean(formState.tipoLavorazioneId)
+          : Boolean(formState.tipoLavorazioneId && formState.impresaId);
+      case 3:
+        return formState.operai.length > 0 && 
+               formState.operai.every(o => o.numero > 0 && o.oreLavoro > 0);
+      case 4:
+        return formState.mezziUtilizzo.some(m => m.oreUtilizzo > 0) ||
+               formState.attrezzatureUtilizzo.some(a => a.oreUtilizzo > 0);
+      case 5:
+        return Boolean(formState.rilevamentoDate && formState.oraInizio);
+      case 6:
+        return true;
+      default:
+        return false;
+    }
+  }, [formState, isImpresa]);
+
+  // Controlla se tutti gli step fino a targetStep sono validi
+  const canNavigateToStep = useCallback((targetStep: number): boolean => {
+    if (targetStep === 1) return true;
+    if (targetStep <= currentStep) return true; // Può sempre tornare indietro
+    // Per andare avanti, tutti gli step precedenti devono essere validi
+    for (let i = 1; i < targetStep; i++) {
+      if (!isStepValidFor(i)) return false;
+    }
+    return true;
+  }, [currentStep, isStepValidFor]);
+
   // Navigazione step
   const goToStep = useCallback((step: number) => {
     if (step >= 1 && step <= WIZARD_STEPS.length) {
@@ -309,12 +344,25 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
     } catch (error) {
       console.error("Errore invio:", error);
       
-      // Fallback offline
-      try {
-        await submitOffline();
-      } catch {
+      // Verifica se è un errore di rete (offline o fetch failed)
+      const isNetworkError = 
+        !navigator.onLine || 
+        (error instanceof TypeError && error.message.toLowerCase().includes('fetch')) ||
+        (error instanceof TypeError && error.message.toLowerCase().includes('network'));
+      
+      if (isNetworkError) {
+        // Solo per errori di rete, salva in coda offline
+        try {
+          await submitOffline();
+        } catch {
+          setSubmitStatus("error");
+          setSubmitMessage("Errore durante il salvataggio offline. Riprova più tardi.");
+        }
+      } else {
+        // Per errori server (4xx, 5xx), mostra il messaggio di errore reale
+        const errorMessage = error instanceof Error ? error.message : "Errore durante l'invio";
         setSubmitStatus("error");
-        setSubmitMessage("Errore durante l'invio. Riprova più tardi.");
+        setSubmitMessage(errorMessage);
       }
     }
   }, [tokens, formState, geolocation.position, isImpresa, user, submitOffline, resetForm]);
@@ -350,20 +398,28 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
         />
       </div>
       <div className="wizard-progress__steps">
-        {WIZARD_STEPS.map((step) => (
-          <button
-            key={step.id}
-            type="button"
-            className={`wizard-progress__step ${
-              step.id === currentStep ? "wizard-progress__step--active" : ""
-            } ${step.id < currentStep ? "wizard-progress__step--completed" : ""}`}
-            onClick={() => step.id <= currentStep && goToStep(step.id)}
-            disabled={step.id > currentStep}
-          >
-            <span className="wizard-progress__icon">{step.icon}</span>
-            <span className="wizard-progress__label">{step.label}</span>
-          </button>
-        ))}
+        {WIZARD_STEPS.map((step) => {
+          const isActive = step.id === currentStep;
+          const isCompleted = step.id < currentStep;
+          const canClick = canNavigateToStep(step.id) && !isActive;
+          
+          return (
+            <button
+              key={step.id}
+              type="button"
+              className={`wizard-progress__step ${
+                isActive ? "wizard-progress__step--active" : ""
+              } ${isCompleted ? "wizard-progress__step--completed" : ""} ${
+                canClick ? "wizard-progress__step--clickable" : ""
+              }`}
+              onClick={() => canClick && goToStep(step.id)}
+              disabled={!canClick && !isActive}
+            >
+              <span className="wizard-progress__icon">{step.icon}</span>
+              <span className="wizard-progress__label">{step.label}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

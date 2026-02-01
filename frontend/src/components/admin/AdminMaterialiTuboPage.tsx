@@ -230,71 +230,72 @@ const AdminMaterialiTuboPage = () => {
 
       <AdminStatusBanner alert={latestAlert} />
 
-      <section className="card card--table">
+      <section className="card">
         <div className="table-header">
           <div>
             <h2>Materiali tubo disponibili</h2>
             <p>Elenco dei materiali selezionabili nei rilevamenti.</p>
           </div>
         </div>
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Descrizione</th>
-                <th>Stato</th>
-                <th>Azione</th>
-              </tr>
-            </thead>
-            <tbody>
-              {materialiQuery.isLoading && (
-                <tr>
-                  <td colSpan={4}>Caricamento...</td>
-                </tr>
-              )}
-              {!materialiQuery.isLoading && materiali.length === 0 && (
-                <tr>
-                  <td colSpan={4}>Nessun materiale tubo presente.</td>
-                </tr>
-              )}
-              {paginatedMateriali.map((mat) => (
-                <tr key={mat.id} className={!mat.isActive ? "row--disabled" : ""}>
-                  <td data-label="Nome">{mat.name}</td>
-                  <td data-label="Descrizione">{mat.description || "-"}</td>
-                  <td data-label="Stato">
-                    <span className={`badge ${mat.isActive ? "badge--success" : "badge--secondary"}`}>
-                      {mat.isActive ? "Attivo" : "Disattivo"}
-                    </span>
-                  </td>
-                  <td data-label="Azione">
-                    <div className="table-actions">
-                      <button 
-                        type="button" 
-                        className="button button--ghost button--small" 
-                        onClick={() => handleToggleActive(mat)}
-                        title={mat.isActive ? "Disattiva" : "Attiva"}
-                      >
-                        {mat.isActive ? "🔴" : "🟢"}
-                      </button>
-                      <button type="button" className="button button--ghost" onClick={() => handleEdit(mat)}>
-                        Modifica
-                      </button>
-                      <button
-                        type="button"
-                        className="button button--danger"
-                        onClick={() => handleDelete(mat.id)}
-                        disabled={deletingId === mat.id}
-                      >
-                        {deletingId === mat.id ? "Elimino..." : "Elimina"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        
+        {materialiQuery.isLoading && (
+          <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
+            Caricamento...
+          </div>
+        )}
+        
+        {!materialiQuery.isLoading && materiali.length === 0 && (
+          <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
+            Nessun materiale tubo presente. Clicca "Aggiungi materiale" per crearne uno.
+          </div>
+        )}
+        
+        {!materialiQuery.isLoading && materiali.length > 0 && (
+          <div className="admin-cards-grid">
+            {paginatedMateriali.map((mat) => (
+              <div 
+                key={mat.id} 
+                className={`admin-card-item ${!mat.isActive ? "admin-card-item--disabled" : ""}`}
+              >
+                <div className="admin-card-item__header">
+                  <span className="admin-card-item__icon">🔩</span>
+                  <div className="admin-card-item__info">
+                    <h4 className="admin-card-item__name">{mat.name}</h4>
+                    {mat.description && (
+                      <p className="admin-card-item__desc">{mat.description}</p>
+                    )}
+                  </div>
+                </div>
+                <span className={`admin-card-item__status ${mat.isActive ? "admin-card-item__status--active" : "admin-card-item__status--inactive"}`}>
+                  {mat.isActive ? "✓ Attivo" : "Disattivo"}
+                </span>
+                <div className="admin-card-item__actions">
+                  <button 
+                    type="button" 
+                    className="btn btn--icon" 
+                    onClick={() => handleToggleActive(mat)}
+                    title={mat.isActive ? "Disattiva" : "Attiva"}
+                    style={{ background: mat.isActive ? "#fef2f2" : "#f0fdf4" }}
+                  >
+                    {mat.isActive ? "🔴" : "🟢"}
+                  </button>
+                  <button type="button" className="btn" onClick={() => handleEdit(mat)}>
+                    ✏️ Modifica
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--danger"
+                    onClick={() => handleDelete(mat.id)}
+                    disabled={deletingId === mat.id}
+                  >
+                    {deletingId === mat.id ? "..." : "🗑️"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
         {totalPages > 1 && (
           <Pagination
             currentPage={currentPage}

@@ -238,73 +238,72 @@ const AdminAttrezzaturePage = () => {
 
       <AdminStatusBanner alert={latestAlert} />
 
-      <section className="card card--table">
+      <section className="card">
         <div className="table-header">
           <div>
             <h2>Attrezzature disponibili</h2>
             <p>Elenco delle attrezzature utilizzabili nei rilevamenti.</p>
           </div>
         </div>
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Icona</th>
-                <th>Nome</th>
-                <th>Descrizione</th>
-                <th>Stato</th>
-                <th>Azione</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attrezzatureQuery.isLoading && (
-                <tr>
-                  <td colSpan={5}>Caricamento...</td>
-                </tr>
-              )}
-              {!attrezzatureQuery.isLoading && attrezzature.length === 0 && (
-                <tr>
-                  <td colSpan={5}>Nessuna attrezzatura presente.</td>
-                </tr>
-              )}
-              {paginatedAttrezzature.map((attr) => (
-                <tr key={attr.id} className={!attr.isActive ? "row--disabled" : ""}>
-                  <td data-label="Icona" style={{ fontSize: "1.5rem" }}>{attr.icon || "🔧"}</td>
-                  <td data-label="Nome">{attr.name}</td>
-                  <td data-label="Descrizione">{attr.description || "-"}</td>
-                  <td data-label="Stato">
-                    <span className={`badge ${attr.isActive ? "badge--success" : "badge--secondary"}`}>
-                      {attr.isActive ? "Attiva" : "Disattiva"}
-                    </span>
-                  </td>
-                  <td data-label="Azione">
-                    <div className="table-actions">
-                      <button 
-                        type="button" 
-                        className="button button--ghost button--small" 
-                        onClick={() => handleToggleActive(attr)}
-                        title={attr.isActive ? "Disattiva" : "Attiva"}
-                      >
-                        {attr.isActive ? "🔴" : "🟢"}
-                      </button>
-                      <button type="button" className="button button--ghost" onClick={() => handleEdit(attr)}>
-                        Modifica
-                      </button>
-                      <button
-                        type="button"
-                        className="button button--danger"
-                        onClick={() => handleDelete(attr.id)}
-                        disabled={deletingId === attr.id}
-                      >
-                        {deletingId === attr.id ? "Elimino..." : "Elimina"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        
+        {attrezzatureQuery.isLoading && (
+          <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
+            Caricamento...
+          </div>
+        )}
+        
+        {!attrezzatureQuery.isLoading && attrezzature.length === 0 && (
+          <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
+            Nessuna attrezzatura presente. Clicca "Aggiungi attrezzatura" per crearne una.
+          </div>
+        )}
+        
+        {!attrezzatureQuery.isLoading && attrezzature.length > 0 && (
+          <div className="admin-cards-grid">
+            {paginatedAttrezzature.map((attr) => (
+              <div 
+                key={attr.id} 
+                className={`admin-card-item ${!attr.isActive ? "admin-card-item--disabled" : ""}`}
+              >
+                <div className="admin-card-item__header">
+                  <span className="admin-card-item__icon">{attr.icon || "🔧"}</span>
+                  <div className="admin-card-item__info">
+                    <h4 className="admin-card-item__name">{attr.name}</h4>
+                    {attr.description && (
+                      <p className="admin-card-item__desc">{attr.description}</p>
+                    )}
+                  </div>
+                </div>
+                <span className={`admin-card-item__status ${attr.isActive ? "admin-card-item__status--active" : "admin-card-item__status--inactive"}`}>
+                  {attr.isActive ? "✓ Attiva" : "Disattiva"}
+                </span>
+                <div className="admin-card-item__actions">
+                  <button 
+                    type="button" 
+                    className="btn btn--icon" 
+                    onClick={() => handleToggleActive(attr)}
+                    title={attr.isActive ? "Disattiva" : "Attiva"}
+                    style={{ background: attr.isActive ? "#fef2f2" : "#f0fdf4" }}
+                  >
+                    {attr.isActive ? "🔴" : "🟢"}
+                  </button>
+                  <button type="button" className="btn" onClick={() => handleEdit(attr)}>
+                    ✏️ Modifica
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--danger"
+                    onClick={() => handleDelete(attr.id)}
+                    disabled={deletingId === attr.id}
+                  >
+                    {deletingId === attr.id ? "..." : "🗑️"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
         {totalPages > 1 && (
           <Pagination
             currentPage={currentPage}

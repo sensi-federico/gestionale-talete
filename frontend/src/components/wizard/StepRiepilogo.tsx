@@ -64,8 +64,14 @@ const StepRiepilogo = ({
 
   // Inizializza mini-mappa
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
+    if (!mapContainerRef.current) return;
     if (!formState.manualLat || !formState.manualLon) return;
+    
+    // Cleanup previous map if exists
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const map = new maplibregl.Map({
@@ -143,7 +149,7 @@ const StepRiepilogo = ({
           <div 
             ref={mapContainerRef} 
             className="riepilogo-minimap"
-            style={{ height: "150px", marginBottom: "12px" }}
+            style={{ height: "250px", marginBottom: "12px", borderRadius: "12px", overflow: "hidden" }}
           />
         )}
         <div className="riepilogo-field">

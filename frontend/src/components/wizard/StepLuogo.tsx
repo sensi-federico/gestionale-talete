@@ -296,7 +296,7 @@ const StepLuogo = ({
         <div 
           ref={containerRef} 
           className="step-luogo__map"
-          style={{ height: "50vh", minHeight: "300px" }}
+          style={{ height: "65vh", minHeight: "400px" }}
         />
         
         {/* Controlli mappa sovrapposti */}
