@@ -393,9 +393,7 @@ const AdminRilevazioniPage = () => {
         <RilevamentoDetail
           rilevamento={selectedRilevamento}
           onClose={closeDetail}
-          showOperaio={true}
           onDelete={currentRole !== "responsabile" ? handleDeleteRequest : undefined}
-          showSensitive={true}
         />
       )}
 

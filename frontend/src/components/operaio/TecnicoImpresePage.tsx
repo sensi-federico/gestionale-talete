@@ -225,8 +225,6 @@ const TecnicoImpresePage = () => {
           <RilevamentoDetail
             rilevamento={selectedRilevamento}
             onClose={() => setSelectedRilevamento(null)}
-            showOperaio={true}
-            showSensitive={false} // Tecnico non vede dati sensibili
           />
         )}
       </div>

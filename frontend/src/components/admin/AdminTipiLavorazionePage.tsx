@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
 import { useConfirmModal } from "../../hooks/useConfirmModal";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
 import ConfirmModal from "../ui/ConfirmModal";
@@ -45,6 +46,10 @@ const AdminTipiLavorazionePage = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Filtri
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
   // Funzione per chiamate API autenticate
   const authorizedFetch = async <T,>(path: string, init?: RequestInit) => {
@@ -95,11 +100,35 @@ const AdminTipiLavorazionePage = () => {
 
   // Calcolo paginazione
   const tipi = useMemo(() => tipiQuery.data?.tipiLavorazione ?? [], [tipiQuery.data]);
-  const totalPages = Math.ceil(tipi.length / ITEMS_PER_PAGE);
+  
+  // Filtra tipi
+  const filteredTipi = useMemo(() => {
+    if (!debouncedSearch) return tipi;
+    
+    const searchLower = debouncedSearch.toLowerCase();
+    return tipi.filter(tipo => 
+      tipo.name.toLowerCase().includes(searchLower) ||
+      tipo.description?.toLowerCase().includes(searchLower)
+    );
+  }, [tipi, debouncedSearch]);
+  
+  const totalPages = Math.ceil(filteredTipi.length / ITEMS_PER_PAGE);
   const paginatedTipi = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return tipi.slice(start, start + ITEMS_PER_PAGE);
-  }, [tipi, currentPage]);
+    return filteredTipi.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredTipi, currentPage]);
+
+  // Reset pagina quando cambiano i filtri
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
+  const hasFilters = searchQuery;
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setCurrentPage(1);
+  };
 
   // Reset del form
   const resetForm = () => {
@@ -210,19 +239,46 @@ const AdminTipiLavorazionePage = () => {
           </div>
         </div>
         
+        {/* Filtri */}
+        <div className="table-filters">
+          <div className="table-filters__row">
+            <input
+              type="text"
+              placeholder="Cerca per nome o descrizione..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="table-filters__search"
+            />
+            {hasFilters && (
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={resetFilters}
+              >
+                Cancella filtri
+              </button>
+            )}
+          </div>
+          {hasFilters && (
+            <p className="table-filters__count">
+              {filteredTipi.length} risultat{filteredTipi.length === 1 ? "o" : "i"} su {tipi.length} totali
+            </p>
+          )}
+        </div>
+        
         {tipiQuery.isLoading && (
           <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
             Caricamento...
           </div>
         )}
         
-        {!tipiQuery.isLoading && tipi.length === 0 && (
+        {!tipiQuery.isLoading && filteredTipi.length === 0 && (
           <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
-            Nessun tipo lavorazione presente. Clicca "Aggiungi tipo" per crearne uno.
+            {hasFilters ? "Nessun tipo lavorazione corrisponde ai filtri." : "Nessun tipo lavorazione presente. Clicca \"Aggiungi tipo\" per crearne uno."}
           </div>
         )}
         
-        {!tipiQuery.isLoading && tipi.length > 0 && (
+        {!tipiQuery.isLoading && filteredTipi.length > 0 && (
           <div className="admin-cards-grid">
             {paginatedTipi.map((tipo) => (
               <div key={tipo.id} className="admin-card-item">
@@ -258,7 +314,7 @@ const AdminTipiLavorazionePage = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            totalItems={tipi.length}
+            totalItems={filteredTipi.length}
             itemsPerPage={ITEMS_PER_PAGE}
           />
         )}

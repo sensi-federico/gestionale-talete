@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
 import { useConfirmModal } from "../../hooks/useConfirmModal";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
 import ConfirmModal from "../ui/ConfirmModal";
@@ -49,6 +50,10 @@ const AdminImpresePage = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Filtri
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
   const authorizedFetch = async <T,>(path: string, init?: RequestInit) => {
     if (!tokens) {
@@ -95,11 +100,36 @@ const AdminImpresePage = () => {
   }, [impreseQuery.isError, impreseQuery.error, pushAlert]);
 
   const imprese = useMemo(() => impreseQuery.data?.imprese ?? [], [impreseQuery.data]);
-  const totalPages = Math.ceil(imprese.length / ITEMS_PER_PAGE);
+  
+  // Filtra imprese
+  const filteredImprese = useMemo(() => {
+    if (!debouncedSearch) return imprese;
+    
+    const searchLower = debouncedSearch.toLowerCase();
+    return imprese.filter(impresa => 
+      impresa.name.toLowerCase().includes(searchLower) ||
+      impresa.partita_iva.toLowerCase().includes(searchLower) ||
+      impresa.email?.toLowerCase().includes(searchLower)
+    );
+  }, [imprese, debouncedSearch]);
+  
+  const totalPages = Math.ceil(filteredImprese.length / ITEMS_PER_PAGE);
   const paginatedImprese = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return imprese.slice(start, start + ITEMS_PER_PAGE);
-  }, [imprese, currentPage]);
+    return filteredImprese.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredImprese, currentPage]);
+
+  // Reset pagina quando cambiano i filtri
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
+  const hasFilters = searchQuery;
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setCurrentPage(1);
+  };
 
   const resetForm = () => {
     setForm(emptyForm);
@@ -217,6 +247,34 @@ const AdminImpresePage = () => {
             <p>Catalogo delle aziende disponibili per l&apos;assegnazione degli interventi.</p>
           </div>
         </div>
+        
+        {/* Filtri */}
+        <div className="table-filters">
+          <div className="table-filters__row">
+            <input
+              type="text"
+              placeholder="Cerca per nome, P.IVA o email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="table-filters__search"
+            />
+            {hasFilters && (
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={resetFilters}
+              >
+                Cancella filtri
+              </button>
+            )}
+          </div>
+          {hasFilters && (
+            <p className="table-filters__count">
+              {filteredImprese.length} risultat{filteredImprese.length === 1 ? "o" : "i"} su {imprese.length} totali
+            </p>
+          )}
+        </div>
+
         <div className="table-wrapper">
           <table>
             <thead>
@@ -234,9 +292,9 @@ const AdminImpresePage = () => {
                   <td colSpan={5}>Caricamento...</td>
                 </tr>
               )}
-              {!impreseQuery.isLoading && imprese.length === 0 && (
+              {!impreseQuery.isLoading && filteredImprese.length === 0 && (
                 <tr>
-                  <td colSpan={5}>Nessuna impresa presente.</td>
+                  <td colSpan={5}>{hasFilters ? "Nessuna impresa corrisponde ai filtri." : "Nessuna impresa presente."}</td>
                 </tr>
               )}
               {paginatedImprese.map((impresa) => (
@@ -270,9 +328,10 @@ const AdminImpresePage = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            totalItems={imprese.length}
+            totalItems={filteredImprese.length}
             itemsPerPage={ITEMS_PER_PAGE}
           />
+        )}
         )}
       </section>
 

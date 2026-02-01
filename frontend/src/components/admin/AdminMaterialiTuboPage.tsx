@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
 import { useConfirmModal } from "../../hooks/useConfirmModal";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
 import ConfirmModal from "../ui/ConfirmModal";
@@ -50,6 +51,11 @@ const AdminMaterialiTuboPage = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Filtri
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterActive, setFilterActive] = useState<string>("");
+  const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
   // Funzione per chiamate API autenticate
   const authorizedFetch = async <T,>(path: string, init?: RequestInit) => {
@@ -100,11 +106,45 @@ const AdminMaterialiTuboPage = () => {
 
   // Calcolo paginazione
   const materiali = useMemo(() => materialiQuery.data?.materialiTubo ?? [], [materialiQuery.data]);
-  const totalPages = Math.ceil(materiali.length / ITEMS_PER_PAGE);
+  
+  // Filtra materiali
+  const filteredMateriali = useMemo(() => {
+    let result = materiali;
+    
+    if (debouncedSearch) {
+      const searchLower = debouncedSearch.toLowerCase();
+      result = result.filter(mat => 
+        mat.name.toLowerCase().includes(searchLower) ||
+        mat.description?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    if (filterActive) {
+      const isActive = filterActive === "active";
+      result = result.filter(mat => mat.isActive === isActive);
+    }
+    
+    return result;
+  }, [materiali, debouncedSearch, filterActive]);
+  
+  const totalPages = Math.ceil(filteredMateriali.length / ITEMS_PER_PAGE);
   const paginatedMateriali = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return materiali.slice(start, start + ITEMS_PER_PAGE);
-  }, [materiali, currentPage]);
+    return filteredMateriali.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredMateriali, currentPage]);
+
+  // Reset pagina quando cambiano i filtri
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, filterActive]);
+
+  const hasFilters = searchQuery || filterActive;
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setFilterActive("");
+    setCurrentPage(1);
+  };
 
   // Reset del form
   const resetForm = () => {
@@ -238,19 +278,55 @@ const AdminMaterialiTuboPage = () => {
           </div>
         </div>
         
+        {/* Filtri */}
+        <div className="table-filters">
+          <div className="table-filters__row">
+            <input
+              type="text"
+              placeholder="Cerca per nome o descrizione..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="table-filters__search"
+            />
+            <select
+              value={filterActive}
+              onChange={(e) => setFilterActive(e.target.value)}
+              className="table-filters__select"
+            >
+              <option value="">Tutti gli stati</option>
+              <option value="active">Solo attivi</option>
+              <option value="inactive">Solo disattivi</option>
+            </select>
+            {hasFilters && (
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={resetFilters}
+              >
+                Cancella filtri
+              </button>
+            )}
+          </div>
+          {hasFilters && (
+            <p className="table-filters__count">
+              {filteredMateriali.length} risultat{filteredMateriali.length === 1 ? "o" : "i"} su {materiali.length} totali
+            </p>
+          )}
+        </div>
+        
         {materialiQuery.isLoading && (
           <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
             Caricamento...
           </div>
         )}
         
-        {!materialiQuery.isLoading && materiali.length === 0 && (
+        {!materialiQuery.isLoading && filteredMateriali.length === 0 && (
           <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
-            Nessun materiale tubo presente. Clicca "Aggiungi materiale" per crearne uno.
+            {hasFilters ? "Nessun materiale corrisponde ai filtri." : "Nessun materiale tubo presente. Clicca \"Aggiungi materiale\" per crearne uno."}
           </div>
         )}
         
-        {!materialiQuery.isLoading && materiali.length > 0 && (
+        {!materialiQuery.isLoading && filteredMateriali.length > 0 && (
           <div className="admin-cards-grid">
             {paginatedMateriali.map((mat) => (
               <div 
@@ -301,7 +377,7 @@ const AdminMaterialiTuboPage = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            totalItems={materiali.length}
+            totalItems={filteredMateriali.length}
             itemsPerPage={ITEMS_PER_PAGE}
           />
         )}

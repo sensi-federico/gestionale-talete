@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
 import { useConfirmModal } from "../../hooks/useConfirmModal";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
 import ConfirmModal from "../ui/ConfirmModal";
@@ -56,6 +57,11 @@ const AdminAttrezzaturePage = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Filtri
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterActive, setFilterActive] = useState<string>("");
+  const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
   // Funzione per chiamate API autenticate
   const authorizedFetch = async <T,>(path: string, init?: RequestInit) => {
@@ -106,11 +112,45 @@ const AdminAttrezzaturePage = () => {
 
   // Calcolo paginazione
   const attrezzature = useMemo(() => attrezzatureQuery.data?.attrezzature ?? [], [attrezzatureQuery.data]);
-  const totalPages = Math.ceil(attrezzature.length / ITEMS_PER_PAGE);
+  
+  // Filtra attrezzature
+  const filteredAttrezzature = useMemo(() => {
+    let result = attrezzature;
+    
+    if (debouncedSearch) {
+      const searchLower = debouncedSearch.toLowerCase();
+      result = result.filter(attr => 
+        attr.name.toLowerCase().includes(searchLower) ||
+        attr.description?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    if (filterActive) {
+      const isActive = filterActive === "active";
+      result = result.filter(attr => attr.isActive === isActive);
+    }
+    
+    return result;
+  }, [attrezzature, debouncedSearch, filterActive]);
+  
+  const totalPages = Math.ceil(filteredAttrezzature.length / ITEMS_PER_PAGE);
   const paginatedAttrezzature = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return attrezzature.slice(start, start + ITEMS_PER_PAGE);
-  }, [attrezzature, currentPage]);
+    return filteredAttrezzature.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredAttrezzature, currentPage]);
+
+  // Reset pagina quando cambiano i filtri
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, filterActive]);
+
+  const hasFilters = searchQuery || filterActive;
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setFilterActive("");
+    setCurrentPage(1);
+  };
 
   // Reset del form
   const resetForm = () => {
@@ -246,19 +286,55 @@ const AdminAttrezzaturePage = () => {
           </div>
         </div>
         
+        {/* Filtri */}
+        <div className="table-filters">
+          <div className="table-filters__row">
+            <input
+              type="text"
+              placeholder="Cerca per nome o descrizione..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="table-filters__search"
+            />
+            <select
+              value={filterActive}
+              onChange={(e) => setFilterActive(e.target.value)}
+              className="table-filters__select"
+            >
+              <option value="">Tutti gli stati</option>
+              <option value="active">Solo attive</option>
+              <option value="inactive">Solo disattive</option>
+            </select>
+            {hasFilters && (
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={resetFilters}
+              >
+                Cancella filtri
+              </button>
+            )}
+          </div>
+          {hasFilters && (
+            <p className="table-filters__count">
+              {filteredAttrezzature.length} risultat{filteredAttrezzature.length === 1 ? "o" : "i"} su {attrezzature.length} totali
+            </p>
+          )}
+        </div>
+        
         {attrezzatureQuery.isLoading && (
           <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
             Caricamento...
           </div>
         )}
         
-        {!attrezzatureQuery.isLoading && attrezzature.length === 0 && (
+        {!attrezzatureQuery.isLoading && filteredAttrezzature.length === 0 && (
           <div style={{ padding: "2rem", textAlign: "center", color: "#64748b" }}>
-            Nessuna attrezzatura presente. Clicca "Aggiungi attrezzatura" per crearne una.
+            {hasFilters ? "Nessuna attrezzatura corrisponde ai filtri." : "Nessuna attrezzatura presente. Clicca \"Aggiungi attrezzatura\" per crearne una."}
           </div>
         )}
         
-        {!attrezzatureQuery.isLoading && attrezzature.length > 0 && (
+        {!attrezzatureQuery.isLoading && filteredAttrezzature.length > 0 && (
           <div className="admin-cards-grid">
             {paginatedAttrezzature.map((attr) => (
               <div 
@@ -309,7 +385,7 @@ const AdminAttrezzaturePage = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            totalItems={attrezzature.length}
+            totalItems={filteredAttrezzature.length}
             itemsPerPage={ITEMS_PER_PAGE}
           />
         )}

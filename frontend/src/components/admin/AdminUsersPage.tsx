@@ -4,6 +4,7 @@ import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
 import { useConfirmModal } from "../../hooks/useConfirmModal";
 import { useReferenceData } from "../../hooks/useOfflineCache";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
 import ConfirmModal from "../ui/ConfirmModal";
@@ -47,6 +48,11 @@ const AdminUsersPage = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Filtri
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterRole, setFilterRole] = useState<string>("");
+  const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
 
   const authorizedFetch = async <T,>(path: string, init?: RequestInit) => {
@@ -94,11 +100,44 @@ const AdminUsersPage = () => {
   }, [usersQuery.isError, usersQuery.error, pushAlert]);
 
   const users = useMemo(() => usersQuery.data?.users ?? [], [usersQuery.data]);
-  const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
+  
+  // Filtra utenti
+  const filteredUsers = useMemo(() => {
+    let result = users;
+    
+    if (debouncedSearch) {
+      const searchLower = debouncedSearch.toLowerCase();
+      result = result.filter(user => 
+        user.fullName?.toLowerCase().includes(searchLower) ||
+        user.email.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    if (filterRole) {
+      result = result.filter(user => user.role === filterRole);
+    }
+    
+    return result;
+  }, [users, debouncedSearch, filterRole]);
+  
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
   const paginatedUsers = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return users.slice(start, start + ITEMS_PER_PAGE);
-  }, [users, currentPage]);
+    return filteredUsers.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredUsers, currentPage]);
+
+  // Reset pagina quando cambiano i filtri
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, filterRole]);
+
+  const hasFilters = searchQuery || filterRole;
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setFilterRole("");
+    setCurrentPage(1);
+  };
 
   const resetForm = () => {
     setForm(emptyForm);
@@ -259,6 +298,45 @@ const AdminUsersPage = () => {
             <p>Elenco completo degli account con ruolo e ultimo accesso.</p>
           </div>
         </div>
+        
+        {/* Filtri */}
+        <div className="table-filters">
+          <div className="table-filters__row">
+            <input
+              type="text"
+              placeholder="Cerca per nome o email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="table-filters__search"
+            />
+            <select
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value)}
+              className="table-filters__select"
+            >
+              <option value="">Tutti i ruoli</option>
+              <option value="operaio">Tecnico</option>
+              <option value="impresa">Impresa</option>
+              <option value="responsabile">Responsabile</option>
+              <option value="admin">Admin</option>
+            </select>
+            {hasFilters && (
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={resetFilters}
+              >
+                Cancella filtri
+              </button>
+            )}
+          </div>
+          {hasFilters && (
+            <p className="table-filters__count">
+              {filteredUsers.length} risultat{filteredUsers.length === 1 ? "o" : "i"} su {users.length} totali
+            </p>
+          )}
+        </div>
+
         <div className="table-wrapper">
           <table>
             <thead>
@@ -276,9 +354,9 @@ const AdminUsersPage = () => {
                   <td colSpan={5}>Caricamento...</td>
                 </tr>
               )}
-              {!usersQuery.isLoading && users.length === 0 && (
+              {!usersQuery.isLoading && filteredUsers.length === 0 && (
                 <tr>
-                  <td colSpan={5}>Nessun utente presente.</td>
+                  <td colSpan={5}>{hasFilters ? "Nessun utente corrisponde ai filtri." : "Nessun utente presente."}</td>
                 </tr>
               )}
               {paginatedUsers.map((user) => {
@@ -316,7 +394,7 @@ const AdminUsersPage = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            totalItems={users.length}
+            totalItems={filteredUsers.length}
             itemsPerPage={ITEMS_PER_PAGE}
           />
         )}

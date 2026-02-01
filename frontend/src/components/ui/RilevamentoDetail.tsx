@@ -44,12 +44,10 @@ interface Rilevamento {
 interface RilevamentoDetailProps {
   rilevamento: Rilevamento;
   onClose: () => void;
-  showOperaio?: boolean;
   onDelete?: (id: string) => void;
-  showSensitive?: boolean;
 }
 
-const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete, showSensitive = true }: RilevamentoDetailProps) => {
+const RilevamentoDetail = ({ rilevamento, onClose, onDelete }: RilevamentoDetailProps) => {
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("it-IT", {
       weekday: "long",
@@ -123,7 +121,7 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete
           <span>Indietro</span>
         </button>
         <div className="intervento-detail__header-actions">
-          {onDelete && showSensitive && (
+          {onDelete && (
             <button type="button" className="intervento-detail__delete" onClick={() => onDelete(rilevamento.id)}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" strokeLinecap="round" strokeLinejoin="round" />
@@ -266,7 +264,7 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete
               )}
 
               {/* Posizione */}
-              {showSensitive && lat && lon && (
+              {lat && lon && (
                 <div className="info-card">
                   <h3 className="info-card__title">📍 Posizione</h3>
                   <p className="info-card__coords">{lat.toFixed(6)}, {lon.toFixed(6)}</p>
@@ -289,19 +287,17 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete
               <div className="info-card info-card--meta">
                 <h3 className="info-card__title">ℹ️ Informazioni</h3>
                 <div className="info-card__grid">
-                  {showOperaio && rilevamento.operaio && (
+                  {rilevamento.operaio && (
                     <div className="info-card__item">
                       <span className="info-card__label">Registrato da</span>
                       <span className="info-card__value">{rilevamento.operaio.full_name || rilevamento.operaio.email || "—"}</span>
                     </div>
                   )}
-                  {showSensitive && (
-                    <div className="info-card__item">
-                      <span className="info-card__label">Data inserimento</span>
-                      <span className="info-card__value">{formatTimestamp(rilevamento.submit_timestamp || rilevamento.created_at)}</span>
-                    </div>
-                  )}
-                  {showSensitive && rilevamento.submit_gps_lat && rilevamento.submit_gps_lon && (
+                  <div className="info-card__item">
+                    <span className="info-card__label">Data inserimento</span>
+                    <span className="info-card__value">{formatTimestamp(rilevamento.submit_timestamp || rilevamento.created_at)}</span>
+                  </div>
+                  {rilevamento.submit_gps_lat && rilevamento.submit_gps_lon && (
                     <div className="info-card__item">
                       <span className="info-card__label">GPS invio</span>
                       <span className="info-card__value info-card__value--mono">

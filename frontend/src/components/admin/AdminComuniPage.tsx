@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminAlerts } from "../../hooks/useAdminAlerts";
 import { useConfirmModal } from "../../hooks/useConfirmModal";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import AdminStatusBanner from "./AdminStatusBanner";
 import AdminActivityLog from "./AdminActivityLog";
 import ConfirmModal from "../ui/ConfirmModal";
@@ -43,6 +44,10 @@ const AdminComuniPage = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Filtri
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
   const authorizedFetch = async <T,>(path: string, init?: RequestInit) => {
     if (!tokens) {
@@ -89,11 +94,36 @@ const AdminComuniPage = () => {
   }, [comuniQuery.isError, comuniQuery.error, pushAlert]);
 
   const comuni = useMemo(() => comuniQuery.data?.comuni ?? [], [comuniQuery.data]);
-  const totalPages = Math.ceil(comuni.length / ITEMS_PER_PAGE);
+  
+  // Filtra comuni
+  const filteredComuni = useMemo(() => {
+    if (!debouncedSearch) return comuni;
+    
+    const searchLower = debouncedSearch.toLowerCase();
+    return comuni.filter(comune => 
+      comune.name.toLowerCase().includes(searchLower) ||
+      comune.province.toLowerCase().includes(searchLower) ||
+      comune.region.toLowerCase().includes(searchLower)
+    );
+  }, [comuni, debouncedSearch]);
+  
+  const totalPages = Math.ceil(filteredComuni.length / ITEMS_PER_PAGE);
   const paginatedComuni = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return comuni.slice(start, start + ITEMS_PER_PAGE);
-  }, [comuni, currentPage]);
+    return filteredComuni.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredComuni, currentPage]);
+
+  // Reset pagina quando cambiano i filtri
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
+  const hasFilters = searchQuery;
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setCurrentPage(1);
+  };
 
   const resetForm = () => {
     setForm(emptyForm);
@@ -199,6 +229,34 @@ const AdminComuniPage = () => {
             <p>Elenco completo dei comuni abilitati ai rilevamenti.</p>
           </div>
         </div>
+        
+        {/* Filtri */}
+        <div className="table-filters">
+          <div className="table-filters__row">
+            <input
+              type="text"
+              placeholder="Cerca per nome, provincia o regione..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="table-filters__search"
+            />
+            {hasFilters && (
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={resetFilters}
+              >
+                Cancella filtri
+              </button>
+            )}
+          </div>
+          {hasFilters && (
+            <p className="table-filters__count">
+              {filteredComuni.length} risultat{filteredComuni.length === 1 ? "o" : "i"} su {comuni.length} totali
+            </p>
+          )}
+        </div>
+
         <div className="table-wrapper">
           <table>
             <thead>
@@ -215,9 +273,9 @@ const AdminComuniPage = () => {
                   <td colSpan={4}>Caricamento...</td>
                 </tr>
               )}
-              {!comuniQuery.isLoading && comuni.length === 0 && (
+              {!comuniQuery.isLoading && filteredComuni.length === 0 && (
                 <tr>
-                  <td colSpan={4}>Nessun comune presente.</td>
+                  <td colSpan={4}>{hasFilters ? "Nessun comune corrisponde ai filtri." : "Nessun comune presente."}</td>
                 </tr>
               )}
               {paginatedComuni.map((comune) => (
@@ -250,7 +308,7 @@ const AdminComuniPage = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            totalItems={comuni.length}
+            totalItems={filteredComuni.length}
             itemsPerPage={ITEMS_PER_PAGE}
           />
         )}
