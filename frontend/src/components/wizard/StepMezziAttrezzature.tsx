@@ -5,6 +5,7 @@ import { useCallback, useMemo } from "react";
 import { WizardFormState } from "./InterventoWizard";
 import { ReferenceData } from "../../hooks/useOfflineCache";
 import { MezzoUtilizzo, AttrezzaturaUtilizzo } from "@shared/types";
+import NumberInput from "../ui/NumberInput";
 
 interface StepMezziAttrezzatureProps {
   formState: WizardFormState;
@@ -131,16 +132,16 @@ const StepMezziAttrezzature = ({
                   </button>
                   
                   {isSelected && (
-                    <div className="mezzo-card__ore">
+                    <div className="mezzo-card__ore" onClick={(e) => e.stopPropagation()}>
                       <label>Ore utilizzo:</label>
-                      <input
-                        type="number"
-                        min="0.5"
-                        max="24"
-                        step="0.5"
+                      <NumberInput
                         value={selected.oreUtilizzo}
-                        onChange={(e) => updateMezzoOre(mezzo.id, parseFloat(e.target.value) || 0)}
-                        onClick={(e) => e.stopPropagation()}
+                        onChange={(val) => updateMezzoOre(mezzo.id, Number(val) || 0)}
+                        min={0.5}
+                        max={24}
+                        step={0.5}
+                        unit="h"
+                        allowEmpty={false}
                       />
                     </div>
                   )}
@@ -194,16 +195,16 @@ const StepMezziAttrezzature = ({
                   </button>
                   
                   {isSelected && (
-                    <div className="mezzo-card__ore">
+                    <div className="mezzo-card__ore" onClick={(e) => e.stopPropagation()}>
                       <label>Ore utilizzo:</label>
-                      <input
-                        type="number"
-                        min="0.5"
-                        max="24"
-                        step="0.5"
+                      <NumberInput
                         value={selected.oreUtilizzo}
-                        onChange={(e) => updateAttrezzaturaOre(attrezzatura.id, parseFloat(e.target.value) || 0)}
-                        onClick={(e) => e.stopPropagation()}
+                        onChange={(val) => updateAttrezzaturaOre(attrezzatura.id, Number(val) || 0)}
+                        min={0.5}
+                        max={24}
+                        step={0.5}
+                        unit="h"
+                        allowEmpty={false}
                       />
                     </div>
                   )}

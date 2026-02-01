@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { OfflineRilevamento } from "@shared/types";
 import LoginForm from "./components/auth/LoginForm";
 import TecnicoDashboard from "./components/operaio/TecnicoDashboard";
+import TecnicoImpresePage from "./components/operaio/TecnicoImpresePage";
 import NuovoRilevamentoPage from "./components/operaio/NuovoRilevamentoPage";
 import MieiRilevamentiPage from "./components/operaio/MieiRilevamentiPage";
 import ImpresaDashboard from "./components/impresa/ImpresaDashboard";
@@ -183,6 +184,7 @@ const App = () => {
           {/* Rotte tecnico */}
           <Route element={<ProtectedRoute allowedRoles={["operaio"]} />}>
             <Route path="nuovo" element={<NuovoRilevamentoPage />} />
+            <Route path="imprese" element={<TecnicoImpresePage />} />
           </Route>
           {/* Rotte impresa */}
           <Route element={<ProtectedRoute allowedRoles={["impresa"]} />}>
@@ -192,21 +194,19 @@ const App = () => {
           <Route element={<ProtectedRoute allowedRoles={["operaio", "impresa"]} />}>
             <Route path="miei-rilevamenti" element={<MieiRilevamentiPage />} />
           </Route>
-          {/* Rotte admin - responsabili possono accedere alle pagine di monitoraggio, ma gestioni CRUD sono admin-only */}
+          {/* Rotte admin - responsabili hanno pieno accesso come admin */}
           <Route element={<ProtectedRoute allowedRoles={["admin", "responsabile"]} />}>
             <Route path="admin">
               <Route index element={<Navigate to="panoramica" replace />} />
               <Route path="panoramica" element={<AdminDashboard />} />
               <Route path="rilevamenti" element={<AdminRilevazioniPage />} />
-              <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-                <Route path="utenti" element={<AdminUsersPage />} />
-                <Route path="comuni" element={<AdminComuniPage />} />
-                <Route path="imprese" element={<AdminImpresePage />} />
-                <Route path="mezzi" element={<AdminMezziPage />} />
-                <Route path="attrezzature" element={<AdminAttrezzaturePage />} />
-                <Route path="tipi-lavorazione" element={<AdminTipiLavorazionePage />} />
-                <Route path="materiali-tubo" element={<AdminMaterialiTuboPage />} />
-              </Route>
+              <Route path="utenti" element={<AdminUsersPage />} />
+              <Route path="comuni" element={<AdminComuniPage />} />
+              <Route path="imprese" element={<AdminImpresePage />} />
+              <Route path="mezzi" element={<AdminMezziPage />} />
+              <Route path="attrezzature" element={<AdminAttrezzaturePage />} />
+              <Route path="tipi-lavorazione" element={<AdminTipiLavorazionePage />} />
+              <Route path="materiali-tubo" element={<AdminMaterialiTuboPage />} />
             </Route>
           </Route>
         </Route>

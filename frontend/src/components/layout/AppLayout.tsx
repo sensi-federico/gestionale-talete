@@ -4,6 +4,7 @@ import { useAuthStore } from "../../store/authStore";
 import { useLogout } from "../../hooks/useLogout";
 import OfflineSyncBanner from "../offline/OfflineSyncBanner";
 import GuidaModal from "../ui/GuidaModal";
+import ScrollToTopButton from "../ui/ScrollToTopButton";
 
 const basePath = import.meta.env.BASE_URL || "/";
 
@@ -227,6 +228,9 @@ const AppLayout = () => {
       
       {/* Guida Modal */}
       <GuidaModal isOpen={isGuidaOpen} onClose={closeGuida} />
+      
+      {/* Scroll to top button */}
+      <ScrollToTopButton />
     </div>
   );
 };

@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import PhotoCarousel from "./PhotoCarousel";
 
 interface Rilevamento {
   id: string;
@@ -11,12 +12,27 @@ interface Rilevamento {
   manual_lon: number | null;
   numero_operai: number;
   foto_url: string | null;
+  // Nuovi campi foto
+  foto_panoramica_url?: string | null;
+  foto_inizio_lavori_url?: string | null;
+  foto_intervento_url?: string | null;
+  foto_fine_lavori_url?: string | null;
   notes: string | null;
   rilevamento_date: string;
   rilevamento_time: string;
+  ora_fine?: string | null;
   materiale_tubo: string | null;
   diametro: string | null;
   altri_interventi: string | null;
+  // Nuovi campi tubo espansi
+  tubo_esistente_materiale?: string | null;
+  tubo_esistente_diametro?: string | null;
+  tubo_esistente_pn?: string | null;
+  tubo_esistente_profondita?: string | null;
+  tubo_nuovo_materiale?: string | null;
+  tubo_nuovo_diametro?: string | null;
+  tubo_nuovo_pn?: string | null;
+  tubo_nuovo_profondita?: string | null;
   submit_timestamp?: string | null;
   submit_gps_lat?: number | null;
   submit_gps_lon?: number | null;
@@ -88,6 +104,44 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete
   const lat = rilevamento.manual_lat || rilevamento.gps_lat;
   const lon = rilevamento.manual_lon || rilevamento.gps_lon;
 
+  // Build photos array for carousel
+  const photos = useMemo(() => {
+    const result: { url: string; label: string }[] = [];
+    
+    if (rilevamento.foto_panoramica_url) {
+      result.push({ url: rilevamento.foto_panoramica_url, label: "📷 Panoramica" });
+    }
+    if (rilevamento.foto_inizio_lavori_url) {
+      result.push({ url: rilevamento.foto_inizio_lavori_url, label: "🚧 Inizio Lavori" });
+    }
+    if (rilevamento.foto_intervento_url) {
+      result.push({ url: rilevamento.foto_intervento_url, label: "🔧 Intervento" });
+    }
+    if (rilevamento.foto_fine_lavori_url) {
+      result.push({ url: rilevamento.foto_fine_lavori_url, label: "✅ Fine Lavori" });
+    }
+    // Fallback to old single photo field
+    if (result.length === 0 && rilevamento.foto_url) {
+      result.push({ url: rilevamento.foto_url, label: "📷 Foto" });
+    }
+    
+    return result;
+  }, [rilevamento]);
+
+  // Check if we have any tubo esistente data
+  const hasTuboEsistente = rilevamento.tubo_esistente_materiale || 
+    rilevamento.tubo_esistente_diametro || 
+    rilevamento.tubo_esistente_pn || 
+    rilevamento.tubo_esistente_profondita ||
+    rilevamento.materiale_tubo || // Legacy field
+    rilevamento.diametro; // Legacy field
+
+  // Check if we have any tubo nuovo data
+  const hasTuboNuovo = rilevamento.tubo_nuovo_materiale || 
+    rilevamento.tubo_nuovo_diametro || 
+    rilevamento.tubo_nuovo_pn || 
+    rilevamento.tubo_nuovo_profondita;
+
   const handleBackClick = () => {
     onClose();
   };
@@ -96,11 +150,9 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete
     <div className="detail-page">
       {/* Contenuto scrollabile */}
       <div className="detail-page__content">
-        {/* Hero con foto */}
-        {rilevamento.foto_url && (
-          <div className="detail-page__hero">
-            <img src={rilevamento.foto_url} alt="Foto rilevamento" />
-          </div>
+        {/* Photo Carousel */}
+        {photos.length > 0 && (
+          <PhotoCarousel photos={photos} className="detail-page__carousel" />
         )}
 
         {/* Info principale */}
@@ -111,7 +163,11 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete
             </h2>
             <p className="detail-section__comune">{rilevamento.comune?.name}</p>
             <p className="detail-section__datetime">
-              📅 {formatDate(rilevamento.rilevamento_date)} alle {formatTime(rilevamento.rilevamento_time)}
+              📅 {formatDate(rilevamento.rilevamento_date)} 
+              {rilevamento.ora_fine 
+                ? ` dalle ${formatTime(rilevamento.rilevamento_time)} alle ${formatTime(rilevamento.ora_fine)}`
+                : ` alle ${formatTime(rilevamento.rilevamento_time)}`
+              }
             </p>
           </div>
         </section>
@@ -132,20 +188,74 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete
               <span className="detail-item__label">N° operai</span>
               <span className="detail-item__value">{rilevamento.numero_operai}</span>
             </div>
-            {rilevamento.materiale_tubo && (
-              <div className="detail-item">
-                <span className="detail-item__label">Materiale tubo</span>
-                <span className="detail-item__value">{rilevamento.materiale_tubo}</span>
-              </div>
-            )}
-            {rilevamento.diametro && (
-              <div className="detail-item">
-                <span className="detail-item__label">Diametro</span>
-                <span className="detail-item__value">{rilevamento.diametro}</span>
-              </div>
-            )}
           </div>
         </section>
+
+        {/* Tubo Esistente */}
+        {hasTuboEsistente && (
+          <section className="detail-section detail-section--tubo">
+            <h3 className="detail-section__title">🔧 Tubo Esistente</h3>
+            <div className="detail-grid detail-grid--tubo">
+              {(rilevamento.tubo_esistente_materiale || rilevamento.materiale_tubo) && (
+                <div className="detail-item">
+                  <span className="detail-item__label">Materiale</span>
+                  <span className="detail-item__value">{rilevamento.tubo_esistente_materiale || rilevamento.materiale_tubo}</span>
+                </div>
+              )}
+              {(rilevamento.tubo_esistente_diametro || rilevamento.diametro) && (
+                <div className="detail-item">
+                  <span className="detail-item__label">Diametro</span>
+                  <span className="detail-item__value">{rilevamento.tubo_esistente_diametro || rilevamento.diametro} mm</span>
+                </div>
+              )}
+              {rilevamento.tubo_esistente_pn && (
+                <div className="detail-item">
+                  <span className="detail-item__label">PN</span>
+                  <span className="detail-item__value">{rilevamento.tubo_esistente_pn}</span>
+                </div>
+              )}
+              {rilevamento.tubo_esistente_profondita && (
+                <div className="detail-item">
+                  <span className="detail-item__label">Profondità</span>
+                  <span className="detail-item__value">{rilevamento.tubo_esistente_profondita} cm</span>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Tubo Nuovo */}
+        {hasTuboNuovo && (
+          <section className="detail-section detail-section--tubo detail-section--tubo-nuovo">
+            <h3 className="detail-section__title">✨ Tubo Nuovo</h3>
+            <div className="detail-grid detail-grid--tubo">
+              {rilevamento.tubo_nuovo_materiale && (
+                <div className="detail-item">
+                  <span className="detail-item__label">Materiale</span>
+                  <span className="detail-item__value">{rilevamento.tubo_nuovo_materiale}</span>
+                </div>
+              )}
+              {rilevamento.tubo_nuovo_diametro && (
+                <div className="detail-item">
+                  <span className="detail-item__label">Diametro</span>
+                  <span className="detail-item__value">{rilevamento.tubo_nuovo_diametro} mm</span>
+                </div>
+              )}
+              {rilevamento.tubo_nuovo_pn && (
+                <div className="detail-item">
+                  <span className="detail-item__label">PN</span>
+                  <span className="detail-item__value">{rilevamento.tubo_nuovo_pn}</span>
+                </div>
+              )}
+              {rilevamento.tubo_nuovo_profondita && (
+                <div className="detail-item">
+                  <span className="detail-item__label">Profondità</span>
+                  <span className="detail-item__value">{rilevamento.tubo_nuovo_profondita} cm</span>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Altri interventi */}
         {rilevamento.altri_interventi && (
@@ -205,7 +315,7 @@ const RilevamentoDetail = ({ rilevamento, onClose, showOperaio = false, onDelete
                 </span>
               </div>
             )}
-            {showOperaio && rilevamento.submit_gps_lat && rilevamento.submit_gps_lon && (
+            {showSensitive && rilevamento.submit_gps_lat && rilevamento.submit_gps_lon && (
               <div className="detail-item">
                 <span className="detail-item__label">GPS al momento invio</span>
                 <span className="detail-item__value detail-item__value--mono">

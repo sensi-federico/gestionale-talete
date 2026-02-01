@@ -5869,3 +5869,707 @@ textarea.form-field__input {
   font-weight: 500;
 }
 
+/* ========================================
+   Photo Carousel
+   ======================================== */
+.photo-carousel {
+  position: relative;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.photo-carousel--empty {
+  background: #f1f5f9;
+}
+
+.photo-carousel__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 3rem 1rem;
+  color: #94a3b8;
+}
+
+.photo-carousel__placeholder-icon {
+  font-size: 2.5rem;
+  opacity: 0.5;
+}
+
+.photo-carousel__slider {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.photo-carousel__track {
+  display: flex;
+  will-change: transform;
+}
+
+.photo-carousel__slide {
+  flex: 0 0 100%;
+  position: relative;
+  cursor: zoom-in;
+}
+
+.photo-carousel__image {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.photo-carousel__label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Navigation arrows */
+.photo-carousel__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: opacity 0.2s, background 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.photo-carousel__nav:hover:not(:disabled) {
+  background: #fff;
+}
+
+.photo-carousel__nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.photo-carousel__nav svg {
+  width: 20px;
+  height: 20px;
+}
+
+.photo-carousel__nav--prev {
+  left: 8px;
+}
+
+.photo-carousel__nav--next {
+  right: 8px;
+}
+
+/* Hide arrows on mobile - use swipe */
+@media (max-width: 768px) {
+  .photo-carousel__nav {
+    display: none;
+  }
+}
+
+/* Dots indicator */
+.photo-carousel__dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.75rem;
+  background: #000;
+}
+
+.photo-carousel__dot {
+  width: 8px;
+  height: 8px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.photo-carousel__dot:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.photo-carousel__dot--active {
+  background: #fff;
+  transform: scale(1.2);
+}
+
+/* Thumbnails */
+.photo-carousel__thumbnails {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: #1e293b;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.photo-carousel__thumb {
+  flex: 0 0 60px;
+  height: 45px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s, border-color 0.2s;
+}
+
+.photo-carousel__thumb:hover {
+  opacity: 0.8;
+}
+
+.photo-carousel__thumb--active {
+  opacity: 1;
+  border-color: #3b82f6;
+}
+
+.photo-carousel__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Counter badge */
+.photo-carousel__counter {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 12px;
+  z-index: 5;
+}
+
+/* Fullscreen modal */
+.photo-carousel__fullscreen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+}
+
+.photo-carousel__fullscreen-image {
+  max-width: 95vw;
+  max-height: 90vh;
+  object-fit: contain;
+  cursor: default;
+}
+
+.photo-carousel__fullscreen-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-carousel__fullscreen-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.photo-carousel__fullscreen-close svg {
+  width: 24px;
+  height: 24px;
+}
+
+.photo-carousel__fullscreen-label {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.photo-carousel__fullscreen-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-carousel__fullscreen-nav:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.photo-carousel__fullscreen-nav svg {
+  width: 28px;
+  height: 28px;
+}
+
+.photo-carousel__fullscreen-nav--prev {
+  left: 1rem;
+}
+
+.photo-carousel__fullscreen-nav--next {
+  right: 1rem;
+}
+
+/* ========================================
+   Scroll To Top Button
+   ======================================== */
+.scroll-to-top-btn {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+  right: 1rem;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(28, 126, 214, 0.3);
+  z-index: 100;
+  animation: scrollBtnFadeIn 0.3s ease-out;
+}
+
+@keyframes scrollBtnFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scroll-to-top-btn:hover {
+  background: #1a6fc2;
+  transform: scale(1.05);
+}
+
+.scroll-to-top-btn:active {
+  transform: scale(0.95);
+}
+
+.scroll-to-top-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* ========================================
+   Detail Page Improvements
+   ======================================== */
+.detail-page__carousel {
+  margin: -1rem -1rem 1rem;
+  border-radius: 0;
+}
+
+@media (min-width: 768px) {
+  .detail-page__carousel {
+    margin: 0 0 1.5rem;
+    border-radius: 12px;
+  }
+  
+  .photo-carousel__image {
+    height: 350px;
+  }
+}
+
+/* Tubo sections in detail */
+.detail-section--tubo {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.detail-section--tubo-nuovo {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.detail-section--tubo .detail-section__title {
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.detail-grid--tubo {
+  gap: 0.5rem;
+}
+
+.detail-grid--tubo .detail-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.detail-grid--tubo .detail-item:last-child {
+  border-bottom: none;
+}
+
+/* ========================================
+   Tecnico Imprese Page
+   ======================================== */
+.tecnico-imprese-page {
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.tecnico-imprese-page__header {
+  margin-bottom: 1.5rem;
+}
+
+.tecnico-imprese-page__header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem;
+}
+
+.tecnico-imprese-page__header p {
+  color: #64748b;
+  margin: 0;
+}
+
+.tecnico-imprese-page__search {
+  margin-bottom: 1rem;
+}
+
+.search-input {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.search-input svg {
+  width: 20px;
+  height: 20px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.search-input input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  padding: 0;
+}
+
+.search-input input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.search-input__clear {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tecnico-imprese-page__loading,
+.tecnico-imprese-page__empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #64748b;
+}
+
+.tecnico-imprese-page__empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Imprese list */
+.imprese-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.impresa-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.impresa-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(28, 126, 214, 0.1);
+}
+
+.impresa-card--inactive {
+  opacity: 0.5;
+}
+
+.impresa-card__icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.impresa-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.impresa-card__name {
+  display: block;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.125rem;
+}
+
+.impresa-card__piva {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.impresa-card__chevron {
+  width: 20px;
+  height: 20px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* Impresa detail view */
+.tecnico-impresa-detail {
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.tecnico-impresa-detail__header {
+  margin-bottom: 1rem;
+}
+
+.tecnico-impresa-detail__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tecnico-impresa-detail__back svg {
+  width: 18px;
+  height: 18px;
+}
+
+.tecnico-impresa-detail__back:hover {
+  text-decoration: underline;
+}
+
+/* Impresa info card */
+.impresa-info-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.impresa-info-card__name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 1rem;
+}
+
+.impresa-info-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.impresa-info-card__item {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.impresa-info-card__label {
+  color: #64748b;
+  min-width: 70px;
+}
+
+.impresa-info-card__value {
+  color: #334155;
+}
+
+.impresa-info-card__link {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.impresa-info-card__link:hover {
+  text-decoration: underline;
+}
+
+/* Rilevamenti section */
+.tecnico-impresa-detail__section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 1rem;
+}
+
+.tecnico-impresa-detail__loading,
+.tecnico-impresa-detail__empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #64748b;
+}
+
+.tecnico-impresa-detail__empty-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+/* Rilevamenti list */
+.rilevamenti-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rilevamento-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.rilevamento-card:hover {
+  border-color: var(--color-primary);
+}
+
+.rilevamento-card__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.rilevamento-card__address {
+  display: block;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.95rem;
+  margin-bottom: 0.125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rilevamento-card__comune {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.rilevamento-card__meta {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.rilevamento-card__date {
+  display: block;
+  font-size: 0.8rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.rilevamento-card__tipo {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.125rem;
+}
+
+.rilevamento-card__chevron {
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+

@@ -178,13 +178,12 @@ const insertRilevamento = async (
 router.get("/", requireAuth(), async (req: AuthenticatedRequest, res: Response) => {
   const isResponsabile = req.user?.role === "responsabile";
 
-  const selectFull = `id, operaio_id, comune:comuni(name), impresa_id, impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, foto_panoramica_url, foto_inizio_lavori_url, foto_intervento_url, foto_fine_lavori_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, materiale_tubo, diametro, altri_interventi, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at`;
-
-  const selectLimited = `id, operaio_id, comune:comuni(name), impresa_id, impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, foto_panoramica_url, foto_inizio_lavori_url, foto_intervento_url, foto_fine_lavori_url, notes, materiale_tubo, diametro, altri_interventi, sync_status, created_at`;
+  // Base select - same for all roles
+  const selectColumns = `id, operaio_id, comune:comuni(name), impresa_id, impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, foto_panoramica_url, foto_inizio_lavori_url, foto_intervento_url, foto_fine_lavori_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, ora_fine, notes, materiale_tubo, diametro, altri_interventi, tubo_esistente_materiale, tubo_esistente_diametro, tubo_esistente_pn, tubo_esistente_profondita, tubo_nuovo_materiale, tubo_nuovo_diametro, tubo_nuovo_pn, tubo_nuovo_profondita, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at`;
 
   const query = supabaseAdmin
     .from("rilevamenti")
-    .select(isResponsabile ? selectLimited : selectFull)
+    .select(selectColumns)
     .order("created_at", { ascending: false });
 
   // Filtra per ruolo: operaio vede solo i suoi, impresa vede solo quelli della sua impresa

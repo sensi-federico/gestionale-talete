@@ -4,6 +4,7 @@
 import { useCallback } from "react";
 import { WizardFormState, TIPI_OPERAIO } from "./InterventoWizard";
 import { OperaioEntry } from "@shared/types";
+import NumberInput from "../ui/NumberInput";
 
 interface StepOperaiProps {
   formState: WizardFormState;
@@ -99,25 +100,27 @@ const StepOperai = ({ formState, updateField }: StepOperaiProps) => {
                   {/* Numero operai */}
                   <div className="form-group">
                     <label>Numero</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="50"
+                    <NumberInput
                       value={operaio.numero}
-                      onChange={(e) => updateOperaio(index, "numero", parseInt(e.target.value) || 1)}
+                      onChange={(val) => updateOperaio(index, "numero", Number(val) || 1)}
+                      min={1}
+                      max={50}
+                      step={1}
+                      allowEmpty={false}
                     />
                   </div>
 
                   {/* Ore lavoro */}
                   <div className="form-group">
                     <label>Ore</label>
-                    <input
-                      type="number"
-                      min="0.5"
-                      max="24"
-                      step="0.5"
+                    <NumberInput
                       value={operaio.oreLavoro}
-                      onChange={(e) => updateOperaio(index, "oreLavoro", parseFloat(e.target.value) || 0)}
+                      onChange={(val) => updateOperaio(index, "oreLavoro", Number(val) || 0)}
+                      min={0.5}
+                      max={24}
+                      step={0.5}
+                      unit="h"
+                      allowEmpty={false}
                     />
                   </div>
                 </div>
