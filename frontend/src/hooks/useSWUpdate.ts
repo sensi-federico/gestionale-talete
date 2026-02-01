@@ -1,39 +1,76 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { registerSW } from "virtual:pwa-register";
 
-// Intervallo di polling configurabile (default 5 minuti)
-const CHECK_INTERVAL = Number(import.meta.env.VITE_SW_CHECK_INTERVAL) || 300000;
+// Intervallo di polling configurabile (default 2 minuti per test, 5 minuti in prod)
+const CHECK_INTERVAL = Number(import.meta.env.VITE_SW_CHECK_INTERVAL) || 120000;
 
 export const useSWUpdate = () => {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const updateRef = useRef<((reloadPage?: boolean) => Promise<void>) | null>(null);
   const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
+  const hasCheckedRef = useRef(false);
 
   // Funzione per controllare manualmente gli aggiornamenti
-  const checkForUpdate = async () => {
+  const checkForUpdate = useCallback(async () => {
     try {
       const registration = await navigator.serviceWorker.getRegistration();
       if (registration) {
+        console.log("[SW] Controllo aggiornamenti...");
         await registration.update();
-        console.log("[SW] Controllo aggiornamenti completato");
+        
+        // Check if there's a waiting worker
+        if (registration.waiting) {
+          console.log("[SW] Worker in attesa trovato - aggiornamento disponibile!");
+          setUpdateAvailable(true);
+        }
       }
     } catch (error) {
       console.error("[SW] Errore controllo aggiornamenti:", error);
     }
-  };
+  }, []);
 
   useEffect(() => {
+    // Skip if no service worker support
+    if (!('serviceWorker' in navigator)) {
+      console.log("[SW] Service Worker non supportato");
+      return;
+    }
+
     const update = registerSW({
+      immediate: true,
       onNeedRefresh() {
-        console.log("[SW] Aggiornamento disponibile");
+        console.log("[SW] 🔄 onNeedRefresh chiamato - Aggiornamento disponibile!");
         setUpdateAvailable(true);
       },
       onRegistered(registration) {
-        console.log("[SW] Service Worker registrato");
+        console.log("[SW] ✅ Service Worker registrato", registration);
         registrationRef.current = registration || null;
+        
+        // Check immediately if there's already a waiting worker
+        if (registration?.waiting) {
+          console.log("[SW] Worker già in attesa all'avvio");
+          setUpdateAvailable(true);
+        }
+        
+        // Listen for new workers
+        if (registration) {
+          registration.addEventListener('updatefound', () => {
+            console.log("[SW] 🆕 Nuovo worker trovato");
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                console.log("[SW] Stato worker:", newWorker.state);
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log("[SW] Nuovo contenuto disponibile!");
+                  setUpdateAvailable(true);
+                }
+              });
+            }
+          });
+        }
       },
       onRegisterError(err: unknown) {
-        console.error("[SW] Errore registrazione:", err);
+        console.error("[SW] ❌ Errore registrazione:", err);
       },
     });
     updateRef.current = update;
@@ -59,7 +96,7 @@ export const useSWUpdate = () => {
       clearInterval(intervalId);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [checkForUpdate]);
 
   const applyUpdate = async () => {
     try {

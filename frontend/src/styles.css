@@ -2991,8 +2991,26 @@ textarea.form-field__input {
 /* Gallery */
 .detail-page__gallery {
   background: #000;
-  aspect-ratio: 16/10;
-  max-height: 300px;
+  width: 100%;
+}
+
+.detail-page__gallery .photo-carousel {
+  border-radius: 0;
+}
+
+.detail-page__gallery .photo-carousel__image {
+  width: 100%;
+  height: auto;
+  min-height: 200px;
+  max-height: 280px;
+  object-fit: cover;
+}
+
+@media (min-width: 768px) {
+  .detail-page__gallery .photo-carousel__image {
+    min-height: 280px;
+    max-height: 400px;
+  }
 }
 
 /* Body */
