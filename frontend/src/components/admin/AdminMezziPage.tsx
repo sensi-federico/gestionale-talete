@@ -46,6 +46,8 @@ const EMOJI_SUGGESTIONS = ["🚛", "🚐", "🚚", "🚜", "🚧", "🏗️", "�
 
 const AdminMezziPage = () => {
   const { tokens } = useAuthStore();
+  const currentRole = useAuthStore((s) => s.user?.role);
+  const canEdit = currentRole === "admin";
   const queryClient = useQueryClient();
   const { alerts, latestAlert, pushAlert } = useAdminAlerts();
   const confirmModal = useConfirmModal();
@@ -271,9 +273,11 @@ const AdminMezziPage = () => {
           <h1>Gestione mezzi di lavoro</h1>
           <p>Amministra i veicoli e macchinari disponibili per i rilevamenti.</p>
         </div>
-        <button type="button" className="button button--primary" onClick={openCreateForm}>
-          + Aggiungi mezzo
-        </button>
+        {canEdit && (
+          <button type="button" className="button button--primary" onClick={openCreateForm}>
+            + Aggiungi mezzo
+          </button>
+        )}
       </header>
 
       <AdminStatusBanner alert={latestAlert} />
@@ -354,26 +358,30 @@ const AdminMezziPage = () => {
                   {mezzo.isActive ? "✓ Attivo" : "Disattivo"}
                 </span>
                 <div className="admin-card-item__actions">
-                  <button 
-                    type="button" 
-                    className="btn btn--icon" 
-                    onClick={() => handleToggleActive(mezzo)}
-                    title={mezzo.isActive ? "Disattiva" : "Attiva"}
-                    style={{ background: mezzo.isActive ? "#fef2f2" : "#f0fdf4" }}
-                  >
-                    {mezzo.isActive ? "🔴" : "🟢"}
-                  </button>
-                  <button type="button" className="btn" onClick={() => handleEdit(mezzo)}>
-                    ✏️ Modifica
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn--danger"
-                    onClick={() => handleDelete(mezzo.id)}
-                    disabled={deletingId === mezzo.id}
-                  >
-                    {deletingId === mezzo.id ? "..." : "🗑️"}
-                  </button>
+                  {canEdit ? (
+                    <>
+                      <button 
+                        type="button" 
+                        className="btn btn--icon" 
+                        onClick={() => handleToggleActive(mezzo)}
+                        title={mezzo.isActive ? "Disattiva" : "Attiva"}
+                        style={{ background: mezzo.isActive ? "#fef2f2" : "#f0fdf4" }}
+                      >
+                        {mezzo.isActive ? "🔴" : "🟢"}
+                      </button>
+                      <button type="button" className="btn" onClick={() => handleEdit(mezzo)}>
+                        ✏️ Modifica
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--danger"
+                        onClick={() => handleDelete(mezzo.id)}
+                        disabled={deletingId === mezzo.id}
+                      >
+                        {deletingId === mezzo.id ? "..." : "🗑️"}
+                      </button>
+                    </>
+                  ) : null}
                 </div>
               </div>
             ))}

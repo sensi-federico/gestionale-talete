@@ -41,6 +41,8 @@ const ITEMS_PER_PAGE = 10;
 
 const AdminImpresePage = () => {
   const { tokens } = useAuthStore();
+  const currentRole = useAuthStore((s) => s.user?.role);
+  const canEdit = currentRole === "admin";
   const queryClient = useQueryClient();
   const { alerts, latestAlert, pushAlert } = useAdminAlerts();
   const confirmModal = useConfirmModal();
@@ -233,9 +235,11 @@ const AdminImpresePage = () => {
           <h1>Gestione imprese</h1>
           <p>Registra e aggiorna le aziende incaricate delle attività sul territorio.</p>
         </div>
-        <button type="button" className="button button--primary" onClick={openCreateForm}>
-          + Aggiungi impresa
-        </button>
+{canEdit && (
+          <button type="button" className="button button--primary" onClick={openCreateForm}>
+            + Aggiungi impresa
+          </button>
+        )}
       </header>
 
       <AdminStatusBanner alert={latestAlert} />
@@ -304,19 +308,23 @@ const AdminImpresePage = () => {
                   <td data-label="Email">{impresa.email ?? "—"}</td>
                   <td data-label="Telefono">{impresa.phone ?? "—"}</td>
                   <td data-label="Azione">
-                    <div className="table-actions">
-                      <button type="button" className="button button--ghost" onClick={() => handleEdit(impresa)}>
-                        Modifica
-                      </button>
-                      <button
-                        type="button"
-                        className="button button--danger"
-                        onClick={() => handleDelete(impresa.id)}
-                        disabled={deletingId === impresa.id}
-                      >
-                        {deletingId === impresa.id ? "Elimino..." : "Elimina"}
-                      </button>
-                    </div>
+                    {canEdit ? (
+                      <div className="table-actions">
+                        <button type="button" className="button button--ghost" onClick={() => handleEdit(impresa)}>
+                          Modifica
+                        </button>
+                        <button
+                          type="button"
+                          className="button button--danger"
+                          onClick={() => handleDelete(impresa.id)}
+                          disabled={deletingId === impresa.id}
+                        >
+                          {deletingId === impresa.id ? "Elimino..." : "Elimina"}
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-muted">—</span>
+                    )}
                   </td>
                 </tr>
               ))}

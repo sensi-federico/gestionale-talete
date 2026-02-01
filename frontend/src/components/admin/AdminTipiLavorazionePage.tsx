@@ -35,6 +35,8 @@ const ITEMS_PER_PAGE = 10;
 
 const AdminTipiLavorazionePage = () => {
   const { tokens } = useAuthStore();
+  const currentRole = useAuthStore((s) => s.user?.role);
+  const canEdit = currentRole === "admin";
   const queryClient = useQueryClient();
   const { alerts, latestAlert, pushAlert } = useAdminAlerts();
   const confirmModal = useConfirmModal();
@@ -224,9 +226,11 @@ const AdminTipiLavorazionePage = () => {
           <h1>Gestione tipi lavorazione</h1>
           <p>Amministra le tipologie di intervento disponibili nei rilevamenti.</p>
         </div>
-        <button type="button" className="button button--primary" onClick={openCreateForm}>
-          + Aggiungi tipo
-        </button>
+        {canEdit && (
+          <button type="button" className="button button--primary" onClick={openCreateForm}>
+            + Aggiungi tipo
+          </button>
+        )}
       </header>
 
       <AdminStatusBanner alert={latestAlert} />
@@ -292,17 +296,21 @@ const AdminTipiLavorazionePage = () => {
                   </div>
                 </div>
                 <div className="admin-card-item__actions">
-                  <button type="button" className="btn" onClick={() => handleEdit(tipo)}>
-                    ✏️ Modifica
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn--danger"
-                    onClick={() => handleDelete(tipo.id)}
-                    disabled={deletingId === tipo.id}
-                  >
-                    {deletingId === tipo.id ? "..." : "🗑️"}
-                  </button>
+                  {canEdit ? (
+                    <>
+                      <button type="button" className="btn" onClick={() => handleEdit(tipo)}>
+                        ✏️ Modifica
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--danger"
+                        onClick={() => handleDelete(tipo.id)}
+                        disabled={deletingId === tipo.id}
+                      >
+                        {deletingId === tipo.id ? "..." : "🗑️"}
+                      </button>
+                    </>
+                  ) : null}
                 </div>
               </div>
             ))}

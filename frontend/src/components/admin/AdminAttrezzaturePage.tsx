@@ -46,6 +46,8 @@ const EMOJI_SUGGESTIONS = ["🔨", "🪚", "🔧", "⚡", "💨", "🔩", "✨",
 
 const AdminAttrezzaturePage = () => {
   const { tokens } = useAuthStore();
+  const currentRole = useAuthStore((s) => s.user?.role);
+  const canEdit = currentRole === "admin";
   const queryClient = useQueryClient();
   const { alerts, latestAlert, pushAlert } = useAdminAlerts();
   const confirmModal = useConfirmModal();
@@ -271,9 +273,11 @@ const AdminAttrezzaturePage = () => {
           <h1>Gestione attrezzature</h1>
           <p>Amministra gli attrezzi e strumenti disponibili per i rilevamenti.</p>
         </div>
-        <button type="button" className="button button--primary" onClick={openCreateForm}>
-          + Aggiungi attrezzatura
-        </button>
+        {canEdit && (
+          <button type="button" className="button button--primary" onClick={openCreateForm}>
+            + Aggiungi attrezzatura
+          </button>
+        )}
       </header>
 
       <AdminStatusBanner alert={latestAlert} />
@@ -354,26 +358,30 @@ const AdminAttrezzaturePage = () => {
                   {attr.isActive ? "✓ Attiva" : "Disattiva"}
                 </span>
                 <div className="admin-card-item__actions">
-                  <button 
-                    type="button" 
-                    className="btn btn--icon" 
-                    onClick={() => handleToggleActive(attr)}
-                    title={attr.isActive ? "Disattiva" : "Attiva"}
-                    style={{ background: attr.isActive ? "#fef2f2" : "#f0fdf4" }}
-                  >
-                    {attr.isActive ? "🔴" : "🟢"}
-                  </button>
-                  <button type="button" className="btn" onClick={() => handleEdit(attr)}>
-                    ✏️ Modifica
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn--danger"
-                    onClick={() => handleDelete(attr.id)}
-                    disabled={deletingId === attr.id}
-                  >
-                    {deletingId === attr.id ? "..." : "🗑️"}
-                  </button>
+                  {canEdit ? (
+                    <>
+                      <button 
+                        type="button" 
+                        className="btn btn--icon" 
+                        onClick={() => handleToggleActive(attr)}
+                        title={attr.isActive ? "Disattiva" : "Attiva"}
+                        style={{ background: attr.isActive ? "#fef2f2" : "#f0fdf4" }}
+                      >
+                        {attr.isActive ? "🔴" : "🟢"}
+                      </button>
+                      <button type="button" className="btn" onClick={() => handleEdit(attr)}>
+                        ✏️ Modifica
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--danger"
+                        onClick={() => handleDelete(attr.id)}
+                        disabled={deletingId === attr.id}
+                      >
+                        {deletingId === attr.id ? "..." : "🗑️"}
+                      </button>
+                    </>
+                  ) : null}
                 </div>
               </div>
             ))}

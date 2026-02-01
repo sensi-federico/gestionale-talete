@@ -124,7 +124,7 @@ router.get(
   }
 );
 
-router.get("/users", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.get("/users", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   // Legge da public.users (sincronizzata con auth.users via trigger)
   // I responsabili possono recuperare solo gli utenti con ruolo "operaio" (tecnici)
   const isResponsabile = req.user?.role === "responsabile";
@@ -243,7 +243,7 @@ router.get("/comuni", requireAuth(["admin", "responsabile"]), async (_req: Reque
   return res.json({ comuni: data });
 });
 
-router.post("/comuni", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.post("/comuni", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = comuneSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -270,7 +270,7 @@ router.post("/comuni", requireAuth(["admin", "responsabile"]), async (req: Authe
   return res.status(201).json({ comune: data });
 });
 
-router.put("/comuni/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.put("/comuni/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = comuneSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -298,7 +298,7 @@ router.put("/comuni/:id", requireAuth(["admin", "responsabile"]), async (req: Au
   return res.json({ comune: data });
 });
 
-router.delete("/comuni/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/comuni/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const { error } = await supabaseAdmin.from("comuni").delete().eq("id", req.params.id);
   if (error) {
     logger.error("Errore eliminazione comune", { comuneId: req.params.id, message: error.message });
@@ -317,7 +317,7 @@ router.get("/imprese", requireAuth(["admin", "responsabile", "operaio"]), async 
   return res.json({ imprese: data });
 });
 
-router.post("/imprese", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.post("/imprese", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = impresaSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -346,7 +346,7 @@ router.post("/imprese", requireAuth(["admin", "responsabile"]), async (req: Auth
   return res.status(201).json({ impresa: data });
 });
 
-router.put("/imprese/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.put("/imprese/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = impresaSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -376,7 +376,7 @@ router.put("/imprese/:id", requireAuth(["admin", "responsabile"]), async (req: A
   return res.json({ impresa: data });
 });
 
-router.delete("/imprese/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/imprese/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const { error } = await supabaseAdmin.from("imprese").delete().eq("id", req.params.id);
   if (error) {
     logger.error("Errore eliminazione impresa", { impresaId: req.params.id, message: error.message });
@@ -414,7 +414,7 @@ router.get("/mezzi", requireAuth(["admin", "responsabile"]), async (_req: Reques
   return res.json({ mezzi });
 });
 
-router.post("/mezzi", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.post("/mezzi", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = mezzoSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -450,7 +450,7 @@ router.post("/mezzi", requireAuth(["admin", "responsabile"]), async (req: Authen
   });
 });
 
-router.put("/mezzi/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.put("/mezzi/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = mezzoSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -487,7 +487,7 @@ router.put("/mezzi/:id", requireAuth(["admin", "responsabile"]), async (req: Aut
   });
 });
 
-router.delete("/mezzi/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/mezzi/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const { error } = await supabaseAdmin.from("mezzi").delete().eq("id", req.params.id);
   if (error) {
     logger.error("Errore eliminazione mezzo", { mezzoId: req.params.id, message: error.message });
@@ -525,7 +525,7 @@ router.get("/attrezzature", requireAuth(["admin", "responsabile"]), async (_req:
   return res.json({ attrezzature });
 });
 
-router.post("/attrezzature", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.post("/attrezzature", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = attrezzaturaSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -561,7 +561,7 @@ router.post("/attrezzature", requireAuth(["admin", "responsabile"]), async (req:
   });
 });
 
-router.put("/attrezzature/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.put("/attrezzature/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = attrezzaturaSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -598,7 +598,7 @@ router.put("/attrezzature/:id", requireAuth(["admin", "responsabile"]), async (r
   });
 });
 
-router.delete("/attrezzature/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/attrezzature/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const { error } = await supabaseAdmin.from("attrezzature").delete().eq("id", req.params.id);
   if (error) {
     logger.error("Errore eliminazione attrezzatura", { attrezzaturaId: req.params.id, message: error.message });
@@ -626,7 +626,7 @@ router.get("/tipi-lavorazione", requireAuth(["admin", "responsabile"]), async (_
   return res.json({ tipiLavorazione: data });
 });
 
-router.post("/tipi-lavorazione", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.post("/tipi-lavorazione", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = tipoLavorazioneSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -652,7 +652,7 @@ router.post("/tipi-lavorazione", requireAuth(["admin", "responsabile"]), async (
   return res.status(201).json({ tipoLavorazione: data });
 });
 
-router.put("/tipi-lavorazione/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.put("/tipi-lavorazione/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = tipoLavorazioneSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -679,7 +679,7 @@ router.put("/tipi-lavorazione/:id", requireAuth(["admin", "responsabile"]), asyn
   return res.json({ tipoLavorazione: data });
 });
 
-router.delete("/tipi-lavorazione/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/tipi-lavorazione/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const { error } = await supabaseAdmin.from("tipi_lavorazione").delete().eq("id", req.params.id);
   if (error) {
     logger.error("Errore eliminazione tipo lavorazione", { tipoId: req.params.id, message: error.message });
@@ -716,7 +716,7 @@ router.get("/materiali-tubo", requireAuth(["admin", "responsabile"]), async (_re
   return res.json({ materialiTubo });
 });
 
-router.post("/materiali-tubo", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.post("/materiali-tubo", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = materialeTuboSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -750,7 +750,7 @@ router.post("/materiali-tubo", requireAuth(["admin", "responsabile"]), async (re
   });
 });
 
-router.put("/materiali-tubo/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.put("/materiali-tubo/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const result = materialeTuboSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = formatValidationError(result.error);
@@ -785,7 +785,7 @@ router.put("/materiali-tubo/:id", requireAuth(["admin", "responsabile"]), async 
   });
 });
 
-router.delete("/materiali-tubo/:id", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/materiali-tubo/:id", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const { error } = await supabaseAdmin.from("materiali_tubo").delete().eq("id", req.params.id);
   if (error) {
     logger.error("Errore eliminazione materiale tubo", { materialeId: req.params.id, message: error.message });
@@ -799,7 +799,7 @@ router.delete("/materiali-tubo/:id", requireAuth(["admin", "responsabile"]), asy
 // RILEVAMENTI (esistente)
 // ============================================================
 
-router.get("/rilevamenti", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.get("/rilevamenti", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   // Supporta filtri via query string
   const operaioId = req.query.operaioId as string | undefined;
   const comuneId = req.query.comuneId as string | undefined;
@@ -859,7 +859,7 @@ router.get("/rilevamenti", requireAuth(["admin", "responsabile"]), async (req: A
 });
 
 // Export CSV rilevamenti
-router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async (req: AuthenticatedRequest, res: Response) => {
+router.get("/rilevamenti/export", requireAuth(["admin"]), async (req: AuthenticatedRequest, res: Response) => {
   const operaioId = req.query.operaioId as string | undefined;
   const comuneId = req.query.comuneId as string | undefined;
   const impresaId = req.query.impresaId as string | undefined;
