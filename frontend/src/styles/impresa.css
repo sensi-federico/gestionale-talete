@@ -197,24 +197,60 @@
 }
 
 /* Schermata di avvio intervento impresa */
-.impresa-start {
+.impresa-start__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.impresa-start__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.impresa-start-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1.25rem;
+  z-index: 999;
 }
 
-.impresa-start__card {
+.impresa-start-modal {
   width: 100%;
   max-width: 520px;
   background: #ffffff;
   border-radius: 18px;
   padding: 1.75rem;
-  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.18);
   border: 1px solid #e2e8f0;
+}
+
+.impresa-start-modal__content {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.9rem;
   text-align: center;
+}
+
+.impresa-start-modal h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #0f172a;
+}
+
+.impresa-start-modal__text {
+  margin: 0;
+  color: #475569;
+  font-size: 0.95rem;
 }
 
 .impresa-start__cta {
@@ -233,22 +269,6 @@
   padding: 0.75rem 1rem;
   border-radius: 12px;
   font-size: 0.9rem;
-}
-
-.impresa-start__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.impresa-start__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: #475569;
 }
 
 /* Impresa List */

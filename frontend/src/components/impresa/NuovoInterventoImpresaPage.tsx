@@ -14,6 +14,7 @@ const NuovoInterventoImpresaPage = () => {
   const [startData, setStartData] = useState<StartMetadata | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
+  const [showStartModal, setShowStartModal] = useState(true);
 
   const capturePosition = useCallback((): Promise<GeolocationPosition | null> => {
     return new Promise((resolve) => {
@@ -44,53 +45,60 @@ const NuovoInterventoImpresaPage = () => {
     }
 
     setStartData({ startTimestamp: timestamp, startGpsLat: gpsLat, startGpsLon: gpsLon });
+    setShowStartModal(false);
     setIsStarting(false);
   }, [capturePosition]);
 
   const handleReset = useCallback(() => {
     setStartData(null);
     setStartError(null);
+    setShowStartModal(true);
   }, []);
-
-  if (!startData) {
-    return (
-      <div className="standalone-page impresa-start">
-        <div className="impresa-start__card">
-          <h1>Nuovo intervento</h1>
-          <p>Premi "INIZIA" per registrare l'orario e la posizione di avvio compilazione.</p>
-          {startError && <div className="impresa-start__alert">{startError}</div>}
-          <button
-            type="button"
-            className="button button--primary impresa-start__cta"
-            onClick={handleStart}
-            disabled={isStarting}
-          >
-            {isStarting ? "Attendi..." : "INIZIA"}
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="standalone-page">
-      <div className="impresa-start__toolbar">
-        <button type="button" className="button button--ghost" onClick={handleReset}>
-          ↺ Torna a "INIZIA"
-        </button>
-        <div className="impresa-start__meta">
-          <span>Avvio: {new Date(startData.startTimestamp).toLocaleString("it-IT", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}</span>
-          {startData.startGpsLat !== null && startData.startGpsLat !== undefined &&
-            startData.startGpsLon !== null && startData.startGpsLon !== undefined && (
-            <span>• GPS: {startData.startGpsLat.toFixed(5)}, {startData.startGpsLon.toFixed(5)}</span>
-          )}
+      {startData && (
+        <>
+          <div className="impresa-start__toolbar">
+            <div className="impresa-start__meta">
+              <span>Avvio: {new Date(startData.startTimestamp).toLocaleString("it-IT", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}</span>
+              {startData.startGpsLat !== null && startData.startGpsLat !== undefined &&
+                startData.startGpsLon !== null && startData.startGpsLon !== undefined && (
+                <span>• GPS: {startData.startGpsLat.toFixed(5)}, {startData.startGpsLon.toFixed(5)}</span>
+              )}
+            </div>
+            <button type="button" className="button button--ghost" onClick={handleReset}>
+              ↺ Reimposta inizio
+            </button>
+          </div>
+
+          <InterventoWizard 
+            isImpresa={true} 
+            startMetadata={startData}
+            onAfterSubmit={handleReset}
+          />
+        </>
+      )}
+
+      {showStartModal && (
+        <div className="impresa-start-modal__backdrop">
+          <div className="impresa-start-modal" role="dialog" aria-modal="true" aria-label="Inizio inserimento intervento">
+            <div className="impresa-start-modal__content">
+              <h2>Inizio intervento</h2>
+              <p className="impresa-start-modal__text">Premi per iniziare l'inserimento dell'intervento</p>
+              {startError && <div className="impresa-start__alert">{startError}</div>}
+              <button
+                type="button"
+                className="button button--primary impresa-start__cta"
+                onClick={handleStart}
+                disabled={isStarting}
+              >
+                {isStarting ? "Attendi..." : "INIZIA"}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-      <InterventoWizard 
-        isImpresa={true} 
-        startMetadata={startData}
-        onAfterSubmit={handleReset}
-      />
+      )}
     </div>
   );
 };
