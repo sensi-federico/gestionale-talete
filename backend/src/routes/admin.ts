@@ -869,7 +869,7 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
 
   const isResponsabile = req.user?.role === "responsabile";
 
-  const selectFull = `id, via, numero_civico, numero_operai, foto_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, notes, materiale_tubo, diametro, altri_interventi, start_timestamp, start_gps_lat, start_gps_lon, submit_timestamp, submit_gps_lat, submit_gps_lon, created_at,
+  const selectFull = `id, operaio_id, via, numero_civico, numero_operai, foto_url, foto_panoramica_url, foto_inizio_lavori_url, foto_intervento_url, foto_fine_lavori_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, ora_fine, notes, materiale_tubo, diametro, altri_interventi, tubo_esistente_materiale, tubo_esistente_diametro, tubo_esistente_pn, tubo_esistente_profondita, tubo_nuovo_materiale, tubo_nuovo_diametro, tubo_nuovo_pn, tubo_nuovo_profondita, start_timestamp, start_gps_lat, start_gps_lon, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at, updated_at,
       comune:comuni(name, province),
       impresa:imprese(name),
       tipo:tipi_lavorazione(name),
@@ -906,7 +906,8 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
   // Genera CSV (limitata se responsabile)
   const headersFull = [
     "Data Rilevamento",
-    "Ora Rilevamento", 
+    "Ora Rilevamento",
+    "Ora Fine",
     "Comune",
     "Provincia",
     "Via",
@@ -916,10 +917,19 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
     "Numero Operai",
     "Materiale Tubo",
     "Diametro",
+    "Tubo Esistente Materiale",
+    "Tubo Esistente Diametro",
+    "Tubo Esistente PN",
+    "Tubo Esistente Profondità",
+    "Tubo Nuovo Materiale",
+    "Tubo Nuovo Diametro",
+    "Tubo Nuovo PN",
+    "Tubo Nuovo Profondità",
     "Altri Interventi",
     "Note",
     "Operaio",
     "Email Operaio",
+    "ID Operaio",
     "GPS Lat",
     "GPS Lon",
     "Posizione Manuale Lat",
@@ -930,8 +940,14 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
     "Timestamp Invio",
     "GPS Invio Lat",
     "GPS Invio Lon",
-    "Foto URL",
-    "Data Creazione"
+    "Foto Panoramica URL",
+    "Foto Inizio Lavori URL",
+    "Foto Intervento URL",
+    "Foto Fine Lavori URL",
+    "Foto Legacy URL",
+    "Sync Status",
+    "Data Creazione",
+    "Data Aggiornamento"
   ];
 
   const headersLimited = [
@@ -985,6 +1001,7 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
     return [
       r.rilevamento_date,
       r.rilevamento_time,
+      r.ora_fine,
       (r.comune as { name?: string })?.name ?? "",
       (r.comune as { province?: string })?.province ?? "",
       r.via,
@@ -994,10 +1011,19 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
       r.numero_operai,
       r.materiale_tubo,
       r.diametro,
+      r.tubo_esistente_materiale,
+      r.tubo_esistente_diametro,
+      r.tubo_esistente_pn,
+      r.tubo_esistente_profondita,
+      r.tubo_nuovo_materiale,
+      r.tubo_nuovo_diametro,
+      r.tubo_nuovo_pn,
+      r.tubo_nuovo_profondita,
       r.altri_interventi,
       r.notes,
       (r.operaio as { full_name?: string })?.full_name ?? "",
       (r.operaio as { email?: string })?.email ?? "",
+      r.operaio_id,
       r.gps_lat,
       r.gps_lon,
       r.manual_lat,
@@ -1008,8 +1034,14 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
       r.submit_timestamp,
       r.submit_gps_lat,
       r.submit_gps_lon,
+      r.foto_panoramica_url,
+      r.foto_inizio_lavori_url,
+      r.foto_intervento_url,
+      r.foto_fine_lavori_url,
       r.foto_url,
-      r.created_at
+      r.sync_status,
+      r.created_at,
+      r.updated_at
     ].map(escapeCSV).join(",");
   });
 
