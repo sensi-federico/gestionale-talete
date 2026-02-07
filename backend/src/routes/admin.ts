@@ -4,6 +4,7 @@ import { requireAuth, AuthenticatedRequest } from "../middleware/auth.js";
 import { supabaseAdmin } from "../lib/supabaseClient.js";
 import { z, ZodError } from "zod";
 import { logger } from "../lib/logger.js";
+import ExcelJS from "exceljs";
 
 const router = Router();
 
@@ -903,7 +904,7 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
     return res.status(500).json({ message: error.message });
   }
 
-  // Genera CSV (limitata se responsabile)
+  // Genera Excel formattato
   const headersFull = [
     "Data Rilevamento",
     "Ora Rilevamento",
@@ -968,90 +969,138 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
     "Data Creazione"
   ];
 
-  const escapeCSV = (value: unknown): string => {
-    if (value === null || value === undefined) return "";
-    const str = String(value);
-    if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-      return `"${str.replace(/"/g, '""')}"`;
-    }
-    return str;
+  // Crea workbook Excel
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Rilevamenti');
+
+  // Definisci colonne con headers
+  const headers = isResponsabile ? headersLimited : headersFull;
+  worksheet.columns = headers.map(h => ({ 
+    header: h, 
+    key: h.toLowerCase().replace(/ /g, '_'), 
+    width: 15 
+  }));
+
+  // Stile header
+  const headerRow = worksheet.getRow(1);
+  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF0066CC' }
   };
+  headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+  headerRow.height = 30;
 
-  const rows = (data ?? []).map((r) => {
-    if (isResponsabile) {
-      return [
-        (r.comune as { name?: string })?.name ?? "",
-        (r.comune as { province?: string })?.province ?? "",
-        r.via,
-        r.numero_civico,
-        (r.tipo as { name?: string })?.name ?? "",
-        (r.impresa as { name?: string })?.name ?? "",
-        r.numero_operai,
-        r.materiale_tubo,
-        r.diametro,
-        r.altri_interventi,
-        r.notes,
-        (r.operaio as { full_name?: string })?.full_name ?? "",
-        (r.operaio as { email?: string })?.email ?? "",
-        r.foto_url,
-        r.created_at
-      ].map(escapeCSV).join(",");
-    }
-
-    return [
-      r.rilevamento_date,
-      r.rilevamento_time,
-      r.ora_fine,
+  // Aggiungi dati con formattazione
+  (data ?? []).forEach((r, index) => {
+    const rowData = isResponsabile ? [
       (r.comune as { name?: string })?.name ?? "",
       (r.comune as { province?: string })?.province ?? "",
-      r.via,
-      r.numero_civico,
+      r.via ?? "",
+      r.numero_civico ?? "",
       (r.tipo as { name?: string })?.name ?? "",
       (r.impresa as { name?: string })?.name ?? "",
-      r.numero_operai,
-      r.materiale_tubo,
-      r.diametro,
-      r.tubo_esistente_materiale,
-      r.tubo_esistente_diametro,
-      r.tubo_esistente_pn,
-      r.tubo_esistente_profondita,
-      r.tubo_nuovo_materiale,
-      r.tubo_nuovo_diametro,
-      r.tubo_nuovo_pn,
-      r.tubo_nuovo_profondita,
-      r.altri_interventi,
-      r.notes,
+      r.numero_operai ?? "",
+      r.materiale_tubo ?? "",
+      r.diametro ?? "",
+      r.altri_interventi ?? "",
+      r.notes ?? "",
       (r.operaio as { full_name?: string })?.full_name ?? "",
       (r.operaio as { email?: string })?.email ?? "",
-      r.operaio_id,
-      r.gps_lat,
-      r.gps_lon,
-      r.manual_lat,
-      r.manual_lon,
-      r.start_timestamp,
-      r.start_gps_lat,
-      r.start_gps_lon,
-      r.submit_timestamp,
-      r.submit_gps_lat,
-      r.submit_gps_lon,
-      r.foto_panoramica_url,
-      r.foto_inizio_lavori_url,
-      r.foto_intervento_url,
-      r.foto_fine_lavori_url,
-      r.foto_url,
-      r.sync_status,
-      r.created_at,
-      r.updated_at
-    ].map(escapeCSV).join(",");
+      r.foto_url ?? "",
+      r.created_at ?? ""
+    ] : [
+      r.rilevamento_date ?? "",
+      r.rilevamento_time ?? "",
+      r.ora_fine ?? "",
+      (r.comune as { name?: string })?.name ?? "",
+      (r.comune as { province?: string })?.province ?? "",
+      r.via ?? "",
+      r.numero_civico ?? "",
+      (r.tipo as { name?: string })?.name ?? "",
+      (r.impresa as { name?: string })?.name ?? "",
+      r.numero_operai ?? "",
+      r.materiale_tubo ?? "",
+      r.diametro ?? "",
+      r.tubo_esistente_materiale ?? "",
+      r.tubo_esistente_diametro ?? "",
+      r.tubo_esistente_pn ?? "",
+      r.tubo_esistente_profondita ?? "",
+      r.tubo_nuovo_materiale ?? "",
+      r.tubo_nuovo_diametro ?? "",
+      r.tubo_nuovo_pn ?? "",
+      r.tubo_nuovo_profondita ?? "",
+      r.altri_interventi ?? "",
+      r.notes ?? "",
+      (r.operaio as { full_name?: string })?.full_name ?? "",
+      (r.operaio as { email?: string })?.email ?? "",
+      r.operaio_id ?? "",
+      r.gps_lat ?? "",
+      r.gps_lon ?? "",
+      r.manual_lat ?? "",
+      r.manual_lon ?? "",
+      r.start_timestamp ?? "",
+      r.start_gps_lat ?? "",
+      r.start_gps_lon ?? "",
+      r.submit_timestamp ?? "",
+      r.submit_gps_lat ?? "",
+      r.submit_gps_lon ?? "",
+      r.foto_panoramica_url ?? "",
+      r.foto_inizio_lavori_url ?? "",
+      r.foto_intervento_url ?? "",
+      r.foto_fine_lavori_url ?? "",
+      r.foto_url ?? "",
+      r.sync_status ?? "",
+      r.created_at ?? "",
+      r.updated_at ?? ""
+    ];
+
+    const row = worksheet.addRow(rowData);
+    
+    // Colori alternati per righe (zebra striping)
+    if (index % 2 === 0) {
+      row.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFF8F9FA' }
+      };
+    }
+
+    // Bordi per tutte le celle
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+        left: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+        bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+        right: { style: 'thin', color: { argb: 'FFD0D0D0' } }
+      };
+      cell.alignment = { vertical: 'middle', wrapText: false };
+    });
   });
 
-  const csv = [(isResponsabile ? headersLimited : headersFull).join(","), ...rows].join("\n");
+  // Auto-width per colonne (minimo 12, massimo 50)
+  worksheet.columns.forEach(column => {
+    if (column && column.eachCell) {
+      let maxLength = 10;
+      column.eachCell({ includeEmpty: false }, (cell) => {
+        const cellValue = cell.value ? String(cell.value) : '';
+        maxLength = Math.max(maxLength, cellValue.length);
+      });
+      column.width = Math.min(Math.max(maxLength + 2, 12), 50);
+    }
+  });
 
-  res.setHeader("Content-Type", "text/csv; charset=utf-8");
-  res.setHeader("Content-Disposition", `attachment; filename="rilevamenti_${new Date().toISOString().split("T")[0]}.csv"`);
+  // Freeze header row
+  worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+
+  // Genera file Excel
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="rilevamenti_${new Date().toISOString().split("T")[0]}.xlsx"`);
   
-  logger.info("Export CSV generato", { rows: data?.length ?? 0 });
-  return res.send(csv);
+  await workbook.xlsx.write(res);
+  logger.info("Export Excel generato", { rows: data?.length ?? 0 });
+  return;
 });
 
 export default router;
