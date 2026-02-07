@@ -32,6 +32,9 @@ export const rilevamentoBaseSchema = z.object({
   altriInterventi: z.string().optional(),
   oraFine: z.string().optional(),
   // Campi nascosti per tracking
+  startTimestamp: z.string().optional(),
+  startGpsLat: z.number().min(-90).max(90).optional(),
+  startGpsLon: z.number().min(-180).max(180).optional(),
   submitTimestamp: z.string().optional(),
   submitGpsLat: z.number().min(-90).max(90).optional(),
   submitGpsLon: z.number().min(-180).max(180).optional()

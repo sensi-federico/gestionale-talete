@@ -37,6 +37,9 @@ interface Rilevamento {
   tubo_nuovo_diametro?: string | null;
   tubo_nuovo_pn?: string | null;
   tubo_nuovo_profondita?: string | null;
+  start_timestamp?: string | null;
+  start_gps_lat?: number | null;
+  start_gps_lon?: number | null;
   submit_timestamp: string | null;
   submit_gps_lat: number | null;
   submit_gps_lon: number | null;

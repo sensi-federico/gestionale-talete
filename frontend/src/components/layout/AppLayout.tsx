@@ -8,7 +8,12 @@ import ScrollToTopButton from "../ui/ScrollToTopButton";
 
 const basePath = import.meta.env.BASE_URL || "/";
 
-const AppLayout = () => {
+interface AppLayoutProps {
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
+}
+
+const AppLayout = ({ onRefresh, isRefreshing }: AppLayoutProps) => {
   const user = useAuthStore((state) => state.user);
   const logout = useLogout();
   const location = useLocation();
@@ -55,18 +60,30 @@ const AppLayout = () => {
             <img src={logoPath} alt="Talete Spa" className="app-brand-logo" />
             <span className="app-subtitle">Gestionale Interventi</span>
           </div>
-          <button
-            type="button"
-            className="app-header__toggle"
-            onClick={toggleNav}
-            aria-expanded={isNavOpen}
-            aria-controls="primary-navigation"
-            aria-label={isNavOpen ? "Chiudi il menu di navigazione" : "Apri il menu di navigazione"}
-          >
-            <span className="app-header__toggle-bar" />
-            <span className="app-header__toggle-bar" />
-            <span className="app-header__toggle-bar" />
-          </button>
+          <div className="app-header__actions">
+            <button
+              type="button"
+              className="app-header__refresh"
+              onClick={onRefresh}
+              disabled={!onRefresh || isRefreshing}
+              title="Ricarica app e sessione"
+            >
+              <span className="app-header__refresh-icon">↻</span>
+              <span>{isRefreshing ? "Aggiorno..." : "Aggiorna"}</span>
+            </button>
+            <button
+              type="button"
+              className="app-header__toggle"
+              onClick={toggleNav}
+              aria-expanded={isNavOpen}
+              aria-controls="primary-navigation"
+              aria-label={isNavOpen ? "Chiudi il menu di navigazione" : "Apri il menu di navigazione"}
+            >
+              <span className="app-header__toggle-bar" />
+              <span className="app-header__toggle-bar" />
+              <span className="app-header__toggle-bar" />
+            </button>
+          </div>
         </div>
         <div className={`app-header__collapsible${isNavOpen ? " is-open" : ""}`} id="primary-navigation">
           <nav className="app-header__nav">

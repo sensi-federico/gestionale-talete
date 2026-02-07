@@ -6,6 +6,7 @@ export interface LoginResponse {
     email: string;
     fullName: string;
     role: "operaio" | "admin" | "impresa" | "responsabile";
+    impresaId?: string;
   }; 
 }
 

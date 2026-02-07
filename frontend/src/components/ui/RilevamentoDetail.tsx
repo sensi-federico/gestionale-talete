@@ -31,6 +31,9 @@ interface Rilevamento {
   tubo_nuovo_diametro?: string | null;
   tubo_nuovo_pn?: string | null;
   tubo_nuovo_profondita?: string | null;
+  start_timestamp?: string | null;
+  start_gps_lat?: number | null;
+  start_gps_lon?: number | null;
   submit_timestamp?: string | null;
   submit_gps_lat?: number | null;
   submit_gps_lon?: number | null;
@@ -309,6 +312,21 @@ const RilevamentoDetail = ({ rilevamento, onClose, onDelete, onDownloadZip, isAd
                 <div className="rdp-card__field">
                   <span className="rdp-card__label">Registrato da</span>
                   <span className="rdp-card__value">{rilevamento.operaio.full_name || rilevamento.operaio.email || "—"}</span>
+                </div>
+              )}
+              {isAdmin && rilevamento.start_timestamp && (
+                <div className="rdp-card__field">
+                  <span className="rdp-card__label">Inizio inserimento</span>
+                  <span className="rdp-card__value">{formatTimestamp(rilevamento.start_timestamp)}</span>
+                </div>
+              )}
+              {isAdmin && rilevamento.start_gps_lat !== null && rilevamento.start_gps_lat !== undefined &&
+                rilevamento.start_gps_lon !== null && rilevamento.start_gps_lon !== undefined && (
+                <div className="rdp-card__field">
+                  <span className="rdp-card__label">GPS inizio</span>
+                  <code className="rdp-card__value" style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                    {rilevamento.start_gps_lat.toFixed(6)}, {rilevamento.start_gps_lon.toFixed(6)}
+                  </code>
                 </div>
               )}
               {isAdmin && (

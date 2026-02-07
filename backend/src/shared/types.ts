@@ -82,9 +82,12 @@ export interface RilevamentoBase {
   // Altri dettagli lavoro
   altriInterventi?: string;
   // Campi nascosti per tracking
-  submitTimestamp?: string;
-  submitGpsLat?: number;
-  submitGpsLon?: number;
+  startTimestamp?: string | null;
+  startGpsLat?: number | null;
+  startGpsLon?: number | null;
+  submitTimestamp?: string | null;
+  submitGpsLat?: number | null;
+  submitGpsLon?: number | null;
 }
 
 export interface Rilevamento extends RilevamentoBase {
@@ -93,6 +96,12 @@ export interface Rilevamento extends RilevamentoBase {
   syncStatus: "synced" | "pending" | "failed";
   createdAt: string;
   updatedAt: string;
+  startTimestamp?: string | null;
+  startGpsLat?: number | null;
+  startGpsLon?: number | null;
+  submitTimestamp?: string | null;
+  submitGpsLat?: number | null;
+  submitGpsLon?: number | null;
 }
 
 export interface OfflineRilevamento extends RilevamentoBase {

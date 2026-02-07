@@ -40,9 +40,9 @@ const HomeRoute = () => {
 };
 
 const App = () => {
-  const { user, tokens, restoreSession } = useAuthStore();
+  const { user, tokens, restoreSession, setSession } = useAuthStore();
   const { syncQueue } = useOfflineQueue();
-  const { showModal, applyUpdate, remindLater } = useSWUpdate();
+  const { showModal, applyUpdate, remindLater, checkForUpdate } = useSWUpdate();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -64,10 +64,35 @@ const App = () => {
     restoreSession();
   }, [restoreSession]);
 
+  const refreshSession = useCallback(async () => {
+    if (!tokens?.refreshToken) {
+      return;
+    }
+
+    try {
+      const refreshed = await api.refresh(tokens.refreshToken);
+      const nextUser = {
+        id: refreshed.user.id || user?.id || "",
+        email: refreshed.user.email || user?.email || "",
+        fullName: refreshed.user.fullName || user?.fullName || "",
+        role: refreshed.user.role || user?.role || "operaio",
+        impresaId: refreshed.user.impresaId ?? user?.impresaId
+      };
+      setSession(nextUser, {
+        accessToken: refreshed.accessToken,
+        refreshToken: refreshed.refreshToken
+      });
+    } catch (err) {
+      console.warn("[Refresh] Token refresh fallito", err);
+    }
+  }, [tokens?.refreshToken, setSession, user]);
+
   // Gestisce l'applicazione dell'aggiornamento con controllo dati offline
   const handleUpdate = useCallback(async () => {
     try {
       setIsUpdating(true);
+
+      await refreshSession();
 
       // Verifica se ci sono dati in coda offline
       const pendingCount = await offlineDB.pendingRilevamenti.count();
@@ -85,14 +110,21 @@ const App = () => {
         }
       }
 
-      // Applica l'aggiornamento
+      if (navigator.onLine) {
+        await checkForUpdate();
+      }
+
+      // Applica l'aggiornamento e forza il reload
       await applyUpdate();
+      window.location.reload();
     } catch (error) {
       console.error("[Update] Errore durante l'aggiornamento:", error);
       // In caso di errore, forza comunque il reload
       window.location.reload();
+    } finally {
+      setIsUpdating(false);
     }
-  }, [applyUpdate, syncQueue]);
+  }, [applyUpdate, checkForUpdate, refreshSession, syncQueue]);
 
   const processSync = useCallback(
     async (record: OfflineRilevamento) => {
@@ -112,6 +144,15 @@ const App = () => {
       formData.append("gpsLon", String(record.gpsLon));
       formData.append("manualLat", record.manualLat ? String(record.manualLat) : "");
       formData.append("manualLon", record.manualLon ? String(record.manualLon) : "");
+      if (record.startTimestamp) {
+        formData.append("startTimestamp", record.startTimestamp);
+      }
+      if (record.startGpsLat !== undefined && record.startGpsLat !== null) {
+        formData.append("startGpsLat", String(record.startGpsLat));
+      }
+      if (record.startGpsLon !== undefined && record.startGpsLon !== null) {
+        formData.append("startGpsLon", String(record.startGpsLon));
+      }
       formData.append("rilevamentoDate", record.rilevamentoDate);
       formData.append("rilevamentoTime", record.rilevamentoTime);
       if (record.notes) {
@@ -212,7 +253,7 @@ const App = () => {
       <Route path="/login" element={<LoginForm />} />
       {/* Pagine CON header/footer */}
       <Route element={<ProtectedRoute allowedRoles={["operaio", "admin", "impresa", "responsabile"]} />}>
-        <Route path="/" element={<AppLayout />}>
+        <Route path="/" element={<AppLayout onRefresh={handleUpdate} isRefreshing={isUpdating} />}>
           <Route index element={<HomeRoute />} />
           {/* Profilo - accessibile da tutti */}
           <Route path="profilo" element={<ProfilePage />} />

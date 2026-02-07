@@ -79,6 +79,9 @@ const insertRilevamento = async (
     rilevamento_date: payload.rilevamentoDate,
     rilevamento_time: payload.rilevamentoTime,
     notes: payload.notes ?? null,
+    start_timestamp: payload.startTimestamp ?? null,
+    start_gps_lat: payload.startGpsLat ?? null,
+    start_gps_lon: payload.startGpsLon ?? null,
     // Vecchi campi tubo (deprecati, per compatibilità)
     materiale_tubo: payload.materialeTubo ?? payload.tuboEsistente?.materiale ?? null,
     diametro: payload.diametro ?? payload.tuboEsistente?.diametro ?? null,
@@ -179,7 +182,7 @@ router.get("/", requireAuth(), async (req: AuthenticatedRequest, res: Response) 
   const isResponsabile = req.user?.role === "responsabile";
 
   // Base select - same for all roles
-  const selectColumns = `id, operaio_id, comune:comuni(name), impresa_id, impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, foto_panoramica_url, foto_inizio_lavori_url, foto_intervento_url, foto_fine_lavori_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, ora_fine, notes, materiale_tubo, diametro, altri_interventi, tubo_esistente_materiale, tubo_esistente_diametro, tubo_esistente_pn, tubo_esistente_profondita, tubo_nuovo_materiale, tubo_nuovo_diametro, tubo_nuovo_pn, tubo_nuovo_profondita, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at`;
+  const selectColumns = `id, operaio_id, comune:comuni(name), impresa_id, impresa:imprese(name), tipo:tipi_lavorazione(name), via, numero_civico, numero_operai, foto_url, foto_panoramica_url, foto_inizio_lavori_url, foto_intervento_url, foto_fine_lavori_url, gps_lat, gps_lon, manual_lat, manual_lon, rilevamento_date, rilevamento_time, ora_fine, notes, materiale_tubo, diametro, altri_interventi, tubo_esistente_materiale, tubo_esistente_diametro, tubo_esistente_pn, tubo_esistente_profondita, tubo_nuovo_materiale, tubo_nuovo_diametro, tubo_nuovo_pn, tubo_nuovo_profondita, start_timestamp, start_gps_lat, start_gps_lon, submit_timestamp, submit_gps_lat, submit_gps_lon, sync_status, created_at`;
 
   const query = supabaseAdmin
     .from("rilevamenti")
@@ -232,6 +235,9 @@ type RilevamentoRequestBody = {
   // Altri campi
   altriInterventi?: string;
   oraFine?: string;
+  startTimestamp?: string;
+  startGpsLat?: string;
+  startGpsLon?: string;
   submitTimestamp?: string;
   submitGpsLat?: string;
   submitGpsLon?: string;
@@ -259,6 +265,9 @@ router.post(
       gpsLon: Number(req.body.gpsLon),
       manualLat: req.body.manualLat ? Number(req.body.manualLat) : null,
       manualLon: req.body.manualLon ? Number(req.body.manualLon) : null,
+      startTimestamp: req.body.startTimestamp || undefined,
+      startGpsLat: req.body.startGpsLat ? Number(req.body.startGpsLat) : undefined,
+      startGpsLon: req.body.startGpsLon ? Number(req.body.startGpsLon) : undefined,
       submitGpsLat: req.body.submitGpsLat ? Number(req.body.submitGpsLat) : undefined,
       submitGpsLon: req.body.submitGpsLon ? Number(req.body.submitGpsLon) : undefined,
       oraFine: req.body.oraFine || undefined,

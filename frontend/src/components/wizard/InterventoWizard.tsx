@@ -1,7 +1,7 @@
 // InterventoWizard.tsx
 // Wizard multi-step per inserimento interventi (Tecnici e Imprese)
 
-import { useState, useCallback, useMemo, useRef, ChangeEvent } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { useReferenceData, useRefreshReferenceData } from "../../hooks/useOfflineCache";
@@ -40,6 +40,10 @@ const WIZARD_STEPS = [
 const getInitialFormState = () => {
   const now = new Date();
   return {
+    // Tracking inizio compilazione
+    startTimestamp: null as string | null,
+    startGpsLat: null as number | null,
+    startGpsLon: null as number | null,
     // Step 1 - Luogo
     comuneId: "",
     via: "",
@@ -91,9 +95,15 @@ export type WizardFormState = ReturnType<typeof getInitialFormState>;
 
 interface InterventoWizardProps {
   isImpresa?: boolean;
+  startMetadata?: {
+    startTimestamp: string;
+    startGpsLat?: number | null;
+    startGpsLon?: number | null;
+  };
+  onAfterSubmit?: () => void;
 }
 
-const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
+const InterventoWizard = ({ isImpresa = false, startMetadata, onAfterSubmit }: InterventoWizardProps) => {
   const navigate = useNavigate();
   const { tokens, user } = useAuthStore();
   const { addToQueue } = useOfflineQueue();
@@ -113,6 +123,17 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
   const [submitMessage, setSubmitMessage] = useState("");
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    if (startMetadata) {
+      setFormState((prev) => ({
+        ...prev,
+        startTimestamp: startMetadata.startTimestamp,
+        startGpsLat: startMetadata.startGpsLat ?? null,
+        startGpsLon: startMetadata.startGpsLon ?? null
+      }));
+    }
+  }, [startMetadata]);
 
   // Monitora connessione
   const handleOnline = useCallback(() => {
@@ -274,14 +295,19 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
 
   // Reset form
   const resetForm = useCallback(() => {
-    setFormState(getInitialFormState());
+    setFormState((prev) => ({
+      ...getInitialFormState(),
+      startTimestamp: startMetadata?.startTimestamp ?? prev.startTimestamp ?? null,
+      startGpsLat: startMetadata?.startGpsLat ?? prev.startGpsLat ?? null,
+      startGpsLon: startMetadata?.startGpsLon ?? prev.startGpsLon ?? null,
+    }));
     setCurrentStep(1);
     // Reset all file inputs
     if (fotoPanoramicaRef.current) fotoPanoramicaRef.current.value = "";
     if (fotoInizioLavoriRef.current) fotoInizioLavoriRef.current.value = "";
     if (fotoInterventoRef.current) fotoInterventoRef.current.value = "";
     if (fotoFineLavoriRef.current) fotoFineLavoriRef.current.value = "";
-  }, []);
+  }, [startMetadata]);
 
   // Submit offline
   const submitOffline = useCallback(async () => {
@@ -312,6 +338,9 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
       gpsLon: geolocation.position?.longitude ?? 0,
       manualLat: formState.manualLat,
       manualLon: formState.manualLon,
+      startTimestamp: formState.startTimestamp ?? new Date().toISOString(),
+      startGpsLat: formState.startGpsLat ?? geolocation.position?.latitude,
+      startGpsLon: formState.startGpsLon ?? geolocation.position?.longitude,
       rilevamentoDate: formState.rilevamentoDate,
       rilevamentoTime: formState.oraInizio,
       notes: formState.notes,
@@ -364,6 +393,10 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
     setSubmitStatus("loading");
 
     try {
+      const startTimestamp = formState.startTimestamp ?? new Date().toISOString();
+      const startGpsLat = formState.startGpsLat ?? geolocation.position?.latitude;
+      const startGpsLon = formState.startGpsLon ?? geolocation.position?.longitude;
+
       const formData = new FormData();
       formData.append("comuneId", formState.comuneId);
       formData.append("via", formState.via);
@@ -377,6 +410,13 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
       formData.append("manualLon", formState.manualLon ? String(formState.manualLon) : "");
       formData.append("rilevamentoDate", formState.rilevamentoDate);
       formData.append("rilevamentoTime", formState.oraInizio);
+      formData.append("startTimestamp", startTimestamp);
+      if (startGpsLat !== undefined && startGpsLat !== null) {
+        formData.append("startGpsLat", String(startGpsLat));
+      }
+      if (startGpsLon !== undefined && startGpsLon !== null) {
+        formData.append("startGpsLon", String(startGpsLon));
+      }
       
       if (formState.notes) formData.append("notes", formState.notes);
       if (formState.altriInterventi) formData.append("altriInterventi", formState.altriInterventi);
@@ -465,8 +505,11 @@ const InterventoWizard = ({ isImpresa = false }: InterventoWizardProps) => {
 
   const handleNewRilevamento = useCallback(() => {
     handleCloseModal();
+    if (onAfterSubmit) {
+      onAfterSubmit();
+    }
     window.scrollTo(0, 0);
-  }, [handleCloseModal]);
+  }, [handleCloseModal, onAfterSubmit]);
 
   const handleViewRilevamenti = useCallback(() => {
     handleCloseModal();

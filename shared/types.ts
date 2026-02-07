@@ -124,9 +124,12 @@ export interface RilevamentoBase {
   attrezzatureUtilizzo?: AttrezzaturaUtilizzo[];
   operai?: OperaioEntry[];
   // Campi nascosti per tracking
-  submitTimestamp?: string;
-  submitGpsLat?: number;
-  submitGpsLon?: number;
+  startTimestamp?: string | null;
+  startGpsLat?: number | null;
+  startGpsLon?: number | null;
+  submitTimestamp?: string | null;
+  submitGpsLat?: number | null;
+  submitGpsLon?: number | null;
   // Campi aggiuntivi per imprese (range orario)
   oraFine?: string;
 }
@@ -141,6 +144,12 @@ export interface Rilevamento extends RilevamentoBase {
   mezzi?: Array<Mezzo & { oreUtilizzo: number }>;
   attrezzature?: Array<Attrezzatura & { oreUtilizzo: number }>;
   operaiDettaglio?: OperaioEntry[];
+  startTimestamp?: string | null;
+  startGpsLat?: number | null;
+  startGpsLon?: number | null;
+  submitTimestamp?: string | null;
+  submitGpsLat?: number | null;
+  submitGpsLon?: number | null;
 }
 
 export interface OfflineRilevamento extends RilevamentoBase {
