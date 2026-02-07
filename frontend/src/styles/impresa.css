@@ -217,19 +217,18 @@
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   padding: 1.25rem;
   z-index: 999;
 }
 
 .impresa-start-modal {
   width: 100%;
-  max-width: 520px;
+  max-width: 640px;
   background: #ffffff;
   border-radius: 18px;
-  padding: 1.75rem;
+  padding: 2.1rem;
   box-shadow: 0 20px 55px rgba(15, 23, 42, 0.18);
   border: 1px solid #e2e8f0;
 }
@@ -237,29 +236,30 @@
 .impresa-start-modal__content {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 1.1rem;
   text-align: center;
+  align-items: center;
 }
 
 .impresa-start-modal h2 {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   color: #0f172a;
 }
 
 .impresa-start-modal__text {
   margin: 0;
-  color: #475569;
-  font-size: 0.95rem;
+  color: #334155;
+  font-size: 1.05rem;
 }
 
 .impresa-start__cta {
   width: 100%;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 0.9rem 1rem;
+  padding: 1rem 1.2rem;
 }
 
 .impresa-start__alert {

@@ -62,12 +62,15 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.6rem 0.95rem;
-  border-radius: 12px;
-  border: 1px solid rgba(28, 110, 185, 0.35);
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.55rem 1.05rem;
+  border-radius: 14px;
+  border: 1px solid rgba(28, 110, 185, 0.45);
   background: linear-gradient(135deg, #1c7ed6, #1864ab);
   color: #ffffff;
   font-weight: 700;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
@@ -95,6 +98,7 @@
 
 .app-header__refresh-icon {
   font-size: 1.05rem;
+  line-height: 1;
 }
 
 .app-header__brand {
