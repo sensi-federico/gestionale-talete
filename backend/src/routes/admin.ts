@@ -904,6 +904,76 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
     return res.status(500).json({ message: error.message });
   }
 
+  // Recupera dati aggiuntivi per admin: mezzi, attrezzature, operai
+  const mezziMap = new Map<string, string>();
+  const attrezzatureMap = new Map<string, string>();
+  const operaiMap = new Map<string, { specializzati: string; qualificati: string; comuni: string }>();
+
+  if (!isResponsabile && data.length > 0) {
+    const rilevamentoIds = data.map(r => r.id);
+
+    // Query mezzi con nomi
+    const { data: mezziData } = await supabaseAdmin
+      .from("rilevamenti_mezzi")
+      .select("rilevamento_id, ore_utilizzo, mezzi:mezzo_id(name)")
+      .in("rilevamento_id", rilevamentoIds);
+
+    // Query attrezzature con nomi
+    const { data: attrezzatureData } = await supabaseAdmin
+      .from("rilevamenti_attrezzature")
+      .select("rilevamento_id, ore_utilizzo, attrezzature:attrezzatura_id(name)")
+      .in("rilevamento_id", rilevamentoIds);
+
+    // Query operai
+    const { data: operaiData } = await supabaseAdmin
+      .from("rilevamenti_operai")
+      .select("rilevamento_id, tipo_operaio, numero, ore_lavoro")
+      .in("rilevamento_id", rilevamentoIds);
+
+    // Aggrega mezzi per rilevamento
+    if (mezziData) {
+      for (const m of mezziData) {
+        const rId = m.rilevamento_id;
+        const nome = (m.mezzi as any)?.name || "N/D";
+        const ore = m.ore_utilizzo;
+        const current = mezziMap.get(rId) || "";
+        mezziMap.set(rId, current ? `${current}, ${nome}: ${ore}h` : `${nome}: ${ore}h`);
+      }
+    }
+
+    // Aggrega attrezzature per rilevamento
+    if (attrezzatureData) {
+      for (const a of attrezzatureData) {
+        const rId = a.rilevamento_id;
+        const nome = (a.attrezzature as any)?.name || "N/D";
+        const ore = a.ore_utilizzo;
+        const current = attrezzatureMap.get(rId) || "";
+        attrezzatureMap.set(rId, current ? `${current}, ${nome}: ${ore}h` : `${nome}: ${ore}h`);
+      }
+    }
+
+    // Aggrega operai per rilevamento e tipo
+    if (operaiData) {
+      for (const o of operaiData) {
+        const rId = o.rilevamento_id;
+        const text = `${o.numero} operai - ${o.ore_lavoro}h`;
+        
+        if (!operaiMap.has(rId)) {
+          operaiMap.set(rId, { specializzati: "", qualificati: "", comuni: "" });
+        }
+        
+        const operaiInfo = operaiMap.get(rId)!;
+        if (o.tipo_operaio === "specializzato") {
+          operaiInfo.specializzati = text;
+        } else if (o.tipo_operaio === "qualificato") {
+          operaiInfo.qualificati = text;
+        } else if (o.tipo_operaio === "comune") {
+          operaiInfo.comuni = text;
+        }
+      }
+    }
+  }
+
   // Genera Excel formattato
   const headersFull = [
     "Data Rilevamento",
@@ -916,6 +986,11 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
     "Tipo Lavorazione",
     "Impresa",
     "Numero Operai",
+    "Mezzi e Ore",
+    "Attrezzature e Ore",
+    "Operai Specializzati",
+    "Operai Qualificati",
+    "Operai Comuni",
     "Materiale Tubo",
     "Diametro",
     "Tubo Esistente Materiale",
@@ -1021,6 +1096,11 @@ router.get("/rilevamenti/export", requireAuth(["admin", "responsabile"]), async 
       (r.tipo as { name?: string })?.name ?? "",
       (r.impresa as { name?: string })?.name ?? "",
       r.numero_operai ?? "",
+      mezziMap.get(r.id) ?? "",
+      attrezzatureMap.get(r.id) ?? "",
+      operaiMap.get(r.id)?.specializzati ?? "",
+      operaiMap.get(r.id)?.qualificati ?? "",
+      operaiMap.get(r.id)?.comuni ?? "",
       r.materiale_tubo ?? "",
       r.diametro ?? "",
       r.tubo_esistente_materiale ?? "",
