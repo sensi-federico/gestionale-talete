@@ -77,6 +77,17 @@
   transform: translateY(-1px);
 }
 
+.app-header__refresh:focus-visible {
+  outline: 3px solid rgba(28, 126, 214, 0.35);
+  outline-offset: 3px;
+}
+
+.app-header__refresh:active:enabled {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(24, 100, 171, 0.35);
+  filter: brightness(0.95);
+}
+
 .app-header__refresh:disabled {
   cursor: not-allowed;
   opacity: 0.7;

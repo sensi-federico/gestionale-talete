@@ -58,26 +58,11 @@ const NuovoInterventoImpresaPage = () => {
   return (
     <div className="standalone-page">
       {startData && (
-        <>
-          <div className="impresa-start__toolbar">
-            <div className="impresa-start__meta">
-              <span>Avvio: {new Date(startData.startTimestamp).toLocaleString("it-IT", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}</span>
-              {startData.startGpsLat !== null && startData.startGpsLat !== undefined &&
-                startData.startGpsLon !== null && startData.startGpsLon !== undefined && (
-                <span>• GPS: {startData.startGpsLat.toFixed(5)}, {startData.startGpsLon.toFixed(5)}</span>
-              )}
-            </div>
-            <button type="button" className="button button--ghost" onClick={handleReset}>
-              ↺ Reimposta inizio
-            </button>
-          </div>
-
-          <InterventoWizard 
-            isImpresa={true} 
-            startMetadata={startData}
-            onAfterSubmit={handleReset}
-          />
-        </>
+        <InterventoWizard 
+          isImpresa={true} 
+          startMetadata={startData}
+          onAfterSubmit={handleReset}
+        />
       )}
 
       {showStartModal && (
