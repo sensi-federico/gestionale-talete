@@ -76,12 +76,11 @@ const StepDocumenta = ({
 
     return (
       <div key={type} className="photo-area">
-        {/* Hidden file input */}
+        {/* Hidden file input - senza capture per permettere galleria */}
         <input
           type="file"
           ref={inputRef}
           accept="image/*"
-          capture="environment"
           style={{ display: "none" }}
           onChange={(e) => handleFileChange(e, type)}
         />

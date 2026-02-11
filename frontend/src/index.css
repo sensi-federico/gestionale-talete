@@ -13,6 +13,9 @@
 /* Main stylesheet (contains all current styles) */
 @import './styles.css';
 
+/* Layout styles (header, navigation, footer) */
+@import './styles/layout.css';
+
 /* 
  * Modular CSS files (for reference and gradual migration):
  * - /styles/base.css      - Variables, reset, animations

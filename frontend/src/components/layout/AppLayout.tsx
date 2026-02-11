@@ -68,7 +68,7 @@ const AppLayout = ({ onRefresh, isRefreshing }: AppLayoutProps) => {
               disabled={!onRefresh || isRefreshing}
               title="Ricarica app e sessione"
             >
-              <span className="app-header__refresh-icon">↻</span>
+              <span className={`app-header__refresh-icon${isRefreshing ? " is-spinning" : ""}`}>↻</span>
               <span>{isRefreshing ? "Aggiorno..." : "Aggiorna"}</span>
             </button>
             <button
